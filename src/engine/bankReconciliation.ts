@@ -746,6 +746,21 @@ export function extractEnterpriseTransactions(
   rows: string[][],
   config: ColumnConfig
 ): EnterpriseTransaction[] {
+  // ---- 第一遍扫描：检测 SAP 贷方列的符号惯例 ----
+  // 标准 SAP：贷方存正数（amount = -credit 变负 = 流出）
+  // 部分 SAP 导出：贷方存负数（amount = credit 直接保留负号 = 流出）
+  let creditNegCount = 0;
+  let creditPosCount = 0;
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row || row.every((c) => !c)) continue;
+    const creditVal = parseAmount(String(row[config.amount2Col] ?? '0'));
+    if (creditVal < 0) creditNegCount++;
+    else if (creditVal > 0) creditPosCount++;
+  }
+  // 如果超过一半的非零贷方为负数，说明 SAP 已预存经济符号
+  const creditIsSigned = creditNegCount > creditPosCount;
+
   const txns: EnterpriseTransaction[] = [];
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
@@ -769,9 +784,15 @@ export function extractEnterpriseTransactions(
       amount = debit;
       direction = '借方';
     } else if (credit !== 0) {
-      // 贷方正常为资金流出（负），冲销（贷方正数）为资金流入（正）
-      // -credit: 正常贷方 +500 → -500（流出）；冲销贷方 -200 → +200（流入）
-      amount = -credit;
+      if (creditIsSigned) {
+        // SAP 贷方已存负数（资金流出），直接用原值
+        // -66004.6 → amount=-66004.6（流出），冲销贷方 +200 → amount=+200（流入）
+        amount = credit;
+      } else {
+        // 标准 SAP：贷方存正数，需取反表示流出
+        // +500 → amount=-500（流出），冲销贷方 -200 → amount=+200（流入）
+        amount = -credit;
+      }
       direction = '貸方';
     } else {
       continue;
