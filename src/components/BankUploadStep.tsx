@@ -67,8 +67,6 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
   const isCombined = isBank && bankAmountMode === 'combined';
   const amount1Label = isBank ? (isCombined ? '金额列' : '收入列') : '借方列';
   const amount2Label = isBank ? '支出列' : '贷方列';
-  const amount1Color = 'bg-green-50 border-green-300';
-  const amount2Color = 'bg-red-50 border-red-300';
 
   const headers = rows.length > 0 ? rows[0] : [];
   const previewRows = rows.slice(1, 21); // 前 20 行预览

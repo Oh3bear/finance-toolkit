@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Upload, FileSearch, BarChart3, CheckCircle, ArrowRight } from 'lucide-react';
 import BankUploadStep from './BankUploadStep';
 import BankResultTable from './BankResultTable';

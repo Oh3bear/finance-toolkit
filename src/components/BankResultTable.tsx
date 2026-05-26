@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import * as XLSX from 'xlsx';
 import {
   Download,
@@ -278,8 +278,7 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
   // 渲染交易表格
   const renderTransactionTable = (
     title: string,
-    items: (BankTransaction | EnterpriseTransaction)[],
-    color: 'bank' | 'enterprise'
+    items: (BankTransaction | EnterpriseTransaction)[]
   ) => {
     if (items.length === 0) {
       return (
@@ -581,8 +580,7 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
                 </h3>
                 {renderTransactionTable(
                   '银行流水',
-                  current.unmatchedBank,
-                  'bank'
+                  current.unmatchedBank
                 )}
               </div>
 
@@ -594,8 +592,7 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
                 </h3>
                 {renderTransactionTable(
                   '企业账',
-                  current.unmatchedEnterprise,
-                  'enterprise'
+                  current.unmatchedEnterprise
                 )}
               </div>
             </div>
