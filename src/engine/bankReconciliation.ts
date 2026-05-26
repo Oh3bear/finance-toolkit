@@ -39,6 +39,34 @@ export interface MNMatchGroup {
   enterpriseSum: number;
 }
 
+/** 诊断信息：快速通道各方向求和结果 */
+export interface ReconDebugInfo {
+  bankIncomeCount: number;
+  bankIncomeSum: number;
+  bankExpenseCount: number;
+  bankExpenseSum: number;
+  entDebitCount: number;
+  entDebitSum: number;
+  entCreditCount: number;
+  entCreditSum: number;
+  /** 快速通道 收入↔借方 是否触发 */
+  fastTrackIncomeTriggered: boolean;
+  /** 快速通道 支出↔贷方 是否触发 */
+  fastTrackExpenseTriggered: boolean;
+  /** 收入-借方 差额（分），0=完美匹配 */
+  incomeDiffCents: number;
+  /** 支出-贷方 差额（分），0=完美匹配 */
+  expenseDiffCents: number;
+  /** 1:1 逐笔匹配对数 */
+  oneToOneMatched: number;
+  /** M:N 匹配组数 */
+  mnGroupsFound: number;
+  /** 银行剩余未对符 signed sum（元） */
+  bankUnmatchedSignedSum: number;
+  /** 企业剩余未对符 signed sum（元） */
+  entUnmatchedSignedSum: number;
+}
+
 /** 单个账户的核对结果 */
 export interface AccountResult {
   account: string;
@@ -54,6 +82,8 @@ export interface AccountResult {
   reversalPairsRemoved: number;
   /** 后处理：剩余未匹配项的 signed sum 均为 0 → 全是冲销残留 */
   remainingAreReversals: boolean;
+  /** 诊断信息：各阶段中间值，用于排查为什么快速通道未触发 */
+  debugInfo: ReconDebugInfo;
 }
 
 /** 整体核对结果 */
@@ -442,12 +472,20 @@ export function reconcile(
     const entDebit = entList.filter((t) => t.direction === '借方');
     const entCredit = entList.filter((t) => t.direction === '貸方');
 
+    // 诊断：各方向求和
+    const bankIncomeSum = bankIncome.reduce((s, t) => s + t.amount, 0);
+    const bankExpenseSum = bankExpense.reduce((s, t) => s + t.amount, 0);
+    const entDebitSum = entDebit.reduce((s, t) => s + t.amount, 0);
+    const entCreditSum = entCredit.reduce((s, t) => s + t.amount, 0);
+
+    let fastTrackIncomeTriggered = false;
+    let fastTrackExpenseTriggered = false;
+
     // 收入 ↔ 借方 快速对符
     // 语义：总额一致 → 全部对符，条数无需关心
     if (bankIncome.length > 0 && entDebit.length > 0) {
-      const bankIncomeSum = bankIncome.reduce((s, t) => s + t.amount, 0);
-      const entDebitSum = entDebit.reduce((s, t) => s + t.amount, 0);
       if (centsEqual(bankIncomeSum, entDebitSum)) {
+        fastTrackIncomeTriggered = true;
         // 生成展示用配对（按顺序 1:1，不管条数差异）
         const maxLen = Math.max(bankIncome.length, entDebit.length);
         for (let k = 0; k < maxLen; k++) {
@@ -473,9 +511,8 @@ export function reconcile(
 
     // 支出 ↔ 贷方 快速对符
     if (bankExpense.length > 0 && entCredit.length > 0) {
-      const bankExpenseSum = bankExpense.reduce((s, t) => s + t.amount, 0);
-      const entCreditSum = entCredit.reduce((s, t) => s + t.amount, 0);
       if (centsEqual(bankExpenseSum, entCreditSum)) {
+        fastTrackExpenseTriggered = true;
         const maxLen = Math.max(bankExpense.length, entCredit.length);
         for (let k = 0; k < maxLen; k++) {
           const bankItem = bankExpense[k % bankExpense.length];
@@ -531,6 +568,10 @@ export function reconcile(
       unmatchedEnterprise = unmatchedEnterprise.filter((_, i) => !mnUsedEnt.has(i));
     }
 
+    // 1:1 匹配前的 matched 计数 = 快速通道对数
+    const quickMatchCount = matched.filter((p) => p.quickMatch).length;
+    const oneToOneBefore = matched.length;
+
     // ---- Phase 3: 后处理验证 ----
     // 剩余未匹配 signed sum = 0 → 全是冲销残留（成对抵消，不影响余额）
     const remainingBankSum = unmatchedBank.reduce((s, t) => s + t.amount, 0);
@@ -539,17 +580,39 @@ export function reconcile(
       (unmatchedBank.length > 0 || unmatchedEnterprise.length > 0) &&
       centsEqual(remainingBankSum, 0) && centsEqual(remainingEntSum, 0);
 
+    // 诊断：计算差额（分）
+    const incomeDiffCents = Math.round(bankIncomeSum * 100) - Math.round(entDebitSum * 100);
+    const expenseDiffCents = Math.round(bankExpenseSum * 100) - Math.round(entCreditSum * 100);
+
     accountResults.push({
       account,
       matched,
       mnMatched: mnResult.groups,
       unmatchedBank,
       unmatchedEnterprise,
-      quickMatched: matched.filter((p) => p.quickMatch).length,
+      quickMatched: quickMatchCount,
       totalBank: bankList.length,
       totalEnterprise: origEntCount,
       reversalPairsRemoved: reversalPairCount,
       remainingAreReversals,
+      debugInfo: {
+        bankIncomeCount: bankIncome.length,
+        bankIncomeSum,
+        bankExpenseCount: bankExpense.length,
+        bankExpenseSum,
+        entDebitCount: entDebit.length,
+        entDebitSum,
+        entCreditCount: entCredit.length,
+        entCreditSum,
+        fastTrackIncomeTriggered,
+        fastTrackExpenseTriggered,
+        incomeDiffCents,
+        expenseDiffCents,
+        oneToOneMatched: oneToOneBefore - quickMatchCount,
+        mnGroupsFound: mnResult.groups.length,
+        bankUnmatchedSignedSum: remainingBankSum,
+        entUnmatchedSignedSum: remainingEntSum,
+      },
     });
   }
 

@@ -10,8 +10,11 @@ import {
   Link2,
   Info,
   Zap,
+  ChevronDown,
+  ChevronRight,
+  Bug,
 } from 'lucide-react';
-import type { BankReconResult, BankTransaction, EnterpriseTransaction, MNMatchGroup } from '../engine/bankReconciliation';
+import type { BankReconResult, BankTransaction, EnterpriseTransaction, MNMatchGroup, ReconDebugInfo } from '../engine/bankReconciliation';
 
 interface Props {
   result: BankReconResult;
@@ -166,6 +169,163 @@ function MNMatchCard({ group }: { group: MNMatchGroup }) {
           </table>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** 诊断面板：显示各阶段中间值，帮助排查为什么对符失败 */
+function DiagnosticsPanel({ debug }: { debug: ReconDebugInfo }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="border border-amber-300 rounded-lg overflow-hidden bg-amber-50/50">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full px-4 py-2.5 flex items-center gap-2 text-sm font-medium text-amber-800 hover:bg-amber-100 transition-colors"
+      >
+        <Bug className="w-4 h-4" />
+        对符诊断
+        {expanded ? (
+          <ChevronDown className="w-4 h-4 ml-auto" />
+        ) : (
+          <ChevronRight className="w-4 h-4 ml-auto" />
+        )}
+        <span className="text-xs text-amber-600 font-normal ml-2">
+          {!debug.fastTrackIncomeTriggered && !debug.fastTrackExpenseTriggered
+            ? '快速通道未触发'
+            : debug.fastTrackIncomeTriggered && debug.fastTrackExpenseTriggered
+            ? '快速通道全部触发'
+            : '快速通道部分触发'}
+        </span>
+      </button>
+      {expanded && (
+        <div className="px-4 pb-4 space-y-3 border-t border-amber-200">
+          {/* 银行侧 */}
+          <div>
+            <h4 className="text-xs font-semibold text-gray-600 mt-3 mb-1.5">银行流水</h4>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="bg-white border rounded px-2 py-1.5">
+                <span className="text-green-600 font-medium">收入</span>
+                <span className="text-gray-400 ml-1">({debug.bankIncomeCount}笔)</span>
+                <div className="font-mono text-gray-800 mt-0.5">
+                  ¥{debug.bankIncomeSum.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+                </div>
+              </div>
+              <div className="bg-white border rounded px-2 py-1.5">
+                <span className="text-red-600 font-medium">支出</span>
+                <span className="text-gray-400 ml-1">({debug.bankExpenseCount}笔)</span>
+                <div className="font-mono text-gray-800 mt-0.5">
+                  ¥{Math.abs(debug.bankExpenseSum).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 企业侧 */}
+          <div>
+            <h4 className="text-xs font-semibold text-gray-600 mb-1.5">企业账（Phase 0 冲销预处理后）</h4>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="bg-white border rounded px-2 py-1.5">
+                <span className="text-green-600 font-medium">借方</span>
+                <span className="text-gray-400 ml-1">({debug.entDebitCount}笔)</span>
+                <div className="font-mono text-gray-800 mt-0.5">
+                  ¥{debug.entDebitSum.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+                </div>
+              </div>
+              <div className="bg-white border rounded px-2 py-1.5">
+                <span className="text-red-600 font-medium">贷方</span>
+                <span className="text-gray-400 ml-1">({debug.entCreditCount}笔)</span>
+                <div className="font-mono text-gray-800 mt-0.5">
+                  ¥{Math.abs(debug.entCreditSum).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 快速通道判定 */}
+          <div>
+            <h4 className="text-xs font-semibold text-gray-600 mb-1.5">快速通道判定</h4>
+            <div className="space-y-1.5 text-xs">
+              <div className={`flex items-center gap-2 px-2 py-1.5 rounded border ${debug.fastTrackIncomeTriggered ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                {debug.fastTrackIncomeTriggered ? (
+                  <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                ) : (
+                  <AlertTriangle className="w-3.5 h-3.5 text-red-500" />
+                )}
+                <span className="font-medium">
+                  收入 ↔ 借方: {debug.fastTrackIncomeTriggered ? '已触发' : '未触发'}
+                </span>
+                {!debug.fastTrackIncomeTriggered && (
+                  <span className="text-red-600 ml-auto font-mono">
+                    差额 {debug.incomeDiffCents > 0 ? '+' : ''}{(debug.incomeDiffCents / 100).toFixed(2)} 元
+                    {debug.bankIncomeCount === 0 && ' (银行无收入)'}
+                    {debug.entDebitCount === 0 && ' (企业无借方)'}
+                  </span>
+                )}
+              </div>
+              <div className={`flex items-center gap-2 px-2 py-1.5 rounded border ${debug.fastTrackExpenseTriggered ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+                {debug.fastTrackExpenseTriggered ? (
+                  <CheckCircle className="w-3.5 h-3.5 text-green-600" />
+                ) : (
+                  <AlertTriangle className="w-3.5 h-3.5 text-red-500" />
+                )}
+                <span className="font-medium">
+                  支出 ↔ 贷方: {debug.fastTrackExpenseTriggered ? '已触发' : '未触发'}
+                </span>
+                {!debug.fastTrackExpenseTriggered && (
+                  <span className="text-red-600 ml-auto font-mono">
+                    差额 {debug.expenseDiffCents > 0 ? '+' : ''}{(debug.expenseDiffCents / 100).toFixed(2)} 元
+                    {debug.bankExpenseCount === 0 && ' (银行无支出)'}
+                    {debug.entCreditCount === 0 && ' (企业无贷方)'}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* 匹配统计 */}
+          <div>
+            <h4 className="text-xs font-semibold text-gray-600 mb-1.5">匹配统计</h4>
+            <div className="grid grid-cols-4 gap-2 text-xs text-center">
+              <div className="bg-white border rounded px-2 py-1.5">
+                <div className="font-bold text-teal-700">{debug.fastTrackIncomeTriggered ? debug.bankIncomeCount : 0}</div>
+                <div className="text-gray-500">快速通道(收↔借)</div>
+              </div>
+              <div className="bg-white border rounded px-2 py-1.5">
+                <div className="font-bold text-teal-700">{debug.fastTrackExpenseTriggered ? debug.bankExpenseCount : 0}</div>
+                <div className="text-gray-500">快速通道(支↔贷)</div>
+              </div>
+              <div className="bg-white border rounded px-2 py-1.5">
+                <div className="font-bold text-blue-700">{debug.oneToOneMatched}</div>
+                <div className="text-gray-500">1:1逐笔匹配</div>
+              </div>
+              <div className="bg-white border rounded px-2 py-1.5">
+                <div className="font-bold text-purple-700">{debug.mnGroupsFound}</div>
+                <div className="text-gray-500">M:N合并匹配</div>
+              </div>
+            </div>
+          </div>
+
+          {/* 剩余未对符 signed sum */}
+          <div>
+            <h4 className="text-xs font-semibold text-gray-600 mb-1.5">剩余未对符 signed sum</h4>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="bg-white border rounded px-2 py-1.5">
+                <span className="text-gray-500">银行</span>
+                <div className={`font-mono mt-0.5 ${Math.abs(debug.bankUnmatchedSignedSum) < 0.01 ? 'text-green-600' : 'text-amber-600'}`}>
+                  ¥{debug.bankUnmatchedSignedSum.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+              </div>
+              <div className="bg-white border rounded px-2 py-1.5">
+                <span className="text-gray-500">企业</span>
+                <div className={`font-mono mt-0.5 ${Math.abs(debug.entUnmatchedSignedSum) < 0.01 ? 'text-green-600' : 'text-amber-600'}`}>
+                  ¥{debug.entUnmatchedSignedSum.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -539,6 +699,11 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
                   企业未对符: <strong>{current.unmatchedEnterprise.length}</strong>
                 </span>
               </div>
+
+              {/* 诊断面板：显示为什么快速通道未触发 */}
+              {(current.unmatchedBank.length > 0 || current.unmatchedEnterprise.length > 0) && (
+                <DiagnosticsPanel debug={current.debugInfo} />
+              )}
 
               {/* M:N 匹配（可能合并处理） */}
               {current.mnMatched.length > 0 && (
