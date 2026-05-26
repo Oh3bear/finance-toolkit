@@ -5,3 +5,4 @@ Thumbs.db
 *.log
 .codebuddy/
 .workbuddy/
+push-to-github.ps1
