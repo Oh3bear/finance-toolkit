@@ -503,6 +503,95 @@ export function reconcileOneAccount(
     if (unmatchedBank.length + unmatchedEnterprise.length < 3) break;
   }
 
+  // ---- Phase 3.5: 方向整体匹配（兜底） ----
+  // 思路：1:N 迭代后，按方向（收入/支出）取较小方汇总作为 target，
+  //       在大方中找子集匹配。分方向避免了跨方向误配。
+  {
+    const wholeUsedB = new Set<number>();
+    const wholeUsedE = new Set<number>();
+
+    const bankIncomeIdx = unmatchedBank
+      .map((t, i) => (t.amount > 0 ? i : -1))
+      .filter((i) => i >= 0);
+    const entDebitIdx = unmatchedEnterprise
+      .map((t, i) => (t.amount > 0 && t.direction === '借方' ? i : -1))
+      .filter((i) => i >= 0);
+    const bankExpenseIdx = unmatchedBank
+      .map((t, i) => (t.amount < 0 ? i : -1))
+      .filter((i) => i >= 0);
+    const entCreditIdx = unmatchedEnterprise
+      .map((t, i) => (t.amount < 0 && t.direction === '貸方' ? i : -1))
+      .filter((i) => i >= 0);
+
+    // 收入方向
+    if (bankIncomeIdx.length >= 2 && entDebitIdx.length >= 2) {
+      if (bankIncomeIdx.length <= entDebitIdx.length) {
+        const target = bankIncomeIdx.reduce((s, i) => s + unmatchedBank[i].amount, 0);
+        const result = findSubsetSum(unmatchedEnterprise, entDebitIdx, target);
+        if (result) {
+          for (const bi of bankIncomeIdx) wholeUsedB.add(bi);
+          for (const ei of result) wholeUsedE.add(ei);
+          allMNGroups.push({
+            bankItems: bankIncomeIdx.map((i) => unmatchedBank[i]),
+            enterpriseItems: result.map((i) => unmatchedEnterprise[i]),
+            bankSum: target,
+            enterpriseSum: result.reduce((s, i) => s + unmatchedEnterprise[i].amount, 0),
+          });
+        }
+      } else {
+        const target = entDebitIdx.reduce((s, i) => s + unmatchedEnterprise[i].amount, 0);
+        const result = findSubsetSum(unmatchedBank, bankIncomeIdx, target);
+        if (result) {
+          for (const bi of result) wholeUsedB.add(bi);
+          for (const ei of entDebitIdx) wholeUsedE.add(ei);
+          allMNGroups.push({
+            bankItems: result.map((i) => unmatchedBank[i]),
+            enterpriseItems: entDebitIdx.map((i) => unmatchedEnterprise[i]),
+            bankSum: result.reduce((s, i) => s + unmatchedBank[i].amount, 0),
+            enterpriseSum: target,
+          });
+        }
+      }
+    }
+
+    // 支出方向
+    if (bankExpenseIdx.length >= 2 && entCreditIdx.length >= 2) {
+      if (bankExpenseIdx.length <= entCreditIdx.length) {
+        const target = bankExpenseIdx.reduce((s, i) => s + unmatchedBank[i].amount, 0);
+        const result = findSubsetSum(unmatchedEnterprise, entCreditIdx, target);
+        if (result) {
+          for (const bi of bankExpenseIdx) wholeUsedB.add(bi);
+          for (const ei of result) wholeUsedE.add(ei);
+          allMNGroups.push({
+            bankItems: bankExpenseIdx.map((i) => unmatchedBank[i]),
+            enterpriseItems: result.map((i) => unmatchedEnterprise[i]),
+            bankSum: target,
+            enterpriseSum: result.reduce((s, i) => s + unmatchedEnterprise[i].amount, 0),
+          });
+        }
+      } else {
+        const target = entCreditIdx.reduce((s, i) => s + unmatchedEnterprise[i].amount, 0);
+        const result = findSubsetSum(unmatchedBank, bankExpenseIdx, target);
+        if (result) {
+          for (const bi of result) wholeUsedB.add(bi);
+          for (const ei of entCreditIdx) wholeUsedE.add(ei);
+          allMNGroups.push({
+            bankItems: result.map((i) => unmatchedBank[i]),
+            enterpriseItems: entCreditIdx.map((i) => unmatchedEnterprise[i]),
+            bankSum: result.reduce((s, i) => s + unmatchedBank[i].amount, 0),
+            enterpriseSum: target,
+          });
+        }
+      }
+    }
+
+    // 剔除整体匹配已用的条目
+    if (wholeUsedB.size > 0 || wholeUsedE.size > 0) {
+      unmatchedBank = unmatchedBank.filter((_, i) => !wholeUsedB.has(i));
+      unmatchedEnterprise = unmatchedEnterprise.filter((_, i) => !wholeUsedE.has(i));
+    }
+  }
+
   // ---- Phase 4: 后处理验证 ----
   const quickMatchCount = matched.filter((p) => p.quickMatch).length;
   const oneToOneBefore = matched.length;
