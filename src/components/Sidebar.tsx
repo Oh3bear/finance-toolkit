@@ -207,7 +207,11 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
 
       {/* 底部 */}
       <div className="px-3 py-3 border-t border-gray-200 text-xs text-gray-400 text-center">
-        {!collapsed && <span>财务工具集 v1.0</span>}
+        {!collapsed && (
+          <div>
+            <div>财务工具集 v1.0</div>
+          </div>
+        )}
       </div>
     </aside>
   );

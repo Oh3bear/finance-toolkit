@@ -6,3 +6,4 @@ Thumbs.db
 .workbuddy/
 push-to-github.ps1
 dist/
+src/version.ts
