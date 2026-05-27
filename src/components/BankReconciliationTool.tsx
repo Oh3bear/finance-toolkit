@@ -3,11 +3,11 @@ import { Upload, FileSearch, BarChart3, CheckCircle, ArrowRight } from 'lucide-r
 import BankUploadStep from './BankUploadStep';
 import BankResultTable from './BankResultTable';
 import {
-  reconcile,
+  reconcileStream,
   extractBankTransactions,
   extractEnterpriseTransactions,
 } from '../engine/bankReconciliation';
-import type { ColumnConfig, BankReconResult } from '../engine/bankReconciliation';
+import type { ColumnConfig, BankReconResult, BankReconSummary, AccountResult } from '../engine/bankReconciliation';
 
 type Step = 1 | 2 | 3;
 
@@ -56,38 +56,92 @@ export default function BankReconciliationTool() {
     setProgress(0);
     setProgressText('正在提取银行流水交易...');
 
-    // 让 UI 先更新
     await delay(50);
 
     // 提取交易
     const bankTxns = extractBankTransactions(bankData.rows, bankData.config);
-    setProgress(30);
+    setProgress(15);
     setProgressText(`已提取 ${bankTxns.length} 笔银行流水`);
 
-    await delay(50);
+    await delay(30);
 
     const entTxns = extractEnterpriseTransactions(enterpriseData.rows, enterpriseData.config);
-    setProgress(60);
-    setProgressText(`已提取 ${entTxns.length} 笔企业账，正在逐账户核对...`);
+    setProgress(30);
+    setProgressText(`已提取 ${entTxns.length} 笔企业账，开始逐账户核对...`);
 
-    await delay(50);
+    await delay(30);
 
-    // 执行核对
-    const reconResult = reconcile(bankTxns, entTxns);
-    setProgress(100);
-    const statusParts: string[] = [];
-    if (reconResult.summary.warning) {
-      statusParts.push(`⚠ ${reconResult.summary.warning.split('。')[0]}`);
-    } else {
-      statusParts.push(`${reconResult.summary.totalAccounts} 个账户`);
-      statusParts.push(`${reconResult.summary.hasUnmatched} 个有未对符`);
+    // 静态汇总字段（在整个核对过程中不变）
+    const allBankAccounts = [...new Set(bankTxns.map((t) => t.account))].sort();
+    const allEntAccounts = [...new Set(entTxns.map((t) => t.account))].sort();
+    const overlap = allBankAccounts.filter((a) => allEntAccounts.includes(a));
+    const skippedBank = allBankAccounts.filter((a) => !allEntAccounts.includes(a));
+    const skippedEnt = allEntAccounts.filter((a) => !allBankAccounts.includes(a));
+    const baseProgress = 30; // 提取阶段占 30%，核对阶段占 70%
+
+    // 辅助：构建临时 summary
+    function buildInterimSummary(
+      accResults: AccountResult[],
+    ): BankReconSummary {
+      return {
+        totalAccounts: accResults.length,
+        fullyMatched: accResults.filter((r) => r.unmatchedBank.length === 0 && r.unmatchedEnterprise.length === 0 && r.totalBank > 0).length,
+        hasUnmatched: accResults.filter((r) => r.unmatchedBank.length > 0 || r.unmatchedEnterprise.length > 0).length,
+        totalUnmatchedBank: accResults.reduce((s, r) => s + r.unmatchedBank.length, 0),
+        totalUnmatchedEnterprise: accResults.reduce((s, r) => s + r.unmatchedEnterprise.length, 0),
+        totalMNMatched: accResults.reduce((s, r) => s + r.mnMatched.length, 0),
+        quickMatchedAccounts: accResults.filter((r) => r.quickMatched > 0 && r.unmatchedBank.length === 0 && r.unmatchedEnterprise.length === 0).length,
+        bankTxCount: bankTxns.length,
+        enterpriseTxCount: entTxns.length,
+        bankAccounts: allBankAccounts,
+        enterpriseAccounts: allEntAccounts,
+        overlapAccounts: overlap,
+        skippedBankOnly: skippedBank,
+        skippedEntOnly: skippedEnt,
+        warning: null,
+      };
     }
-    setProgressText(`核对完成：${statusParts.join('，')}`);
 
-    await delay(300);
-    setResult(reconResult);
+    // 流式核对
+    let totalAccounts = 0;
+    const assembledAccounts: BankReconResult['accounts'] = [];
+
+    for await (const event of reconcileStream(bankTxns, entTxns)) {
+      if (event.type === 'account') {
+        totalAccounts = event.totalAccounts;
+        assembledAccounts.push(event.result);
+
+        // 更新进度和文本
+        const pct = baseProgress + Math.round((assembledAccounts.length / totalAccounts) * 70);
+        setProgress(pct);
+        setProgressText(`核对中 ${assembledAccounts.length}/${totalAccounts} · ${event.result.account}`);
+
+        // 第一个账户结果到达时切换到结果页
+        if (assembledAccounts.length === 1) {
+          setStep(3);
+        }
+
+        // 实时更新部分结果
+        setResult({
+          accounts: [...assembledAccounts],
+          summary: buildInterimSummary(assembledAccounts),
+        });
+      } else if (event.type === 'summary') {
+        setProgress(100);
+        const statusParts: string[] = [];
+        if (event.result.summary.warning) {
+          statusParts.push(`⚠ ${event.result.summary.warning.split('。')[0]}`);
+        } else {
+          statusParts.push(`${event.result.summary.totalAccounts} 个账户`);
+          statusParts.push(`${event.result.summary.hasUnmatched} 个有未对符`);
+        }
+        setProgressText(`核对完成：${statusParts.join('，')}`);
+        setResult(event.result);
+      }
+    }
+
+    await delay(200);
     setProcessing(false);
-    setStep(3);
   };
 
   const handleReset = () => {

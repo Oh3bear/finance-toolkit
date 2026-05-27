@@ -176,7 +176,7 @@ function centsEqual(a: number, b: number): boolean {
 // ---- 主函数 ----
 
 /** M:N 子集求和：渐进式候选上限（从小到大，边匹配边缩减池子） */
-const MN_CANDIDATE_PASSES = [10, 20, 30, 40, 50, 80, Infinity];
+const MN_CANDIDATE_PASSES = [5, 8, 12, 16, 20, 30, Infinity];
 
 /**
  * 对剩余未匹配项做 M:N 子集求和匹配，支持双向：
@@ -190,7 +190,8 @@ const MN_CANDIDATE_PASSES = [10, 20, 30, 40, 50, 80, Infinity];
  */
 function findMNMatches(
   unmatchedBank: BankTransaction[],
-  unmatchedEnterprise: EnterpriseTransaction[]
+  unmatchedEnterprise: EnterpriseTransaction[],
+  maxDepth: number = 12,
 ): { groups: MNMatchGroup[]; usedBankIdx: Set<number>; usedEntIdx: Set<number> } {
   const groups: MNMatchGroup[] = [];
   const usedBankIdx = new Set<number>();
@@ -231,7 +232,7 @@ function findMNMatches(
         selectedIdx = candidates.map((c) => c.idx);
       }
 
-      const idxSet = findSubsetSum(unmatchedBank, selectedIdx, target);
+      const idxSet = findSubsetSum(unmatchedBank, selectedIdx, target, maxDepth);
       if (idxSet) {
         for (const bi of idxSet) usedBankIdx.add(bi);
         usedEntIdx.add(ei);
@@ -274,7 +275,7 @@ function findMNMatches(
         selectedIdx = candidates.map((c) => c.idx);
       }
 
-      const idxSet = findSubsetSum(unmatchedEnterprise, selectedIdx, target);
+      const idxSet = findSubsetSum(unmatchedEnterprise, selectedIdx, target, maxDepth);
       if (idxSet) {
         for (const ei of idxSet) usedEntIdx.add(ei);
         usedBankIdx.add(bi);
@@ -300,7 +301,8 @@ function findMNMatches(
 function findSubsetSum<T extends { amount: number }>(
   allItems: T[],
   candidates: number[],
-  target: number
+  target: number,
+  maxDepth: number = 12,
 ): number[] | null {
   const targetCents = Math.round(target * 100);
   const isPositive = targetCents > 0;
@@ -315,13 +317,13 @@ function findSubsetSum<T extends { amount: number }>(
   let best: number[] | null = null;
 
   function dfs(start: number, current: number[], currentSumCents: number) {
-    if (current.length > 5) return;
+    if (current.length > maxDepth) return;
 
     if (current.length >= 2 && currentSumCents === targetCents) {
       best = [...current];
       return;
     }
-    if (current.length === 5) return;
+    if (current.length === maxDepth) return;
 
     for (let j = start; j < sorted.length; j++) {
       const idx = sorted[j];
@@ -343,6 +345,215 @@ function findSubsetSum<T extends { amount: number }>(
 
   dfs(0, [], 0);
   return best;
+}
+
+/**
+ * 单账户核对：对单个账户执行完整的 Phase 0-3 匹配流水线
+ * 纯函数，不修改输入数组
+ */
+function reconcileOneAccount(
+  account: string,
+  bankTxns: BankTransaction[],
+  enterpriseTxns: EnterpriseTransaction[],
+): AccountResult {
+  // 筛选该账号的交易
+  let bankList = bankTxns.filter((t) => t.account === account);
+  let entList = enterpriseTxns.filter((t) => t.account === account);
+
+  // 按日期升序排序
+  bankList = bankList.sort((a, b) => a.date.getTime() - b.date.getTime());
+  entList = entList.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+  // 保存原始计数（冲销/快速通道前的总数）
+  const origEntCount = entList.length;
+
+  // 匹配状态
+  const matched: BankMatchPair[] = [];
+  const bankUsed = new Array(bankList.length).fill(false);
+  const entUsed = new Array(entList.length).fill(false);
+
+  // ---- Phase 0: 快速对符通道（优先执行，快速踢出大面积匹配）----
+  const bankIncome = bankList.filter((t) => t.direction === '收入');
+  const bankExpense = bankList.filter((t) => t.direction === '支出');
+  const entDebit = entList.filter((t) => t.direction === '借方');
+  const entCredit = entList.filter((t) => t.direction === '貸方');
+
+  const bankIncomeSum = bankIncome.reduce((s, t) => s + t.amount, 0);
+  const bankExpenseSum = bankExpense.reduce((s, t) => s + t.amount, 0);
+  const entDebitSum = entDebit.reduce((s, t) => s + t.amount, 0);
+  const entCreditSum = entCredit.reduce((s, t) => s + t.amount, 0);
+
+  let fastTrackIncomeTriggered = false;
+  let fastTrackExpenseTriggered = false;
+
+  // 收入 ↔ 借方 快速对符
+  if (bankIncome.length > 0 && entDebit.length > 0) {
+    if (centsEqual(bankIncomeSum, entDebitSum)) {
+      fastTrackIncomeTriggered = true;
+      const maxLen = Math.max(bankIncome.length, entDebit.length);
+      for (let k = 0; k < maxLen; k++) {
+        const bankItem = bankIncome[k % bankIncome.length];
+        const entItem = entDebit[k % entDebit.length];
+        const bk = bankList.indexOf(bankItem);
+        const ek = entList.indexOf(entItem);
+        if (bk >= 0 && ek >= 0) {
+          matched.push({ bank: bankList[bk], enterprise: entList[ek], quickMatch: true });
+        }
+      }
+      for (const item of bankIncome) {
+        const idx = bankList.indexOf(item);
+        if (idx >= 0) bankUsed[idx] = true;
+      }
+      for (const item of entDebit) {
+        const idx = entList.indexOf(item);
+        if (idx >= 0) entUsed[idx] = true;
+      }
+    }
+  }
+
+  // 支出 ↔ 贷方 快速对符
+  if (bankExpense.length > 0 && entCredit.length > 0) {
+    if (centsEqual(bankExpenseSum, entCreditSum)) {
+      fastTrackExpenseTriggered = true;
+      const maxLen = Math.max(bankExpense.length, entCredit.length);
+      for (let k = 0; k < maxLen; k++) {
+        const bankItem = bankExpense[k % bankExpense.length];
+        const entItem = entCredit[k % entCredit.length];
+        const bk = bankList.indexOf(bankItem);
+        const ek = entList.indexOf(entItem);
+        if (bk >= 0 && ek >= 0) {
+          matched.push({ bank: bankList[bk], enterprise: entList[ek], quickMatch: true });
+        }
+      }
+      for (const item of bankExpense) {
+        const idx = bankList.indexOf(item);
+        if (idx >= 0) bankUsed[idx] = true;
+      }
+      for (const item of entCredit) {
+        const idx = entList.indexOf(item);
+        if (idx >= 0) entUsed[idx] = true;
+      }
+    }
+  }
+
+  // ---- Phase 1: 冲销预处理（仅扫描快速通道剩余的未匹配企业账）----
+  const entReversalUsed = new Set<number>();
+  let reversalPairCount = 0;
+
+  for (let i = 0; i < entList.length; i++) {
+    if (entUsed[i]) continue;
+    if (entReversalUsed.has(i)) continue;
+    if (entList[i].direction !== '借方') continue;
+    const a = entList[i].amount;
+    if (a === 0) continue;
+    for (let j = i + 1; j < entList.length; j++) {
+      if (entUsed[j]) continue;
+      if (entReversalUsed.has(j)) continue;
+      if (entList[j].direction !== '借方') continue;
+      const b = entList[j].amount;
+      if ((a > 0) !== (b > 0) && centsEqual(a, -b)) {
+        entReversalUsed.add(i);
+        entReversalUsed.add(j);
+        reversalPairCount++;
+        break;
+      }
+    }
+  }
+
+  for (let i = 0; i < entList.length; i++) {
+    if (entUsed[i]) continue;
+    if (entReversalUsed.has(i)) continue;
+    if (entList[i].direction !== '貸方') continue;
+    const a = entList[i].amount;
+    if (a === 0) continue;
+    for (let j = i + 1; j < entList.length; j++) {
+      if (entUsed[j]) continue;
+      if (entReversalUsed.has(j)) continue;
+      if (entList[j].direction !== '貸方') continue;
+      const b = entList[j].amount;
+      if ((a > 0) !== (b > 0) && centsEqual(a, -b)) {
+        entReversalUsed.add(i);
+        entReversalUsed.add(j);
+        reversalPairCount++;
+        break;
+      }
+    }
+  }
+
+  for (const i of entReversalUsed) {
+    entUsed[i] = true;
+  }
+
+  // ---- Phase 2: 1:1 逐笔匹配 ----
+  for (let bi = 0; bi < bankList.length; bi++) {
+    if (bankUsed[bi]) continue;
+    const bank = bankList[bi];
+    for (let ei = 0; ei < entList.length; ei++) {
+      if (entUsed[ei]) continue;
+      const ent = entList[ei];
+      if (centsEqual(bank.amount, ent.amount)) {
+        matched.push({ bank, enterprise: ent });
+        bankUsed[bi] = true;
+        entUsed[ei] = true;
+        break;
+      }
+    }
+  }
+
+  // ---- Phase 3: M:N 匹配 ----
+  let unmatchedBank = bankList.filter((_, i) => !bankUsed[i]);
+  let unmatchedEnterprise = entList.filter((_, i) => !entUsed[i]);
+  const mnResult = findMNMatches(unmatchedBank, unmatchedEnterprise);
+
+  if (mnResult.groups.length > 0) {
+    const mnUsedBank = mnResult.usedBankIdx;
+    const mnUsedEnt = mnResult.usedEntIdx;
+    unmatchedBank = unmatchedBank.filter((_, i) => !mnUsedBank.has(i));
+    unmatchedEnterprise = unmatchedEnterprise.filter((_, i) => !mnUsedEnt.has(i));
+  }
+
+  // ---- Phase 4: 后处理验证 ----
+  const quickMatchCount = matched.filter((p) => p.quickMatch).length;
+  const oneToOneBefore = matched.length;
+  const remainingBankSum = unmatchedBank.reduce((s, t) => s + t.amount, 0);
+  const remainingEntSum = unmatchedEnterprise.reduce((s, t) => s + t.amount, 0);
+  const remainingAreReversals =
+    (unmatchedBank.length > 0 || unmatchedEnterprise.length > 0) &&
+    centsEqual(remainingBankSum, 0) && centsEqual(remainingEntSum, 0);
+
+  const incomeDiffCents = Math.round(bankIncomeSum * 100) - Math.round(entDebitSum * 100);
+  const expenseDiffCents = Math.round(bankExpenseSum * 100) - Math.round(entCreditSum * 100);
+
+  return {
+    account,
+    matched,
+    mnMatched: mnResult.groups,
+    unmatchedBank,
+    unmatchedEnterprise,
+    quickMatched: quickMatchCount,
+    totalBank: bankList.length,
+    totalEnterprise: origEntCount,
+    reversalPairsRemoved: reversalPairCount,
+    remainingAreReversals,
+    debugInfo: {
+      bankIncomeCount: bankIncome.length,
+      bankIncomeSum,
+      bankExpenseCount: bankExpense.length,
+      bankExpenseSum,
+      entDebitCount: entDebit.length,
+      entDebitSum,
+      entCreditCount: entCredit.length,
+      entCreditSum,
+      fastTrackIncomeTriggered,
+      fastTrackExpenseTriggered,
+      incomeDiffCents,
+      expenseDiffCents,
+      oneToOneMatched: oneToOneBefore - quickMatchCount,
+      mnGroupsFound: mnResult.groups.length,
+      bankUnmatchedSignedSum: remainingBankSum,
+      entUnmatchedSignedSum: remainingEntSum,
+    },
+  };
 }
 
 /**
@@ -393,227 +604,7 @@ export function reconcile(
   const accountResults: AccountResult[] = [];
 
   for (const account of reconcileAccounts) {
-    // 2a. 筛选该账号的银行流水
-    let bankList = bankTxns.filter(
-      (t) => t.account === account
-    );
-    // 2b. 筛选该账号的企业账
-    let entList = enterpriseTxns.filter(
-      (t) => t.account === account
-    );
-
-    // 2c. 按日期升序排序
-    bankList = bankList.sort(
-      (a, b) => a.date.getTime() - b.date.getTime()
-    );
-    entList = entList.sort(
-      (a, b) => a.date.getTime() - b.date.getTime()
-    );
-
-    // ---- Phase 0: 冲销预处理 ----
-    // 在企业账同方向内部清除正负抵消的冲销配对（净效果=0）
-    // 冲销成对出现的条目不参与后续与银行流水的匹配
-    const origEntCount = entList.length;
-    const entReversalUsed = new Set<number>();
-    let reversalPairCount = 0;
-
-    // 借方冲销配对：正数(原始) ↔ 负数(冲销)，金额相等
-    for (let i = 0; i < entList.length; i++) {
-      if (entReversalUsed.has(i)) continue;
-      if (entList[i].direction !== '借方') continue;
-      const a = entList[i].amount;
-      if (a === 0) continue;
-      for (let j = i + 1; j < entList.length; j++) {
-        if (entReversalUsed.has(j)) continue;
-        if (entList[j].direction !== '借方') continue;
-        const b = entList[j].amount;
-        if ((a > 0) !== (b > 0) && centsEqual(a, -b)) {
-          entReversalUsed.add(i);
-          entReversalUsed.add(j);
-          reversalPairCount++;
-          break;
-        }
-      }
-    }
-
-    // 貸方冲销配对：正数(冲销) ↔ 负数(原始)，金额相等
-    for (let i = 0; i < entList.length; i++) {
-      if (entReversalUsed.has(i)) continue;
-      if (entList[i].direction !== '貸方') continue;
-      const a = entList[i].amount;
-      if (a === 0) continue;
-      for (let j = i + 1; j < entList.length; j++) {
-        if (entReversalUsed.has(j)) continue;
-        if (entList[j].direction !== '貸方') continue;
-        const b = entList[j].amount;
-        if ((a > 0) !== (b > 0) && centsEqual(a, -b)) {
-          entReversalUsed.add(i);
-          entReversalUsed.add(j);
-          reversalPairCount++;
-          break;
-        }
-      }
-    }
-
-    // 从企业账中移除冲销配对
-    if (reversalPairCount > 0) {
-      entList = entList.filter((_, i) => !entReversalUsed.has(i));
-    }
-
-    // 2d. 匹配
-    const matched: BankMatchPair[] = [];
-    const bankUsed = new Array(bankList.length).fill(false);
-    const entUsed = new Array(entList.length).fill(false);
-
-    // 2d-1. 快速对符通道：银行收入合计 = 企业借方合计 → 全部收入/借方标记对符
-    //         银行支出合计 = 企业贷方合计 → 全部支出/贷方标记对符
-    const bankIncome = bankList.filter((t) => t.direction === '收入');
-    const bankExpense = bankList.filter((t) => t.direction === '支出');
-    const entDebit = entList.filter((t) => t.direction === '借方');
-    const entCredit = entList.filter((t) => t.direction === '貸方');
-
-    // 诊断：各方向求和
-    const bankIncomeSum = bankIncome.reduce((s, t) => s + t.amount, 0);
-    const bankExpenseSum = bankExpense.reduce((s, t) => s + t.amount, 0);
-    const entDebitSum = entDebit.reduce((s, t) => s + t.amount, 0);
-    const entCreditSum = entCredit.reduce((s, t) => s + t.amount, 0);
-
-    let fastTrackIncomeTriggered = false;
-    let fastTrackExpenseTriggered = false;
-
-    // 收入 ↔ 借方 快速对符
-    // 语义：总额一致 → 全部对符，条数无需关心
-    if (bankIncome.length > 0 && entDebit.length > 0) {
-      if (centsEqual(bankIncomeSum, entDebitSum)) {
-        fastTrackIncomeTriggered = true;
-        // 生成展示用配对（按顺序 1:1，不管条数差异）
-        const maxLen = Math.max(bankIncome.length, entDebit.length);
-        for (let k = 0; k < maxLen; k++) {
-          const bankItem = bankIncome[k % bankIncome.length];
-          const entItem = entDebit[k % entDebit.length];
-          const bk = bankList.indexOf(bankItem);
-          const ek = entList.indexOf(entItem);
-          if (bk >= 0 && ek >= 0) {
-            matched.push({ bank: bankList[bk], enterprise: entList[ek], quickMatch: true });
-          }
-        }
-        // 全部标记已使用——不受配对数量影响
-        for (const item of bankIncome) {
-          const idx = bankList.indexOf(item);
-          if (idx >= 0) bankUsed[idx] = true;
-        }
-        for (const item of entDebit) {
-          const idx = entList.indexOf(item);
-          if (idx >= 0) entUsed[idx] = true;
-        }
-      }
-    }
-
-    // 支出 ↔ 贷方 快速对符
-    if (bankExpense.length > 0 && entCredit.length > 0) {
-      if (centsEqual(bankExpenseSum, entCreditSum)) {
-        fastTrackExpenseTriggered = true;
-        const maxLen = Math.max(bankExpense.length, entCredit.length);
-        for (let k = 0; k < maxLen; k++) {
-          const bankItem = bankExpense[k % bankExpense.length];
-          const entItem = entCredit[k % entCredit.length];
-          const bk = bankList.indexOf(bankItem);
-          const ek = entList.indexOf(entItem);
-          if (bk >= 0 && ek >= 0) {
-            matched.push({ bank: bankList[bk], enterprise: entList[ek], quickMatch: true });
-          }
-        }
-        for (const item of bankExpense) {
-          const idx = bankList.indexOf(item);
-          if (idx >= 0) bankUsed[idx] = true;
-        }
-        for (const item of entCredit) {
-          const idx = entList.indexOf(item);
-          if (idx >= 0) entUsed[idx] = true;
-        }
-      }
-    }
-
-    // 2e. 逐笔匹配：按有符号金额直接比较（正=流入，负=流出）
-    // 无需判断方向——符号本身已编码经济含义
-    for (let bi = 0; bi < bankList.length; bi++) {
-      if (bankUsed[bi]) continue;
-      const bank = bankList[bi];
-
-      for (let ei = 0; ei < entList.length; ei++) {
-        if (entUsed[ei]) continue;
-        const ent = entList[ei];
-        if (centsEqual(bank.amount, ent.amount)) {
-          matched.push({ bank, enterprise: ent });
-          bankUsed[bi] = true;
-          entUsed[ei] = true;
-          break;
-        }
-      }
-    }
-
-    // 2f. 收集1:1未匹配项
-    let unmatchedBank = bankList.filter((_, i) => !bankUsed[i]);
-    let unmatchedEnterprise = entList.filter((_, i) => !entUsed[i]);
-
-    // 2g. M:N 匹配（对剩余未匹配项尝试子集求和）
-    const mnResult = findMNMatches(unmatchedBank, unmatchedEnterprise);
-
-    // 从剩余未匹配中移除 M:N 已用项
-    if (mnResult.groups.length > 0) {
-      // 重建未匹配列表（排除 M:N 已用的）
-      const mnUsedBank = mnResult.usedBankIdx;
-      const mnUsedEnt = mnResult.usedEntIdx;
-      unmatchedBank = unmatchedBank.filter((_, i) => !mnUsedBank.has(i));
-      unmatchedEnterprise = unmatchedEnterprise.filter((_, i) => !mnUsedEnt.has(i));
-    }
-
-    // 1:1 匹配前的 matched 计数 = 快速通道对数
-    const quickMatchCount = matched.filter((p) => p.quickMatch).length;
-    const oneToOneBefore = matched.length;
-
-    // ---- Phase 3: 后处理验证 ----
-    // 剩余未匹配 signed sum = 0 → 全是冲销残留（成对抵消，不影响余额）
-    const remainingBankSum = unmatchedBank.reduce((s, t) => s + t.amount, 0);
-    const remainingEntSum = unmatchedEnterprise.reduce((s, t) => s + t.amount, 0);
-    const remainingAreReversals =
-      (unmatchedBank.length > 0 || unmatchedEnterprise.length > 0) &&
-      centsEqual(remainingBankSum, 0) && centsEqual(remainingEntSum, 0);
-
-    // 诊断：计算差额（分）
-    const incomeDiffCents = Math.round(bankIncomeSum * 100) - Math.round(entDebitSum * 100);
-    const expenseDiffCents = Math.round(bankExpenseSum * 100) - Math.round(entCreditSum * 100);
-
-    accountResults.push({
-      account,
-      matched,
-      mnMatched: mnResult.groups,
-      unmatchedBank,
-      unmatchedEnterprise,
-      quickMatched: quickMatchCount,
-      totalBank: bankList.length,
-      totalEnterprise: origEntCount,
-      reversalPairsRemoved: reversalPairCount,
-      remainingAreReversals,
-      debugInfo: {
-        bankIncomeCount: bankIncome.length,
-        bankIncomeSum,
-        bankExpenseCount: bankExpense.length,
-        bankExpenseSum,
-        entDebitCount: entDebit.length,
-        entDebitSum,
-        entCreditCount: entCredit.length,
-        entCreditSum,
-        fastTrackIncomeTriggered,
-        fastTrackExpenseTriggered,
-        incomeDiffCents,
-        expenseDiffCents,
-        oneToOneMatched: oneToOneBefore - quickMatchCount,
-        mnGroupsFound: mnResult.groups.length,
-        bankUnmatchedSignedSum: remainingBankSum,
-        entUnmatchedSignedSum: remainingEntSum,
-      },
-    });
+    accountResults.push(reconcileOneAccount(account, bankTxns, enterpriseTxns));
   }
 
   // 3. 汇总统计
@@ -648,6 +639,90 @@ export function reconcile(
   };
 
   return { accounts: accountResults, summary };
+}
+
+/** 流式核对事件类型 */
+export type ReconStreamEvent =
+  | { type: 'account'; result: AccountResult; accountIndex: number; totalAccounts: number }
+  | { type: 'summary'; result: BankReconResult };
+
+/**
+ * 银企对账流式入口（异步生成器）
+ * 逐账户 yield 结果，账户间让出主线程以保持 UI 响应
+ * @param bankTxns 银行流水交易列表
+ * @param enterpriseTxns 企业银行明细账交易列表
+ */
+export async function* reconcileStream(
+  bankTxns: BankTransaction[],
+  enterpriseTxns: EnterpriseTransaction[],
+): AsyncGenerator<ReconStreamEvent> {
+  // 1. 提取不重复账号（与 reconcile 相同的预处理）
+  const bankAcctSet = new Set<string>();
+  for (const t of bankTxns) {
+    if (t.account) bankAcctSet.add(t.account);
+  }
+  const entAcctSet = new Set<string>();
+  for (const t of enterpriseTxns) {
+    if (t.account) entAcctSet.add(t.account);
+  }
+
+  const bankAccounts = Array.from(bankAcctSet).sort();
+  const enterpriseAccounts = Array.from(entAcctSet).sort();
+  const overlapAccounts = bankAccounts.filter((a) => entAcctSet.has(a));
+  const skippedBankOnly = bankAccounts.filter((a) => !entAcctSet.has(a));
+  const skippedEntOnly = enterpriseAccounts.filter((a) => !bankAcctSet.has(a));
+  const reconcileAccounts = overlapAccounts;
+
+  let warning: string | null = null;
+  if (bankTxns.length === 0) {
+    warning = '未能从银行流水中提取到任何交易，请检查列配置是否正确。';
+  } else if (enterpriseTxns.length === 0) {
+    warning = '未能从企业账中提取到任何交易，请检查列配置是否正确。';
+  } else if (overlapAccounts.length === 0 && bankAccounts.length > 0 && enterpriseAccounts.length > 0) {
+    warning = `银行流水账号（${bankAccounts.join('、')}）与企业账账号（${enterpriseAccounts.join('、')}）完全不匹配，请检查账号列选择是否正确。`;
+  } else if (reconcileAccounts.length === 0) {
+    warning = '银行流水与企业账没有共同的账号，无法进行核对。';
+  }
+
+  // 2. 逐账户核对，流式 yield
+  const accountResults: AccountResult[] = [];
+  const total = reconcileAccounts.length;
+
+  for (let i = 0; i < reconcileAccounts.length; i++) {
+    const account = reconcileAccounts[i];
+    const result = reconcileOneAccount(account, bankTxns, enterpriseTxns);
+    accountResults.push(result);
+    yield { type: 'account', result, accountIndex: i, totalAccounts: total };
+    // 让出主线程，保持 UI 响应
+    await new Promise((r) => setTimeout(r, 0));
+  }
+
+  // 3. 汇总统计
+  const summary: BankReconSummary = {
+    totalAccounts: accountResults.length,
+    fullyMatched: accountResults.filter(
+      (r) => r.unmatchedBank.length === 0 && r.unmatchedEnterprise.length === 0 && r.totalBank > 0
+    ).length,
+    hasUnmatched: accountResults.filter(
+      (r) => r.unmatchedBank.length > 0 || r.unmatchedEnterprise.length > 0
+    ).length,
+    totalUnmatchedBank: accountResults.reduce((s, r) => s + r.unmatchedBank.length, 0),
+    totalUnmatchedEnterprise: accountResults.reduce((s, r) => s + r.unmatchedEnterprise.length, 0),
+    totalMNMatched: accountResults.reduce((s, r) => s + r.mnMatched.length, 0),
+    quickMatchedAccounts: accountResults.filter(
+      (r) => r.quickMatched > 0 && r.unmatchedBank.length === 0 && r.unmatchedEnterprise.length === 0
+    ).length,
+    bankTxCount: bankTxns.length,
+    enterpriseTxCount: enterpriseTxns.length,
+    bankAccounts,
+    enterpriseAccounts,
+    overlapAccounts,
+    skippedBankOnly,
+    skippedEntOnly,
+    warning,
+  };
+
+  yield { type: 'summary', result: { accounts: accountResults, summary } };
 }
 
 // ---- 数据提取辅助函数 ----
