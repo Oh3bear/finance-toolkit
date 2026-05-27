@@ -207,6 +207,10 @@ function findMNMatches(
   const totalRemaining = unmatchedBank.length + unmatchedEnterprise.length;
   if (totalRemaining < 3) return { groups, usedBankIdx, usedEntIdx };
 
+  // 累计 DFS 迭代计数器：所有 findSubsetSum 调用共享，超过上限即停止
+  const dfsCounter = { value: 0 };
+  const capsReached = () => dfsCounter.value >= DFS_CUMULATIVE_CAP;
+
   // --- 方向 a: 多笔银行流水 → 一笔企业账（从大到小）---
   const entSorted = unmatchedEnterprise
     .map((ent, i) => ({ ent, i }))
@@ -214,6 +218,7 @@ function findMNMatches(
 
   for (const { ent, i: ei } of entSorted) {
     if (usedEntIdx.has(ei)) continue;
+    if (capsReached()) break;
     const target = ent.amount;
 
     // 按符号 + 日期窗口筛选候选
@@ -226,9 +231,10 @@ function findMNMatches(
       candidateIdx.push(bi);
     }
 
-    if (candidateIdx.length < 2) continue;
+    // 候选太少无法组合，或太多 DFS 难以命中 → 跳过
+    if (candidateIdx.length < 2 || candidateIdx.length > MN_MAX_CANDIDATES) continue;
 
-    const idxSet = findSubsetSum(unmatchedBank, candidateIdx, target, maxDepth);
+    const idxSet = findSubsetSum(unmatchedBank, candidateIdx, target, maxDepth, dfsCounter);
     if (idxSet) {
       for (const bi of idxSet) usedBankIdx.add(bi);
       usedEntIdx.add(ei);
@@ -248,6 +254,7 @@ function findMNMatches(
 
   for (const { bank, i: bi } of bankSorted) {
     if (usedBankIdx.has(bi)) continue;
+    if (capsReached()) break;
     const target = bank.amount;
 
     // 按符号 + 日期窗口筛选候选
@@ -260,9 +267,10 @@ function findMNMatches(
       candidateIdx.push(ei);
     }
 
-    if (candidateIdx.length < 2) continue;
+    // 候选太少无法组合，或太多 DFS 难以命中 → 跳过
+    if (candidateIdx.length < 2 || candidateIdx.length > MN_MAX_CANDIDATES) continue;
 
-    const idxSet = findSubsetSum(unmatchedEnterprise, candidateIdx, target, maxDepth);
+    const idxSet = findSubsetSum(unmatchedEnterprise, candidateIdx, target, maxDepth, dfsCounter);
     if (idxSet) {
       for (const ei of idxSet) usedEntIdx.add(ei);
       usedBankIdx.add(bi);
@@ -284,18 +292,27 @@ function findMNMatches(
  * target 可为正（资金流入）或负（资金流出），candidates 必须同符号
  * 返回第一个匹配的原始索引数组，或 null
  */
-/** DFS 最大迭代次数，超出后中止（防止单账户 M:N 匹配耗时过长导致页面无响应） */
-const DFS_MAX_ITERATIONS = 50000;
+/** 单次 DFS 最大迭代次数（防止单次组合爆炸卡死） */
+const DFS_MAX_ITERATIONS = 5000;
+
+/** 累计 DFS 迭代上限（findMNMatches 中所有 DFS 调用合计，防止大数据量下累积阻塞） */
+const DFS_CUMULATIVE_CAP = 200000;
+
+/** M:N 候选条目数上限，超过则跳过该 target（候选太多 DFS 命中率低且耗时） */
+const MN_MAX_CANDIDATES = 20;
 
 function findSubsetSum<T extends { amount: number }>(
   allItems: T[],
   candidates: number[],
   target: number,
   maxDepth: number = 12,
+  extCounter?: { value: number },
 ): number[] | null {
   const targetCents = Math.round(target * 100);
   const isPositive = targetCents > 0;
   let iterations = 0;
+  // 如果提供了外部计数器，检查累计是否已达上限
+  const cumulativeCap = extCounter ? DFS_CUMULATIVE_CAP : Infinity;
 
   // 排序：正值升序（小→大），负值降序（大→小，即从接近0开始逐步更负）
   const sorted = [...candidates].sort((a, b) => {
@@ -308,7 +325,10 @@ function findSubsetSum<T extends { amount: number }>(
 
   function dfs(start: number, current: number[], currentSumCents: number) {
     iterations++;
-    if (iterations > DFS_MAX_ITERATIONS) return; // 迭代上限，放弃本轮 M:N
+    // 单次上限 + 累计上限双重拦截
+    if (iterations > DFS_MAX_ITERATIONS) return;
+    if (extCounter && extCounter.value >= cumulativeCap) return;
+
     if (current.length > maxDepth) return;
 
     if (current.length >= 2 && currentSumCents === targetCents) {
@@ -332,10 +352,13 @@ function findSubsetSum<T extends { amount: number }>(
       dfs(j + 1, [...current, idx], newSumCents);
 
       if (best !== null) return;
+      if (extCounter && extCounter.value >= cumulativeCap) return;
     }
   }
 
   dfs(0, [], 0);
+  // 回写迭代计数到外部计数器
+  if (extCounter) extCounter.value += iterations;
   return best;
 }
 
@@ -537,8 +560,9 @@ export function reconcileOneAccount(
   let unmatchedEnterprise = entList.filter((_, i) => !entUsed[i]);
   const allMNGroups: MNMatchGroup[] = [];
   let mnPassCount = 0;
+  const MN_MAX_PASSES = 5; // 最多迭代 5 轮，防止大数据量下无限循环
 
-  while (true) {
+  while (mnPassCount < MN_MAX_PASSES) {
     const mnResult = findMNMatches(unmatchedBank, unmatchedEnterprise);
     if (mnResult.groups.length === 0) break;
 
@@ -558,9 +582,12 @@ export function reconcileOneAccount(
   // ---- Phase 3.5: 方向整体匹配（兜底 + 日期窗口） ----
   // 思路：1:N 迭代后，按方向（收入/支出）取较小方汇总作为 target，
   //       在大方中找子集匹配。日期窗口交叉过滤进一步缩小候选池。
+  // 仅当剩余未匹配条目 ≤30 时执行（大数据量下兜底 DFS 性价比低）
   {
     const wholeUsedB = new Set<number>();
     const wholeUsedE = new Set<number>();
+
+    if (unmatchedBank.length + unmatchedEnterprise.length <= 30) {
 
     // 方向索引（未过滤日期）
     const rawBankIncomeIdx = unmatchedBank.map((t, i) => (t.amount > 0 ? i : -1)).filter((i) => i >= 0);
@@ -650,6 +677,7 @@ export function reconcileOneAccount(
       unmatchedBank = unmatchedBank.filter((_, i) => !wholeUsedB.has(i));
       unmatchedEnterprise = unmatchedEnterprise.filter((_, i) => !wholeUsedE.has(i));
     }
+    } // end if (unmatched <= 30)
   }
 
   // ---- Phase 4: 后处理验证 ----
