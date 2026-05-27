@@ -172,6 +172,15 @@ function centsEqual(a: number, b: number): boolean {
   return Math.round(a * 100) === Math.round(b * 100);
 }
 
+/** 日期窗口（天），银行入账与企业记账的合理时间差 */
+const DATE_WINDOW_DAYS = 7;
+
+/** 判断两个日期是否在 ±days 窗口内 */
+function withinDateWindow(a: Date, b: Date, days: number = DATE_WINDOW_DAYS): boolean {
+  const msPerDay = 86400000;
+  return Math.abs(a.getTime() - b.getTime()) <= days * msPerDay;
+}
+
 
 // ---- 主函数 ----
 
@@ -207,12 +216,14 @@ function findMNMatches(
     if (usedEntIdx.has(ei)) continue;
     const target = ent.amount;
 
-    // 按符号筛选：同符号的银行流水才能匹配
+    // 按符号 + 日期窗口筛选候选
     const candidateIdx: number[] = [];
     for (let bi = 0; bi < unmatchedBank.length; bi++) {
       if (usedBankIdx.has(bi)) continue;
       const sameSign = (target > 0) === (unmatchedBank[bi].amount > 0);
-      if (sameSign) candidateIdx.push(bi);
+      if (!sameSign) continue;
+      if (!withinDateWindow(ent.date, unmatchedBank[bi].date)) continue;
+      candidateIdx.push(bi);
     }
 
     if (candidateIdx.length < 2) continue;
@@ -239,12 +250,14 @@ function findMNMatches(
     if (usedBankIdx.has(bi)) continue;
     const target = bank.amount;
 
-    // 按符号筛选：同符号的企业账才能匹配
+    // 按符号 + 日期窗口筛选候选
     const candidateIdx: number[] = [];
     for (let ei = 0; ei < unmatchedEnterprise.length; ei++) {
       if (usedEntIdx.has(ei)) continue;
       const sameSign = (target > 0) === (unmatchedEnterprise[ei].amount > 0);
-      if (sameSign) candidateIdx.push(ei);
+      if (!sameSign) continue;
+      if (!withinDateWindow(bank.date, unmatchedEnterprise[ei].date)) continue;
+      candidateIdx.push(ei);
     }
 
     if (candidateIdx.length < 2) continue;
@@ -463,19 +476,58 @@ export function reconcileOneAccount(
     entUsed[i] = true;
   }
 
-  // ---- Phase 2: 1:1 逐笔匹配 ----
+  // ---- Phase 2: 1:1 逐笔匹配（哈希表 + 日期窗口） ----
+  // 步骤 1: 建哈希表 — 金额(分) → [{日期, 企业索引}]
+  const entAmountMap = new Map<number, { date: Date; idx: number }[]>();
+  for (let ei = 0; ei < entList.length; ei++) {
+    if (entUsed[ei]) continue;
+    const cents = Math.round(entList[ei].amount * 100);
+    let bucket = entAmountMap.get(cents);
+    if (!bucket) {
+      bucket = [];
+      entAmountMap.set(cents, bucket);
+    }
+    bucket.push({ date: entList[ei].date, idx: ei });
+  }
+
+  // 步骤 2: 查哈希表 — 银行逐笔 O(1) 查找，日期窗口过滤
   for (let bi = 0; bi < bankList.length; bi++) {
     if (bankUsed[bi]) continue;
     const bank = bankList[bi];
-    for (let ei = 0; ei < entList.length; ei++) {
-      if (entUsed[ei]) continue;
-      const ent = entList[ei];
-      if (centsEqual(bank.amount, ent.amount)) {
-        matched.push({ bank, enterprise: ent });
-        bankUsed[bi] = true;
-        entUsed[ei] = true;
+    const cents = Math.round(bank.amount * 100);
+    const bucket = entAmountMap.get(cents);
+    if (!bucket || bucket.length === 0) continue;
+
+    // 优先匹配日期窗口内的；窗口外但金额一致的也行（兜底）
+    let bestEi = -1;
+    for (let k = bucket.length - 1; k >= 0; k--) {
+      if (entUsed[bucket[k].idx]) {
+        bucket.splice(k, 1); // 清理已用条目
+        continue;
+      }
+      if (withinDateWindow(bank.date, bucket[k].date)) {
+        bestEi = bucket[k].idx;
+        bucket.splice(k, 1);
         break;
       }
+    }
+    // 日期窗口没命中，兜底拿第一个未用（金额依然一致）
+    if (bestEi < 0) {
+      for (let k = bucket.length - 1; k >= 0; k--) {
+        if (entUsed[bucket[k].idx]) {
+          bucket.splice(k, 1);
+          continue;
+        }
+        bestEi = bucket[k].idx;
+        bucket.splice(k, 1);
+        break;
+      }
+    }
+
+    if (bestEi >= 0) {
+      matched.push({ bank, enterprise: entList[bestEi] });
+      bankUsed[bi] = true;
+      entUsed[bestEi] = true;
     }
   }
 
@@ -503,25 +555,33 @@ export function reconcileOneAccount(
     if (unmatchedBank.length + unmatchedEnterprise.length < 3) break;
   }
 
-  // ---- Phase 3.5: 方向整体匹配（兜底） ----
+  // ---- Phase 3.5: 方向整体匹配（兜底 + 日期窗口） ----
   // 思路：1:N 迭代后，按方向（收入/支出）取较小方汇总作为 target，
-  //       在大方中找子集匹配。分方向避免了跨方向误配。
+  //       在大方中找子集匹配。日期窗口交叉过滤进一步缩小候选池。
   {
     const wholeUsedB = new Set<number>();
     const wholeUsedE = new Set<number>();
 
-    const bankIncomeIdx = unmatchedBank
-      .map((t, i) => (t.amount > 0 ? i : -1))
-      .filter((i) => i >= 0);
-    const entDebitIdx = unmatchedEnterprise
-      .map((t, i) => (t.amount > 0 && t.direction === '借方' ? i : -1))
-      .filter((i) => i >= 0);
-    const bankExpenseIdx = unmatchedBank
-      .map((t, i) => (t.amount < 0 ? i : -1))
-      .filter((i) => i >= 0);
-    const entCreditIdx = unmatchedEnterprise
-      .map((t, i) => (t.amount < 0 && t.direction === '貸方' ? i : -1))
-      .filter((i) => i >= 0);
+    // 方向索引（未过滤日期）
+    const rawBankIncomeIdx = unmatchedBank.map((t, i) => (t.amount > 0 ? i : -1)).filter((i) => i >= 0);
+    const rawEntDebitIdx = unmatchedEnterprise.map((t, i) => (t.amount > 0 && t.direction === '借方' ? i : -1)).filter((i) => i >= 0);
+    const rawBankExpenseIdx = unmatchedBank.map((t, i) => (t.amount < 0 ? i : -1)).filter((i) => i >= 0);
+    const rawEntCreditIdx = unmatchedEnterprise.map((t, i) => (t.amount < 0 && t.direction === '貸方' ? i : -1)).filter((i) => i >= 0);
+
+    // 日期交叉过滤：只保留至少与对方一趟交易在 ±7 天内的条目
+    function dateFilter(
+      aIdx: number[], aItems: { date: Date }[],
+      bIdx: number[], bItems: { date: Date }[],
+    ): number[] {
+      if (bIdx.length === 0) return aIdx;
+      const bDates = bIdx.map((i) => bItems[i].date);
+      return aIdx.filter((i) => bDates.some((d) => withinDateWindow(aItems[i].date, d)));
+    }
+
+    const bankIncomeIdx = dateFilter(rawBankIncomeIdx, unmatchedBank, rawEntDebitIdx, unmatchedEnterprise);
+    const entDebitIdx = dateFilter(rawEntDebitIdx, unmatchedEnterprise, rawBankIncomeIdx, unmatchedBank);
+    const bankExpenseIdx = dateFilter(rawBankExpenseIdx, unmatchedBank, rawEntCreditIdx, unmatchedEnterprise);
+    const entCreditIdx = dateFilter(rawEntCreditIdx, unmatchedEnterprise, rawBankExpenseIdx, unmatchedBank);
 
     // 收入方向
     if (bankIncomeIdx.length >= 2 && entDebitIdx.length >= 2) {
