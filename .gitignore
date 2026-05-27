@@ -5,3 +5,4 @@ Thumbs.db
 .codebuddy/
 .workbuddy/
 push-to-github.ps1
+dist/
