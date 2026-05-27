@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "cp index.dev.html index.html && vite",
     "build": "tsc -b && vite build",
+    "postbuild": "cp dist/index.html index.html && cp dist/assets/* assets/ && cp dist/pdf.worker.mjs .",
     "lint": "eslint .",
     "preview": "vite preview"
   },
