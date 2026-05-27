@@ -272,7 +272,7 @@ function findMNMatches(
  * 返回第一个匹配的原始索引数组，或 null
  */
 /** DFS 最大迭代次数，超出后中止（防止单账户 M:N 匹配耗时过长导致页面无响应） */
-const DFS_MAX_ITERATIONS = 10000;
+const DFS_MAX_ITERATIONS = 50000;
 
 function findSubsetSum<T extends { amount: number }>(
   allItems: T[],
@@ -479,16 +479,28 @@ export function reconcileOneAccount(
     }
   }
 
-  // ---- Phase 3: M:N 匹配 ----
+  // ---- Phase 3: M:N 迭代匹配 ----
+  // 不断缩小池子：每轮找到匹配后剔除已用条目，重跑直到无新匹配
   let unmatchedBank = bankList.filter((_, i) => !bankUsed[i]);
   let unmatchedEnterprise = entList.filter((_, i) => !entUsed[i]);
-  const mnResult = findMNMatches(unmatchedBank, unmatchedEnterprise);
+  const allMNGroups: MNMatchGroup[] = [];
+  let mnPassCount = 0;
 
-  if (mnResult.groups.length > 0) {
-    const mnUsedBank = mnResult.usedBankIdx;
-    const mnUsedEnt = mnResult.usedEntIdx;
-    unmatchedBank = unmatchedBank.filter((_, i) => !mnUsedBank.has(i));
-    unmatchedEnterprise = unmatchedEnterprise.filter((_, i) => !mnUsedEnt.has(i));
+  while (true) {
+    const mnResult = findMNMatches(unmatchedBank, unmatchedEnterprise);
+    if (mnResult.groups.length === 0) break;
+
+    mnPassCount++;
+    allMNGroups.push(...mnResult.groups);
+
+    // 从当前池子中剔除已匹配条目
+    const usedB = mnResult.usedBankIdx;
+    const usedE = mnResult.usedEntIdx;
+    unmatchedBank = unmatchedBank.filter((_, i) => !usedB.has(i));
+    unmatchedEnterprise = unmatchedEnterprise.filter((_, i) => !usedE.has(i));
+
+    // 池子太小就无法做 M:N（至少需要 1+2=3 条）
+    if (unmatchedBank.length + unmatchedEnterprise.length < 3) break;
   }
 
   // ---- Phase 4: 后处理验证 ----
@@ -506,7 +518,7 @@ export function reconcileOneAccount(
   return {
     account,
     matched,
-    mnMatched: mnResult.groups,
+    mnMatched: allMNGroups,
     unmatchedBank,
     unmatchedEnterprise,
     quickMatched: quickMatchCount,
@@ -528,7 +540,7 @@ export function reconcileOneAccount(
       incomeDiffCents,
       expenseDiffCents,
       oneToOneMatched: oneToOneBefore - quickMatchCount,
-      mnGroupsFound: mnResult.groups.length,
+      mnGroupsFound: allMNGroups.length,
       bankUnmatchedSignedSum: remainingBankSum,
       entUnmatchedSignedSum: remainingEntSum,
     },
