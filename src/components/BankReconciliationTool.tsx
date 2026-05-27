@@ -102,45 +102,58 @@ export default function BankReconciliationTool() {
       };
     }
 
-    // 流式核对
+    // 流式核对（手动迭代生成器，setTimeout 跳出 React 18 批处理）
     let totalAccounts = 0;
     const assembledAccounts: BankReconResult['accounts'] = [];
+    const stream = reconcileStream(bankTxns, entTxns);
 
-    for await (const event of reconcileStream(bankTxns, entTxns)) {
-      if (event.type === 'account') {
-        totalAccounts = event.totalAccounts;
-        assembledAccounts.push(event.result);
-
-        // 更新进度和文本
-        const pct = baseProgress + Math.round((assembledAccounts.length / totalAccounts) * 70);
-        setProgress(pct);
-        setProgressText(`核对中 ${assembledAccounts.length}/${totalAccounts} · ${event.result.account}`);
-
-        // 第一个账户结果到达时切换到结果页
-        if (assembledAccounts.length === 1) {
-          setStep(3);
+    await new Promise<void>((resolve) => {
+      const pump = async () => {
+        const { value: event, done } = await stream.next();
+        if (done) {
+          resolve();
+          return;
         }
 
-        // 实时更新部分结果
-        setResult({
-          accounts: [...assembledAccounts],
-          summary: buildInterimSummary(assembledAccounts),
-        });
-      } else if (event.type === 'summary') {
-        setProgress(100);
-        const statusParts: string[] = [];
-        if (event.result.summary.warning) {
-          statusParts.push(`⚠ ${event.result.summary.warning.split('。')[0]}`);
-        } else {
-          statusParts.push(`${event.result.summary.totalAccounts} 个账户`);
-          statusParts.push(`${event.result.summary.hasUnmatched} 个有未对符`);
-        }
-        setProgressText(`核对完成：${statusParts.join('，')}`);
-        setResult(event.result);
-      }
-    }
+        if (event.type === 'account') {
+          totalAccounts = event.totalAccounts;
+          assembledAccounts.push(event.result);
 
-    await delay(200);
+          const pct = baseProgress + Math.round((assembledAccounts.length / totalAccounts) * 70);
+          setProgress(pct);
+          setProgressText(`核对中 ${assembledAccounts.length}/${totalAccounts} · ${event.result.account}`);
+
+          // 第一个账户结果到达时切换到结果页
+          if (assembledAccounts.length === 1) {
+            setStep(3);
+          }
+
+          // 实时更新部分结果
+          setResult({
+            accounts: [...assembledAccounts],
+            summary: buildInterimSummary(assembledAccounts),
+          });
+        } else if (event.type === 'summary') {
+          setProgress(100);
+          const statusParts: string[] = [];
+          if (event.result.summary.warning) {
+            statusParts.push(`⚠ ${event.result.summary.warning.split('。')[0]}`);
+          } else {
+            statusParts.push(`${event.result.summary.totalAccounts} 个账户`);
+            statusParts.push(`${event.result.summary.hasUnmatched} 个有未对符`);
+          }
+          setProgressText(`核对完成：${statusParts.join('，')}`);
+          setResult(event.result);
+          resolve();
+          return;
+        }
+
+        // 用 setTimeout 跳出 React 18 批处理上下文，强制渲染提交
+        setTimeout(pump, 0);
+      };
+      pump();
+    });
+
     setProcessing(false);
   };
 
