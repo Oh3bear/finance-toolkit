@@ -175,9 +175,6 @@ function centsEqual(a: number, b: number): boolean {
 
 // ---- 主函数 ----
 
-/** M:N 子集求和：渐进式候选上限（从小到大，边匹配边缩减池子） */
-const MN_CANDIDATE_PASSES = [5, 8, 12, 16, 20, 30, Infinity];
-
 /**
  * 对剩余未匹配项做 M:N 子集求和匹配，支持双向：
  *   a) 多笔银行流水 → 一笔企业账（银行拆分、企业合并）
@@ -185,7 +182,7 @@ const MN_CANDIDATE_PASSES = [5, 8, 12, 16, 20, 30, Infinity];
  *
  * 策略：
  *   1. 从大额开始匹配（优先清理大额，减少后续干扰）
- *   2. 渐进式候选上限：10→20→30→...→无限制，每轮匹配后池子缩小
+ *   2. 全量候选池：不再渐进截断，避免小匹配蚕食大匹配的条目
  *   3. 按有符号金额匹配：正=流入，负=流出，同符号才能互配
  */
 function findMNMatches(
@@ -201,91 +198,67 @@ function findMNMatches(
   const totalRemaining = unmatchedBank.length + unmatchedEnterprise.length;
   if (totalRemaining < 3) return { groups, usedBankIdx, usedEntIdx };
 
-  for (const maxCandidates of MN_CANDIDATE_PASSES) {
-    // --- 方向 a: 多笔银行流水 → 一笔企业账（从大到小）---
-    const entSorted = unmatchedEnterprise
-      .map((ent, i) => ({ ent, i }))
-      .filter(({ i }) => !usedEntIdx.has(i))
-      .sort((a, b) => Math.abs(b.ent.amount) - Math.abs(a.ent.amount));
+  // --- 方向 a: 多笔银行流水 → 一笔企业账（从大到小）---
+  const entSorted = unmatchedEnterprise
+    .map((ent, i) => ({ ent, i }))
+    .sort((a, b) => Math.abs(b.ent.amount) - Math.abs(a.ent.amount));
 
-    for (const { ent, i: ei } of entSorted) {
-      if (usedEntIdx.has(ei)) continue;
-      const target = ent.amount; // 有符号：正=流入，负=流出
+  for (const { ent, i: ei } of entSorted) {
+    if (usedEntIdx.has(ei)) continue;
+    const target = ent.amount;
 
-      // 按符号筛选：同符号的银行流水才能匹配
-      const candidates: { idx: number; dist: number }[] = [];
-      for (let bi = 0; bi < unmatchedBank.length; bi++) {
-        if (usedBankIdx.has(bi)) continue;
-        const sameSign = (target > 0) === (unmatchedBank[bi].amount > 0);
-        if (sameSign) {
-          candidates.push({ idx: bi, dist: Math.abs(Math.abs(unmatchedBank[bi].amount) - Math.abs(target)) });
-        }
-      }
-
-      if (candidates.length < 2) continue;
-
-      let selectedIdx: number[];
-      if (candidates.length > maxCandidates) {
-        candidates.sort((a, b) => a.dist - b.dist);
-        selectedIdx = candidates.slice(0, maxCandidates).map((c) => c.idx);
-      } else {
-        selectedIdx = candidates.map((c) => c.idx);
-      }
-
-      const idxSet = findSubsetSum(unmatchedBank, selectedIdx, target, maxDepth);
-      if (idxSet) {
-        for (const bi of idxSet) usedBankIdx.add(bi);
-        usedEntIdx.add(ei);
-        groups.push({
-          bankItems: idxSet.map((i) => unmatchedBank[i]),
-          enterpriseItems: [ent],
-          bankSum: idxSet.reduce((s, i) => s + unmatchedBank[i].amount, 0),
-          enterpriseSum: target,
-        });
-      }
+    // 按符号筛选：同符号的银行流水才能匹配
+    const candidateIdx: number[] = [];
+    for (let bi = 0; bi < unmatchedBank.length; bi++) {
+      if (usedBankIdx.has(bi)) continue;
+      const sameSign = (target > 0) === (unmatchedBank[bi].amount > 0);
+      if (sameSign) candidateIdx.push(bi);
     }
 
-    // --- 方向 b: 一笔银行流水 → 多笔企业账（从大到小）---
-    const bankSorted = unmatchedBank
-      .map((bank, i) => ({ bank, i }))
-      .filter(({ i }) => !usedBankIdx.has(i))
-      .sort((a, b) => Math.abs(b.bank.amount) - Math.abs(a.bank.amount));
+    if (candidateIdx.length < 2) continue;
 
-    for (const { bank, i: bi } of bankSorted) {
-      if (usedBankIdx.has(bi)) continue;
-      const target = bank.amount; // 有符号
+    const idxSet = findSubsetSum(unmatchedBank, candidateIdx, target, maxDepth);
+    if (idxSet) {
+      for (const bi of idxSet) usedBankIdx.add(bi);
+      usedEntIdx.add(ei);
+      groups.push({
+        bankItems: idxSet.map((i) => unmatchedBank[i]),
+        enterpriseItems: [ent],
+        bankSum: idxSet.reduce((s, i) => s + unmatchedBank[i].amount, 0),
+        enterpriseSum: target,
+      });
+    }
+  }
 
-      // 按符号筛选：同符号的企业账才能匹配
-      const candidates: { idx: number; dist: number }[] = [];
-      for (let ei = 0; ei < unmatchedEnterprise.length; ei++) {
-        if (usedEntIdx.has(ei)) continue;
-        const sameSign = (target > 0) === (unmatchedEnterprise[ei].amount > 0);
-        if (sameSign) {
-          candidates.push({ idx: ei, dist: Math.abs(Math.abs(unmatchedEnterprise[ei].amount) - Math.abs(target)) });
-        }
-      }
+  // --- 方向 b: 一笔银行流水 → 多笔企业账（从大到小）---
+  const bankSorted = unmatchedBank
+    .map((bank, i) => ({ bank, i }))
+    .sort((a, b) => Math.abs(b.bank.amount) - Math.abs(a.bank.amount));
 
-      if (candidates.length < 2) continue;
+  for (const { bank, i: bi } of bankSorted) {
+    if (usedBankIdx.has(bi)) continue;
+    const target = bank.amount;
 
-      let selectedIdx: number[];
-      if (candidates.length > maxCandidates) {
-        candidates.sort((a, b) => a.dist - b.dist);
-        selectedIdx = candidates.slice(0, maxCandidates).map((c) => c.idx);
-      } else {
-        selectedIdx = candidates.map((c) => c.idx);
-      }
+    // 按符号筛选：同符号的企业账才能匹配
+    const candidateIdx: number[] = [];
+    for (let ei = 0; ei < unmatchedEnterprise.length; ei++) {
+      if (usedEntIdx.has(ei)) continue;
+      const sameSign = (target > 0) === (unmatchedEnterprise[ei].amount > 0);
+      if (sameSign) candidateIdx.push(ei);
+    }
 
-      const idxSet = findSubsetSum(unmatchedEnterprise, selectedIdx, target, maxDepth);
-      if (idxSet) {
-        for (const ei of idxSet) usedEntIdx.add(ei);
-        usedBankIdx.add(bi);
-        groups.push({
-          bankItems: [bank],
-          enterpriseItems: idxSet.map((i) => unmatchedEnterprise[i]),
-          bankSum: target,
-          enterpriseSum: idxSet.reduce((s, i) => s + unmatchedEnterprise[i].amount, 0),
-        });
-      }
+    if (candidateIdx.length < 2) continue;
+
+    const idxSet = findSubsetSum(unmatchedEnterprise, candidateIdx, target, maxDepth);
+    if (idxSet) {
+      for (const ei of idxSet) usedEntIdx.add(ei);
+      usedBankIdx.add(bi);
+      groups.push({
+        bankItems: [bank],
+        enterpriseItems: idxSet.map((i) => unmatchedEnterprise[i]),
+        bankSum: target,
+        enterpriseSum: idxSet.reduce((s, i) => s + unmatchedEnterprise[i].amount, 0),
+      });
     }
   }
 
