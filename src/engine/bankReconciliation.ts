@@ -271,6 +271,9 @@ function findMNMatches(
  * target 可为正（资金流入）或负（资金流出），candidates 必须同符号
  * 返回第一个匹配的原始索引数组，或 null
  */
+/** DFS 最大迭代次数，超出后中止（防止单账户 M:N 匹配耗时过长导致页面无响应） */
+const DFS_MAX_ITERATIONS = 10000;
+
 function findSubsetSum<T extends { amount: number }>(
   allItems: T[],
   candidates: number[],
@@ -279,6 +282,7 @@ function findSubsetSum<T extends { amount: number }>(
 ): number[] | null {
   const targetCents = Math.round(target * 100);
   const isPositive = targetCents > 0;
+  let iterations = 0;
 
   // 排序：正值升序（小→大），负值降序（大→小，即从接近0开始逐步更负）
   const sorted = [...candidates].sort((a, b) => {
@@ -290,6 +294,8 @@ function findSubsetSum<T extends { amount: number }>(
   let best: number[] | null = null;
 
   function dfs(start: number, current: number[], currentSumCents: number) {
+    iterations++;
+    if (iterations > DFS_MAX_ITERATIONS) return; // 迭代上限，放弃本轮 M:N
     if (current.length > maxDepth) return;
 
     if (current.length >= 2 && currentSumCents === targetCents) {
@@ -324,7 +330,7 @@ function findSubsetSum<T extends { amount: number }>(
  * 单账户核对：对单个账户执行完整的 Phase 0-3 匹配流水线
  * 纯函数，不修改输入数组
  */
-function reconcileOneAccount(
+export function reconcileOneAccount(
   account: string,
   bankTxns: BankTransaction[],
   enterpriseTxns: EnterpriseTransaction[],

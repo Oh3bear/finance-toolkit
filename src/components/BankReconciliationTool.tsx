@@ -71,18 +71,15 @@ export default function BankReconciliationTool() {
 
     await delay(30);
 
-    // 静态汇总字段（在整个核对过程中不变）
+    // 静态汇总字段
     const allBankAccounts = [...new Set(bankTxns.map((t) => t.account))].sort();
     const allEntAccounts = [...new Set(entTxns.map((t) => t.account))].sort();
     const overlap = allBankAccounts.filter((a) => allEntAccounts.includes(a));
     const skippedBank = allBankAccounts.filter((a) => !allEntAccounts.includes(a));
     const skippedEnt = allEntAccounts.filter((a) => !allBankAccounts.includes(a));
-    const baseProgress = 30; // 提取阶段占 30%，核对阶段占 70%
+    const baseProgress = 30;
 
-    // 辅助：构建临时 summary
-    function buildInterimSummary(
-      accResults: AccountResult[],
-    ): BankReconSummary {
+    function buildInterimSummary(accResults: AccountResult[]): BankReconSummary {
       return {
         totalAccounts: accResults.length,
         fullyMatched: accResults.filter((r) => r.unmatchedBank.length === 0 && r.unmatchedEnterprise.length === 0 && r.totalBank > 0).length,
@@ -102,9 +99,8 @@ export default function BankReconciliationTool() {
       };
     }
 
-    // 流式核对（手动迭代生成器，setTimeout 跳出 React 18 批处理）
-    let totalAccounts = 0;
-    const assembledAccounts: BankReconResult['accounts'] = [];
+    // 流式核对：手动迭代 AsyncGenerator + setTimeout 跳出 React 18 批处理
+    const assembledAccounts: AccountResult[] = [];
     const stream = reconcileStream(bankTxns, entTxns);
 
     await new Promise<void>((resolve) => {
@@ -116,19 +112,16 @@ export default function BankReconciliationTool() {
         }
 
         if (event.type === 'account') {
-          totalAccounts = event.totalAccounts;
           assembledAccounts.push(event.result);
 
-          const pct = baseProgress + Math.round((assembledAccounts.length / totalAccounts) * 70);
+          const pct = baseProgress + Math.round((assembledAccounts.length / event.totalAccounts) * 70);
           setProgress(pct);
-          setProgressText(`核对中 ${assembledAccounts.length}/${totalAccounts} · ${event.result.account}`);
+          setProgressText(`核对中 ${assembledAccounts.length}/${event.totalAccounts} · ${event.result.account}`);
 
-          // 第一个账户结果到达时切换到结果页
           if (assembledAccounts.length === 1) {
             setStep(3);
           }
 
-          // 实时更新部分结果
           setResult({
             accounts: [...assembledAccounts],
             summary: buildInterimSummary(assembledAccounts),
@@ -148,7 +141,7 @@ export default function BankReconciliationTool() {
           return;
         }
 
-        // 用 setTimeout 跳出 React 18 批处理上下文，强制渲染提交
+        // setTimeout(0) 强制跳出 React 18 自动批处理，让每账户结果独立渲染
         setTimeout(pump, 0);
       };
       pump();
@@ -191,7 +184,6 @@ export default function BankReconciliationTool() {
 
               return (
                 <div key={s.key} className="flex items-center flex-1">
-                  {/* 步骤按钮 */}
                   <button
                     onClick={() => {
                       if (!isDisabled) setStep(s.key);
@@ -215,7 +207,6 @@ export default function BankReconciliationTool() {
                     <span className="hidden sm:inline">{s.label}</span>
                   </button>
 
-                  {/* 连接线 */}
                   {i < steps.length - 1 && (
                     <div
                       className={`flex-1 h-0.5 mx-2 ${
@@ -232,7 +223,6 @@ export default function BankReconciliationTool() {
 
       {/* 主内容 */}
       <main className="max-w-6xl mx-auto px-6 py-8 pb-12">
-        {/* 步骤 1: 上传银行流水 */}
         {step === 1 && (
           <>
             <BankUploadStep
@@ -253,10 +243,8 @@ export default function BankReconciliationTool() {
           </>
         )}
 
-        {/* 步骤 2: 上传企业账 OR 执行核对 */}
         {step === 2 && (
           <div className="space-y-8">
-            {/* 显示步骤1完成状态 */}
             {bankData && (
               <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg text-sm">
                 <CheckCircle className="w-4 h-4 text-green-600 shrink-0" />
@@ -271,7 +259,6 @@ export default function BankReconciliationTool() {
               onConfirm={handleEnterpriseConfirm}
             />
 
-            {/* 核对按钮 */}
             {enterpriseData && !processing && (
               <div className="flex justify-center pt-4">
                 <button
@@ -283,7 +270,6 @@ export default function BankReconciliationTool() {
               </div>
             )}
 
-            {/* 处理进度 */}
             {processing && (
               <div className="space-y-3 p-6 bg-white border rounded-xl shadow-sm">
                 <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
@@ -298,7 +284,6 @@ export default function BankReconciliationTool() {
           </div>
         )}
 
-        {/* 步骤 3: 核对结果 */}
         {step === 3 && result && (
           <BankResultTable
             result={result}
