@@ -1,27 +1,10 @@
 import * as XLSX from 'xlsx';
 import type { RawLedgerRow, SubjectMapping, EntityMapping } from '@/types';
+import { formatCellFull } from './dateUtils';
 
 // ==================== 解析明细账 ====================
 function formatDateCell(v: any): string {
-  if (v instanceof Date) {
-    return toLocalDateStr(v);
-  }
-  if (typeof v === 'number') {
-    // Excel serial date → UTC-based Date
-    // 1900 假闰年 bug：序列号 >= 61 需减 1（与 bankReconciliation.excelSerialToDate 一致）
-    const corrected = v >= 61 ? v - 1 : v;
-    const d = new Date((corrected - 25569) * 86400000);
-    return toLocalDateStr(d);
-  }
-  return String(v || '');
-}
-
-/** Date → YYYY-MM-DD，使用本地时间避免 UTC 偏移 */
-function toLocalDateStr(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
+  return formatCellFull(v);
 }
 
 export function parseLedgerExcel(file: ArrayBuffer): RawLedgerRow[] {

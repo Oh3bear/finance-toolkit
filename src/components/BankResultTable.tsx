@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import * as XLSX from 'xlsx';
+import { fmtExportDate } from '../utils/dateUtils';
 import {
   Download,
   CheckCircle,
@@ -430,7 +431,7 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `银企对账结果_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    a.download = `银企对账结果_${fmtExportDate()}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
   };

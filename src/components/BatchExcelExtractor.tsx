@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
 import * as XLSX from 'xlsx';
+import { fmtExportDate, formatDateCell as formatCellValue } from '../utils/dateUtils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,16 +34,6 @@ function colLabel(col: number): string {
     c = Math.floor(c / 26) - 1;
   }
   return s;
-}
-
-function formatCellValue(v: unknown): string {
-  if (v == null) return '';
-  if (v instanceof Date) return v.toLocaleDateString('zh-CN');
-  if (typeof v === 'number') {
-    if (Number.isInteger(v) && Math.abs(v) < 100000) return String(v);
-    return v.toLocaleString('zh-CN', { maximumFractionDigits: 2 });
-  }
-  return String(v);
 }
 
 function formatSize(bytes: number): string {
@@ -468,7 +459,7 @@ export default function BatchExcelExtractor() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `批量提取结果_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    a.download = `批量提取结果_${fmtExportDate()}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
     showToast('结果已导出');

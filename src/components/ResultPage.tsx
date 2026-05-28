@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { getUnmatchedRows, formatAmount } from '@/engine/reconciliation';
 import { exportReconResult } from '@/utils/excelParser';
+import { fmtExportDate } from '@/utils/dateUtils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -36,7 +37,7 @@ export function ResultPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `内部往来核对结果_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    a.download = `内部往来核对结果_${fmtExportDate()}.xlsx`;
     a.click();
   };
 

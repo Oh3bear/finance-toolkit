@@ -2,10 +2,11 @@ import { useState, useRef, useCallback } from 'react';
 import * as XLSX from 'xlsx';
 import { Upload, FileSpreadsheet, AlertCircle, Check } from 'lucide-react';
 import type { BankAmountMode, ColumnConfig } from '../engine/bankReconciliation';
+import { formatDateCell } from '../utils/dateUtils';
 
 interface Props {
   type: 'bank' | 'enterprise';
-  onConfirm: (data: { rows: string[][]; config: ColumnConfig; fileName: string }) => void;
+  onConfirm: (data: { rows: any[][]; config: ColumnConfig; fileName: string }) => void;
 }
 
 type StepState = 'upload' | 'config' | 'done';
@@ -19,25 +20,9 @@ function colLabel(i: number): string {
   return s;
 }
 
-let _formatCellDiagDone = false;
+/** 统一日期格式化 — 委托给 dateUtils.formatDateCell */
 function formatCell(v: unknown): string {
-  if (v == null || v === '') return '';
-  if (v instanceof Date) {
-    if (!_formatCellDiagDone) { _formatCellDiagDone = true; console.log('[DIAG-P40] formatCell received Date:', v.toISOString(), '→ locale:', v.toLocaleDateString('zh-CN'), 'getDate:', v.getDate()); }
-    return v.toLocaleDateString('zh-CN');
-  }
-  if (typeof v === 'number') {
-    if (v > 30000 && v < 100000) {
-      // 1900 假闰年 bug：序列号 >= 61 需减 1
-      const corrected = v >= 61 ? v - 1 : v;
-      const d = new Date((corrected - 25569) * 86400000);
-      if (!_formatCellDiagDone) { _formatCellDiagDone = true; console.log('[DIAG-P40] formatCell received number:', v, '→ date:', d.toISOString(), '→ locale:', d.toLocaleDateString('zh-CN'), 'getDate:', d.getDate()); }
-      return d.toLocaleDateString('zh-CN');
-    }
-    return String(Math.round(v * 100) / 100);
-  }
-  const s = String(v).trim();
-  return s.length > 20 ? s.slice(0, 20) + '…' : s;
+  return formatDateCell(v);
 }
 
 function formatSize(bytes: number): string {
@@ -53,7 +38,7 @@ function formatSize(bytes: number): string {
 export default function BankUploadStep({ type, onConfirm }: Props) {
   const [state, setState] = useState<StepState>('upload');
   const [fileName, setFileName] = useState('');
-  const [rows, setRows] = useState<string[][]>([]);
+  const [rows, setRows] = useState<any[][]>([]);
   const [error, setError] = useState('');
   const [dragover, setDragover] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -102,11 +87,11 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const wb = XLSX.read(e.target?.result, { type: 'array' });
+        const wb = XLSX.read(e.target?.result, { type: 'array', cellDates: true });
         const sheetName = wb.SheetNames[0];
         const sheet = wb.Sheets[sheetName];
-        const data = XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1, defval: '' });
-        setRows(data as string[][]);
+        const data = XLSX.utils.sheet_to_json<any[]>(sheet, { header: 1, defval: '' });
+        setRows(data);
         setState('config');
       } catch {
         setError('文件解析失败，请确认文件格式正确');

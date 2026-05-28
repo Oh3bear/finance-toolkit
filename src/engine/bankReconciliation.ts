@@ -1,6 +1,8 @@
 // ========== 银企对账引擎 ==========
 // 纯函数，无副作用，在浏览器主线程运行。
 
+import { excelSerialToDate, toLocalDateStr, formatCellFull } from '../utils/dateUtils';
+
 // ---- 类型定义 ----
 
 /** 银行流水单笔交易 */
@@ -114,17 +116,6 @@ export interface BankReconSummary {
 
 // ---- 辅助函数 ----
 
-/** Excel 序号日期转为 Date（基于 UTC，避免本地时区偏移） */
-function excelSerialToDate(serial: number): Date {
-  // Excel 序列号转 JavaScript Date
-  // 关键：Excel 错误地将 1900 视为闰年（序列号 60 = 假的 1900-02-29）
-  // 因此所有 >= 61 的序列号比真实天数多 1，必须减去来校正
-  // 示例：真实 2026-03-31 → Excel 序列号 46111 → 校正后 46110 → 正确日期
-  const corrected = serial >= 61 ? serial - 1 : serial;
-  // 25569 = 1899-12-30 到 1970-01-01 的真实天数（不含假闰日）
-  return new Date((corrected - 25569) * 86400000);
-}
-
 /** 尝试将任意值解析为 Date */
 function parseDate(val: unknown): Date | null {
   if (val instanceof Date && !isNaN(val.getTime())) return val;
@@ -193,12 +184,9 @@ function withinDateWindow(a: Date, b: Date, days: number = DATE_WINDOW_DAYS): bo
   return Math.abs(a.getTime() - b.getTime()) <= days * msPerDay;
 }
 
-/** Date → YYYY-MM-DD 字符串，用于日期分桶（本地时间，避免 UTC 偏移导致日期错位） */
+/** Date → YYYY-MM-DD 字符串，用于日期分桶（委托给 dateUtils） */
 function toDateKey(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
+  return toLocalDateStr(d);
 }
 
 
@@ -532,6 +520,7 @@ export async function reconcileOneAccount(
   bankTxns: BankTransaction[],
   enterpriseTxns: EnterpriseTransaction[],
   onPhase?: (phase: string, phaseIndex: number, totalPhases: number) => void,
+  onPhaseProgress?: (phase: string, detail: string) => void,
 ): Promise<AccountResult> {
   // 筛选该账号的交易
   let bankList = bankTxns.filter((t) => t.account === account);
@@ -836,6 +825,9 @@ export async function reconcileOneAccount(
       unmatchedBank = unmatchedBank.filter((_, i) => !usedB.has(i));
       unmatchedEnterprise = unmatchedEnterprise.filter((_, i) => !usedE.has(i));
 
+      // 子进度：报告当前 M:N 匹配进展
+      onPhaseProgress?.('渐进式 M:N 匹配', `阶段 ${stage + 1}/7 · 第 ${stagePassCount} 轮 · 剩余 ${unmatchedBank.length + unmatchedEnterprise.length} 条`);
+
       // 池子太小就无法做 M:N（至少需要 1+2=3 条）
       if (unmatchedBank.length + unmatchedEnterprise.length < 3) break;
     }
@@ -1105,6 +1097,7 @@ export async function reconcile(
 /** 流式核对事件类型 */
 export type ReconStreamEvent =
   | { type: 'phase_progress'; account: string; phase: string; phaseIndex: number; totalPhases: number; accountIndex: number; totalAccounts: number }
+  | { type: 'sub_progress'; account: string; phase: string; detail: string; accountIndex: number; totalAccounts: number }
   | { type: 'account'; result: AccountResult; accountIndex: number; totalAccounts: number }
   | { type: 'summary'; result: BankReconResult };
 
@@ -1171,8 +1164,22 @@ export async function* reconcileStream(
       }
     };
 
-    // 启动核对（不 await — 事件在执行过程中通过 onPhase 实时回调）
-    const reconPromise = reconcileOneAccount(account, bankTxns, enterpriseTxns, onPhase);
+    // 子进度桥：Phase 内部进度同样通过 resolver 通知
+    const onPhaseProgress = (phase: string, detail: string) => {
+      const event: ReconStreamEvent = {
+        type: 'sub_progress', account, phase, detail,
+        accountIndex: i, totalAccounts: total,
+      };
+      if (phaseNotify) {
+        phaseNotify(event);
+        phaseNotify = null;
+      } else {
+        pendingEvent = event;
+      }
+    };
+
+    // 启动核对（不 await — 事件在执行过程中通过 onPhase/onPhaseProgress 实时回调）
+    const reconPromise = reconcileOneAccount(account, bankTxns, enterpriseTxns, onPhase, onPhaseProgress);
 
     // 泵循环：reconcileOneAccount 在每个 Phase 后 await setTimeout(0) 让出控制权，
     // 我们在每个 tick 中消费一个事件并 yield 出去
@@ -1264,7 +1271,7 @@ export interface ColumnConfig {
  * @returns BankTransaction[]
  */
 export function extractBankTransactions(
-  rows: string[][],
+  rows: any[][],
   config: ColumnConfig
 ): BankTransaction[] {
   const txns: BankTransaction[] = [];
@@ -1319,7 +1326,7 @@ export function extractBankTransactions(
     const rawRow: Record<string, string> = {};
     const header = rows[0];
     for (let c = 0; c < row.length; c++) {
-      rawRow[header[c] ?? `列${c}`] = String(row[c] ?? '');
+      rawRow[header[c] ?? `列${c}`] = formatCellFull(row[c]);
     }
 
     txns.push({ account, date, amount, direction, rawRow });
@@ -1331,7 +1338,7 @@ export function extractBankTransactions(
  * 从二维数组和列配置中提取企业银行明细账交易
  */
 export function extractEnterpriseTransactions(
-  rows: string[][],
+  rows: any[][],
   config: ColumnConfig
 ): EnterpriseTransaction[] {
   // ---- 第一遍扫描：检测 SAP 贷方列的符号惯例 ----
@@ -1389,7 +1396,7 @@ export function extractEnterpriseTransactions(
     const rawRow: Record<string, string> = {};
     const header = rows[0];
     for (let c = 0; c < row.length; c++) {
-      rawRow[header[c] ?? `列${c}`] = String(row[c] ?? '');
+      rawRow[header[c] ?? `列${c}`] = formatCellFull(row[c]);
     }
 
     txns.push({ account, date, amount, direction, rawRow });

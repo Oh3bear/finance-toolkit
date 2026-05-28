@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   XCircle,
 } from 'lucide-react';
+import { formatDateCell as formatCellValue } from '../utils/dateUtils';
 
 // ============ Helpers ============
 
@@ -26,16 +27,6 @@ function colLabel(col: number): string {
     c = Math.floor(c / 26) - 1;
   }
   return s;
-}
-
-function formatCellValue(v: unknown): string {
-  if (v == null) return '';
-  if (v instanceof Date) return v.toLocaleDateString('zh-CN');
-  if (typeof v === 'number') {
-    if (Number.isInteger(v) && Math.abs(v) < 100000) return String(v);
-    return v.toLocaleString('zh-CN', { maximumFractionDigits: 2 });
-  }
-  return String(v);
 }
 
 function formatSize(bytes: number): string {

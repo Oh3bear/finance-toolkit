@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Upload, FileSearch, BarChart3, CheckCircle, ArrowRight } from 'lucide-react';
 import BankUploadStep from './BankUploadStep';
 import BankResultTable from './BankResultTable';
@@ -12,7 +12,7 @@ import type { ColumnConfig, BankReconResult, BankReconSummary, AccountResult } f
 type Step = 1 | 2 | 3;
 
 interface ParsedData {
-  rows: string[][];
+  rows: any[][];
   config: ColumnConfig;
   fileName: string;
 }
@@ -37,6 +37,33 @@ export default function BankReconciliationTool() {
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [progressText, setProgressText] = useState('');
+
+  // 进度节流 refs：16ms（≈60fps）内只允许一次 React state 更新
+  const lastRenderRef = useRef(0);
+  const frameRequestedRef = useRef(false);
+  const pendingProgressRef = useRef<{ pct: number; text: string } | null>(null);
+  const currentProgressRef = useRef(0); // 跟踪当前进度值避免闭包旧值
+
+  /** 节流进度更新：确保 React 渲染不落后于事件流 */
+  function throttledSetProgress(pct: number, text: string) {
+    currentProgressRef.current = pct;
+    pendingProgressRef.current = { pct, text };
+    const now = performance.now();
+    if (now - lastRenderRef.current >= 16) {
+      lastRenderRef.current = now;
+      setProgress(pct);
+      setProgressText(text);
+    } else if (!frameRequestedRef.current) {
+      frameRequestedRef.current = true;
+      requestAnimationFrame(() => {
+        frameRequestedRef.current = false;
+        if (pendingProgressRef.current) {
+          setProgress(pendingProgressRef.current.pct);
+          setProgressText(pendingProgressRef.current.text);
+        }
+      });
+    }
+  }
 
   const canGoStep2 = bankData !== null;
   const canGoStep3 = bankData !== null && enterpriseData !== null;
@@ -98,7 +125,7 @@ export default function BankReconciliationTool() {
       };
     }
 
-    // 流式核对：手动迭代 AsyncGenerator + setTimeout 跳出 React 18 批处理
+    // 流式核对：手动迭代 AsyncGenerator + requestAnimationFrame + 节流
     const assembledAccounts: AccountResult[] = [];
     const stream = reconcileStream(bankTxns, entTxns);
 
@@ -118,9 +145,13 @@ export default function BankReconciliationTool() {
           const pct = Math.round(
             20 + event.accountIndex * accountShare + event.phaseIndex * phaseShare
           );
-          setProgress(pct);
-          setProgressText(
+          throttledSetProgress(pct,
             `核对中 ${event.accountIndex + 1}/${event.totalAccounts} · ${event.account} · ${event.phase}`
+          );
+        } else if (event.type === 'sub_progress') {
+          // 细粒度子进度：Phase 内部（如 M:N 各轮迭代），不改变百分比仅更新文字
+          throttledSetProgress(currentProgressRef.current,
+            `核对中 ${event.accountIndex + 1}/${event.totalAccounts} · ${event.account} · ${event.detail}`
           );
         } else if (event.type === 'account') {
           assembledAccounts.push(event.result);
@@ -128,8 +159,7 @@ export default function BankReconciliationTool() {
           // 账户完成时进度 = 提取 20% + 完成的账户数 * 每账户份额
           const accountShare = event.totalAccounts > 0 ? 70 / event.totalAccounts : 70;
           const pct = Math.round(20 + (assembledAccounts.length) * accountShare);
-          setProgress(pct);
-          setProgressText(`核对中 ${assembledAccounts.length}/${event.totalAccounts} · ${event.result.account} · 完成`);
+          throttledSetProgress(pct, `核对中 ${assembledAccounts.length}/${event.totalAccounts} · ${event.result.account} · 完成`);
 
           if (assembledAccounts.length === 1) {
             setStep(3);
@@ -154,8 +184,10 @@ export default function BankReconciliationTool() {
           return;
         }
 
-        // setTimeout(0) 强制跳出 React 18 自动批处理，让每账户结果独立渲染
-        setTimeout(pump, 0);
+        // rAF 确保浏览器完成渲染后再继续下一帧，避免 React 18 批处理吞掉状态更新
+        requestAnimationFrame(() => {
+          setTimeout(pump, 0);
+        });
       };
       pump();
     });
@@ -287,7 +319,7 @@ export default function BankReconciliationTool() {
               <div className="space-y-3 p-6 bg-white border rounded-xl shadow-sm">
                 <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                   <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-75 ease-linear"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
