@@ -119,10 +119,11 @@ function applyPattern(baseName: string, pattern: string): string | null {
   }
 }
 
-// 生成单个文件缩略图
-async function genThumb(item: PdfFile): Promise<string | null> {
+// 生成单个文件缩略图，同时返回页数（复用 pdfjsLib 的解析结果，避免二次 PDFDocument.load）
+async function genThumb(item: PdfFile): Promise<{ url: string | null; pages: number }> {
   try {
-    const pdf = await pdfjsLib.getDocument({ data: item.arrayBuffer.slice(0) }).promise;
+    const pdf = await pdfjsLib.getDocument({ data: item.arrayBuffer }).promise;
+    const pages = pdf.numPages;
     const page = await pdf.getPage(1);
     const scale = 200 / page.getViewport({ scale: 1 }).width;
     const viewport = page.getViewport({ scale: Math.max(scale, 0.5) });
@@ -132,9 +133,9 @@ async function genThumb(item: PdfFile): Promise<string | null> {
     await page.render({ canvas, viewport }).promise;
     const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
     pdf.destroy();
-    return dataUrl;
+    return { url: dataUrl, pages };
   } catch {
-    return null;
+    return { url: null, pages: 0 };
   }
 }
 
@@ -278,14 +279,17 @@ export default function PdfMergeTool() {
     );
 
     pending.forEach(async (item) => {
-      const url = await genThumb(item);
+      const { url, pages: actualPages } = await genThumb(item);
       genRef.current.delete(item.id);
       setFiles((prev) =>
         prev.map((f) =>
           f.id === item.id
-            ? url
-              ? { ...f, thumbUrl: url, thumbStatus: 'done' as const }
-              : { ...f, thumbStatus: 'error' as const }
+            ? {
+                ...f,
+                thumbUrl: url || undefined,
+                thumbStatus: url ? ('done' as const) : ('error' as const),
+                pages: actualPages > 0 ? actualPages : f.pages,
+              }
             : f
         )
       );
@@ -303,13 +307,9 @@ export default function PdfMergeTool() {
     for (const file of pdfFiles) {
       const id = 'f_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
       const ab = await file.arrayBuffer();
-      let pages = 0;
-      try {
-        const tmp = await PDFDocument.load(ab);
-        pages = tmp.getPageCount();
-      } catch { /* ignore */ }
+      // 页数由缩略图生成时一并获取（pdfjsLib），避免在此处用 PDFDocument.load 做二次解析
       newFiles.push({
-        id, file, name: file.name, size: file.size, pages,
+        id, file, name: file.name, size: file.size, pages: 0,
         thumbStatus: 'idle', arrayBuffer: ab,
       });
     }
@@ -405,7 +405,7 @@ export default function PdfMergeTool() {
               font: helvetica, color: rgb(0.6, 0.6, 0.6)
             });
           }
-          const pdf = await PDFDocument.load(item.arrayBuffer.slice(0));
+          const pdf = await PDFDocument.load(item.arrayBuffer);
           const pages = await merged.copyPages(pdf, pdf.getPageIndices());
           pages.forEach((p) => merged.addPage(p));
           totalFilesProcessed++;
