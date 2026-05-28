@@ -19,12 +19,17 @@ function colLabel(i: number): string {
   return s;
 }
 
+let _formatCellDiagDone = false;
 function formatCell(v: unknown): string {
   if (v == null || v === '') return '';
-  if (v instanceof Date) return v.toLocaleDateString('zh-CN');
+  if (v instanceof Date) {
+    if (!_formatCellDiagDone) { _formatCellDiagDone = true; console.log('[DIAG-P40] formatCell received Date:', v.toISOString(), '→ locale:', v.toLocaleDateString('zh-CN'), 'getDate:', v.getDate()); }
+    return v.toLocaleDateString('zh-CN');
+  }
   if (typeof v === 'number') {
     if (v > 30000 && v < 100000) {
       const d = new Date((v - 25569) * 86400000);
+      if (!_formatCellDiagDone) { _formatCellDiagDone = true; console.log('[DIAG-P40] formatCell received number:', v, '→ date:', d.toISOString(), '→ locale:', d.toLocaleDateString('zh-CN'), 'getDate:', d.getDate()); }
       return d.toLocaleDateString('zh-CN');
     }
     return String(Math.round(v * 100) / 100);

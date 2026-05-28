@@ -634,6 +634,7 @@ export function reconcileOneAccount(
   // 不断缩小池子：每轮找到匹配后剔除已用条目，重跑直到无新匹配
   let unmatchedBank = bankList.filter((_, i) => !bankUsed[i]);
   let unmatchedEnterprise = entList.filter((_, i) => !entUsed[i]);
+  console.log('[DIAG-P40] Phase 2.5 date-bucket matched:', dateBucketMatched.length, 'groups,', dateBucketMatched.reduce((s,g) => s+g.bankItems.length+g.enterpriseItems.length, 0), 'items. Remaining bank:', unmatchedBank.length, 'ent:', unmatchedEnterprise.length);
   const allMNGroups: MNMatchGroup[] = [...dateBucketMatched];
   let mnPassCount = 0;
   const MN_MAX_PASSES = 5; // 最多迭代 5 轮，防止大数据量下无限循环
