@@ -177,8 +177,16 @@ function centsEqual(a: number, b: number): boolean {
 /** 日期窗口（天），银行入账与企业记账的合理时间差 */
 const DATE_WINDOW_DAYS = 7;
 
-/** 判断两个日期是否在 ±days 窗口内 */
+/** 判断两个日期是否在 ±days 窗口内。days=0 时比较年月日（忽略时分秒） */
 function withinDateWindow(a: Date, b: Date, days: number = DATE_WINDOW_DAYS): boolean {
+  if (days === 0) {
+    // 同日判断：忽略时分秒，仅比较年月日
+    return (
+      a.getFullYear() === b.getFullYear() &&
+      a.getMonth() === b.getMonth() &&
+      a.getDate() === b.getDate()
+    );
+  }
   const msPerDay = 86400000;
   return Math.abs(a.getTime() - b.getTime()) <= days * msPerDay;
 }
@@ -195,19 +203,28 @@ function toDateKey(d: Date): string {
 // ---- 主函数 ----
 
 /**
+ * 渐进式 Phase 3 配置：每阶段收紧/放松窗口与深度
+ */
+interface ProgressiveConfig {
+  dateWindow: number;    // ±N 天
+  maxDepth: number;      // 子集最大条目数（N 限制）
+  maxCandidates: number; // 单 target 候选上限
+}
+
+/**
  * 对剩余未匹配项做 M:N 子集求和匹配，支持双向：
  *   a) 多笔银行流水 → 一笔企业账（银行拆分、企业合并）
  *   b) 一笔银行流水 → 多笔企业账（企业拆分、银行合并）
  *
- * 策略：
- *   1. 从大额开始匹配（优先清理大额，减少后续干扰）
- *   2. 全量候选池：不再渐进截断，避免小匹配蚕食大匹配的条目
- *   3. 按有符号金额匹配：正=流入，负=流出，同符号才能互配
+ * 策略（渐进式）：
+ *   1. 从小额开始匹配（小金额组合少，优先清掉省空间）
+ *   2. 候选必须 |amount| ≤ |target|，减少无效组合
+ *   3. 通过 config 控制窗口/N/候选数，渐进式松弛
  */
 function findMNMatches(
   unmatchedBank: BankTransaction[],
   unmatchedEnterprise: EnterpriseTransaction[],
-  maxDepth: number = 12,
+  config: ProgressiveConfig,
 ): { groups: MNMatchGroup[]; usedBankIdx: Set<number>; usedEntIdx: Set<number> } {
   const groups: MNMatchGroup[] = [];
   const usedBankIdx = new Set<number>();
@@ -221,30 +238,33 @@ function findMNMatches(
   const dfsCounter = { value: 0 };
   const capsReached = () => dfsCounter.value >= DFS_CUMULATIVE_CAP;
 
-  // --- 方向 a: 多笔银行流水 → 一笔企业账（从大到小）---
+  // --- 方向 a: 多笔银行流水 → 一笔企业账（从小到大）---
   const entSorted = unmatchedEnterprise
     .map((ent, i) => ({ ent, i }))
-    .sort((a, b) => Math.abs(b.ent.amount) - Math.abs(a.ent.amount));
+    .sort((a, b) => Math.abs(a.ent.amount) - Math.abs(b.ent.amount));
 
   for (const { ent, i: ei } of entSorted) {
     if (usedEntIdx.has(ei)) continue;
     if (capsReached()) break;
     const target = ent.amount;
+    const absTarget = Math.abs(target);
 
-    // 按符号 + 日期窗口筛选候选
+    // 按符号 + 日期窗口 + 金额剪枝筛选候选
     const candidateIdx: number[] = [];
     for (let bi = 0; bi < unmatchedBank.length; bi++) {
       if (usedBankIdx.has(bi)) continue;
       const sameSign = (target > 0) === (unmatchedBank[bi].amount > 0);
       if (!sameSign) continue;
-      if (!withinDateWindow(ent.date, unmatchedBank[bi].date)) continue;
+      if (!withinDateWindow(ent.date, unmatchedBank[bi].date, config.dateWindow)) continue;
+      // 金额剪枝：候选绝对值必须 ≤ 目标绝对值，否则不可能组成 target
+      if (Math.abs(unmatchedBank[bi].amount) > absTarget) continue;
       candidateIdx.push(bi);
     }
 
     // 候选太少无法组合，或太多 DFS 难以命中 → 跳过
-    if (candidateIdx.length < 2 || candidateIdx.length > MN_MAX_CANDIDATES) continue;
+    if (candidateIdx.length < 2 || candidateIdx.length > config.maxCandidates) continue;
 
-    const idxSet = findSubsetSum(unmatchedBank, candidateIdx, target, maxDepth, dfsCounter);
+    const idxSet = findSubsetSum(unmatchedBank, candidateIdx, target, config.maxDepth, dfsCounter);
     if (idxSet) {
       for (const bi of idxSet) usedBankIdx.add(bi);
       usedEntIdx.add(ei);
@@ -257,30 +277,33 @@ function findMNMatches(
     }
   }
 
-  // --- 方向 b: 一笔银行流水 → 多笔企业账（从大到小）---
+  // --- 方向 b: 一笔银行流水 → 多笔企业账（从小到大）---
   const bankSorted = unmatchedBank
     .map((bank, i) => ({ bank, i }))
-    .sort((a, b) => Math.abs(b.bank.amount) - Math.abs(a.bank.amount));
+    .sort((a, b) => Math.abs(a.bank.amount) - Math.abs(b.bank.amount));
 
   for (const { bank, i: bi } of bankSorted) {
     if (usedBankIdx.has(bi)) continue;
     if (capsReached()) break;
     const target = bank.amount;
+    const absTarget = Math.abs(target);
 
-    // 按符号 + 日期窗口筛选候选
+    // 按符号 + 日期窗口 + 金额剪枝筛选候选
     const candidateIdx: number[] = [];
     for (let ei = 0; ei < unmatchedEnterprise.length; ei++) {
       if (usedEntIdx.has(ei)) continue;
       const sameSign = (target > 0) === (unmatchedEnterprise[ei].amount > 0);
       if (!sameSign) continue;
-      if (!withinDateWindow(bank.date, unmatchedEnterprise[ei].date)) continue;
+      if (!withinDateWindow(bank.date, unmatchedEnterprise[ei].date, config.dateWindow)) continue;
+      // 金额剪枝：候选绝对值必须 ≤ 目标绝对值，否则不可能组成 target
+      if (Math.abs(unmatchedEnterprise[ei].amount) > absTarget) continue;
       candidateIdx.push(ei);
     }
 
     // 候选太少无法组合，或太多 DFS 难以命中 → 跳过
-    if (candidateIdx.length < 2 || candidateIdx.length > MN_MAX_CANDIDATES) continue;
+    if (candidateIdx.length < 2 || candidateIdx.length > config.maxCandidates) continue;
 
-    const idxSet = findSubsetSum(unmatchedEnterprise, candidateIdx, target, maxDepth, dfsCounter);
+    const idxSet = findSubsetSum(unmatchedEnterprise, candidateIdx, target, config.maxDepth, dfsCounter);
     if (idxSet) {
       for (const ei of idxSet) usedEntIdx.add(ei);
       usedBankIdx.add(bi);
@@ -302,14 +325,14 @@ function findMNMatches(
  * target 可为正（资金流入）或负（资金流出），candidates 必须同符号
  * 返回第一个匹配的原始索引数组，或 null
  */
+/** Phase 4 差额填补匹配：近匹配对的金额差阈值（元） */
+const GAP_THRESHOLD = 5000;
+
 /** 单次 DFS 最大迭代次数（防止单次组合爆炸卡死） */
 const DFS_MAX_ITERATIONS = 20000;
 
 /** 累计 DFS 迭代上限（findMNMatches 中所有 DFS 调用合计，防止大数据量下累积阻塞） */
 const DFS_CUMULATIVE_CAP = 200000;
-
-/** M:N 候选条目数上限，超过则跳过该 target（候选太多 DFS 命中率低且耗时） */
-const MN_MAX_CANDIDATES = 20;
 
 function findSubsetSum<T extends { amount: number }>(
   allItems: T[],
@@ -370,6 +393,120 @@ function findSubsetSum<T extends { amount: number }>(
   // 回写迭代计数到外部计数器
   if (extCounter) extCounter.value += iterations;
   return best;
+}
+
+/**
+ * Phase 4: 差额填补 M:N 匹配
+ *
+ * 思路：Phase 2-3 精确匹配之后，剩余条目中可能存在"近匹配"的银行-企业对：
+ *   B=-4,415,387.54  E=-4,413,027.54  差=-2,360  ← 99.9% 匹配
+ * 这个差额（-2,360）可能对应一笔单独的手续费/调整条目。通过在对侧找到金额
+ * 恰好等于差额的条目，可以组成 2:1 或 1:2 的 M:N 匹配，一笔清除两个难题。
+ *
+ * 策略：
+ *   1. 扫描所有剩余 (B, E) 对，筛选 |B-E| ≤ GAP_THRESHOLD 的近匹配候选
+ *   2. gap = B - E（有符号），在对侧搜索金额 = gap 或 -gap 的填补条目
+ *   3. 按 |gap| 升序贪心处理（小差额优先，最可能的手续费）
+ *   4. 找到填补 → 组成 2:1 或 1:2 M:N 组
+ *   5. 日期不限（手续费可能跨多天出现）
+ */
+function findGapFillMatches(
+  unmatchedBank: BankTransaction[],
+  unmatchedEnterprise: EnterpriseTransaction[],
+): { groups: MNMatchGroup[]; usedBankIdx: Set<number>; usedEntIdx: Set<number> } {
+  const groups: MNMatchGroup[] = [];
+  const usedBankIdx = new Set<number>();
+  const usedEntIdx = new Set<number>();
+
+  if (unmatchedBank.length < 1 || unmatchedEnterprise.length < 1) {
+    return { groups, usedBankIdx, usedEntIdx };
+  }
+
+  // 建金额→索引哈希表（分精度），用于 O(1) 查找填补条目
+  const bankByCents = new Map<number, number[]>();
+  for (let i = 0; i < unmatchedBank.length; i++) {
+    const c = Math.round(unmatchedBank[i].amount * 100);
+    let arr = bankByCents.get(c);
+    if (!arr) { arr = []; bankByCents.set(c, arr); }
+    arr.push(i);
+  }
+
+  const entByCents = new Map<number, number[]>();
+  for (let i = 0; i < unmatchedEnterprise.length; i++) {
+    const c = Math.round(unmatchedEnterprise[i].amount * 100);
+    let arr = entByCents.get(c);
+    if (!arr) { arr = []; entByCents.set(c, arr); }
+    arr.push(i);
+  }
+
+  // 收集所有近匹配对，按 |gap| 升序排列
+  const pairs: { bi: number; ei: number; gap: number; gapCents: number }[] = [];
+
+  for (let bi = 0; bi < unmatchedBank.length; bi++) {
+    const b = unmatchedBank[bi];
+    for (let ei = 0; ei < unmatchedEnterprise.length; ei++) {
+      const e = unmatchedEnterprise[ei];
+      // 同方向（同号）
+      if ((b.amount > 0) !== (e.amount > 0)) continue;
+      const diff = Math.abs(b.amount - e.amount);
+      if (diff > GAP_THRESHOLD) continue;
+      const gap = b.amount - e.amount;
+      const gapCents = Math.round(gap * 100);
+      if (gapCents === 0) continue; // 精确匹配应由 Phase 2 处理
+      pairs.push({ bi, ei, gap, gapCents });
+    }
+  }
+
+  // |gap| 升序：差额越小越优先（手续费嫌疑最大）
+  pairs.sort((a, b) => Math.abs(a.gapCents) - Math.abs(b.gapCents));
+
+  for (const { bi, ei, gap, gapCents } of pairs) {
+    if (usedBankIdx.has(bi) || usedEntIdx.has(ei)) continue;
+
+    // 方向 A: 在 E 侧找 amount = gap → B ↔ (E₁ + E₂)
+    const entFill = entByCents.get(gapCents);
+    if (entFill) {
+      for (const fi of entFill) {
+        if (fi === ei || usedEntIdx.has(fi)) continue;
+        usedBankIdx.add(bi);
+        usedEntIdx.add(ei);
+        usedEntIdx.add(fi);
+        const e1 = unmatchedEnterprise[ei];
+        const e2 = unmatchedEnterprise[fi];
+        groups.push({
+          bankItems: [unmatchedBank[bi]],
+          enterpriseItems: [e1, e2],
+          bankSum: unmatchedBank[bi].amount,
+          enterpriseSum: e1.amount + e2.amount,
+        });
+        break;
+      }
+    }
+
+    if (usedBankIdx.has(bi) || usedEntIdx.has(ei)) continue;
+
+    // 方向 B: 在 B 侧找 amount = -gap → (B₁ + B₂) ↔ E
+    const bankFill = bankByCents.get(-gapCents);
+    if (bankFill) {
+      for (const fi of bankFill) {
+        if (fi === bi || usedBankIdx.has(fi)) continue;
+        usedBankIdx.add(bi);
+        usedBankIdx.add(fi);
+        usedEntIdx.add(ei);
+        const b1 = unmatchedBank[bi];
+        const b2 = unmatchedBank[fi];
+        groups.push({
+          bankItems: [b1, b2],
+          enterpriseItems: [unmatchedEnterprise[ei]],
+          bankSum: b1.amount + b2.amount,
+          enterpriseSum: unmatchedEnterprise[ei].amount,
+        });
+        break;
+      }
+    }
+  }
+
+  return { groups, usedBankIdx, usedEntIdx };
 }
 
 /**
@@ -630,29 +767,55 @@ export function reconcileOneAccount(
     }
   }
 
-  // ---- Phase 3: M:N 迭代匹配 ----
-  // 不断缩小池子：每轮找到匹配后剔除已用条目，重跑直到无新匹配
+  // ---- Phase 3: 渐进式 M:N 匹配 ----
+  // 多阶段渐进松弛：从紧窗口/小N开始，逐级放大
+  // 每个阶段内迭代直到无新匹配，缩小池子后再进入下一阶段
   let unmatchedBank = bankList.filter((_, i) => !bankUsed[i]);
   let unmatchedEnterprise = entList.filter((_, i) => !entUsed[i]);
   console.log('[DIAG-P40] Phase 2.5 date-bucket matched:', dateBucketMatched.length, 'groups,', dateBucketMatched.reduce((s,g) => s+g.bankItems.length+g.enterpriseItems.length, 0), 'items. Remaining bank:', unmatchedBank.length, 'ent:', unmatchedEnterprise.length);
   const allMNGroups: MNMatchGroup[] = [...dateBucketMatched];
-  let mnPassCount = 0;
-  const MN_MAX_PASSES = 5; // 最多迭代 5 轮，防止大数据量下无限循环
 
-  while (mnPassCount < MN_MAX_PASSES) {
-    const mnResult = findMNMatches(unmatchedBank, unmatchedEnterprise);
-    if (mnResult.groups.length === 0) break;
+  // 渐进式配置：逐级放大窗口、深度、候选数
+  // Stage 0: 同日期高容量（日期约束天然缩池，候选上限放大）
+  const PROGRESSIVE_STAGES: ProgressiveConfig[] = [
+    { dateWindow: 0, maxDepth: 6,  maxCandidates: 60 },  // Stage 0: 同日期，高容量
+    { dateWindow: 0, maxDepth: 4,  maxCandidates: 12 },  // Stage 1: 同日（窄深度）
+    { dateWindow: 1, maxDepth: 5,  maxCandidates: 15 },  // Stage 2: ±1天
+    { dateWindow: 2, maxDepth: 6,  maxCandidates: 18 },  // Stage 3: ±2天
+    { dateWindow: 3, maxDepth: 8,  maxCandidates: 20 },  // Stage 4: ±3天
+    { dateWindow: 5, maxDepth: 10, maxCandidates: 22 },  // Stage 5: ±5天
+    { dateWindow: Infinity, maxDepth: 15, maxCandidates: 30 },  // Stage 6: 无限窗口（兜底）
+  ];
 
-    mnPassCount++;
-    allMNGroups.push(...mnResult.groups);
+  let totalMNPassCount = 0;
+  const MN_MAX_TOTAL_PASSES = 30; // 总迭代上限，防止死循环
 
-    // 从当前池子中剔除已匹配条目
-    const usedB = mnResult.usedBankIdx;
-    const usedE = mnResult.usedEntIdx;
-    unmatchedBank = unmatchedBank.filter((_, i) => !usedB.has(i));
-    unmatchedEnterprise = unmatchedEnterprise.filter((_, i) => !usedE.has(i));
+  for (let stage = 0; stage < PROGRESSIVE_STAGES.length; stage++) {
+    const cfg = PROGRESSIVE_STAGES[stage];
+    let stagePassCount = 0;
+    const MN_MAX_STAGE_PASSES = 5; // 每阶段最多迭代5轮
 
-    // 池子太小就无法做 M:N（至少需要 1+2=3 条）
+    while (stagePassCount < MN_MAX_STAGE_PASSES && totalMNPassCount < MN_MAX_TOTAL_PASSES) {
+      const mnResult = findMNMatches(unmatchedBank, unmatchedEnterprise, cfg);
+      if (mnResult.groups.length === 0) break;
+
+      stagePassCount++;
+      totalMNPassCount++;
+      allMNGroups.push(...mnResult.groups);
+
+      // 从当前池子中剔除已匹配条目
+      const usedB = mnResult.usedBankIdx;
+      const usedE = mnResult.usedEntIdx;
+      unmatchedBank = unmatchedBank.filter((_, i) => !usedB.has(i));
+      unmatchedEnterprise = unmatchedEnterprise.filter((_, i) => !usedE.has(i));
+
+      // 池子太小就无法做 M:N（至少需要 1+2=3 条）
+      if (unmatchedBank.length + unmatchedEnterprise.length < 3) break;
+    }
+
+    console.log(`[DIAG-P41] Stage ${stage + 1} (w=${cfg.dateWindow}, d=${cfg.maxDepth}, c=${cfg.maxCandidates}): ${stagePassCount} passes, remaining B:${unmatchedBank.length} E:${unmatchedEnterprise.length}`);
+
+    // 池子太小就退出
     if (unmatchedBank.length + unmatchedEnterprise.length < 3) break;
   }
 
@@ -757,7 +920,21 @@ export function reconcileOneAccount(
     } // end if (unmatched <= 30)
   }
 
-  // ---- Phase 4: 后处理验证 ----
+  // ---- Phase 4: 差额填补 M:N 匹配 ----
+  // 查找近匹配对（|B-E| ≤ 5,000），在对侧找填补条目组成 2:1 或 1:2
+  {
+    const gapResult = findGapFillMatches(unmatchedBank, unmatchedEnterprise);
+    if (gapResult.groups.length > 0) {
+      allMNGroups.push(...gapResult.groups);
+      const usedB = gapResult.usedBankIdx;
+      const usedE = gapResult.usedEntIdx;
+      unmatchedBank = unmatchedBank.filter((_, i) => !usedB.has(i));
+      unmatchedEnterprise = unmatchedEnterprise.filter((_, i) => !usedE.has(i));
+    }
+    console.log(`[DIAG-P42] Phase 4 gap-fill: ${gapResult.groups.length} groups, remaining B:${unmatchedBank.length} E:${unmatchedEnterprise.length}`);
+  }
+
+  // ---- 后处理验证 ----
   const quickMatchCount = matched.filter((p) => p.quickMatch).length;
   const oneToOneBefore = matched.length;
   const remainingBankSum = unmatchedBank.reduce((s, t) => s + t.amount, 0);
