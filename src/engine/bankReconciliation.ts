@@ -827,6 +827,9 @@ export async function reconcileOneAccount(
       // 子进度：报告当前 M:N 匹配进展
       onPhaseProgress?.('渐进式 M:N 匹配', `阶段 ${stage + 1}/7 · 第 ${stagePassCount} 轮 · 剩余 ${unmatchedBank.length + unmatchedEnterprise.length} 条`);
 
+      // 每轮 M:N 匹配后让出主线程（findMNMatches 单次 20-50ms，累积会阻塞 UI）
+      await new Promise<void>(r => setTimeout(r, 0));
+
       // 池子太小就无法做 M:N（至少需要 1+2=3 条）
       if (unmatchedBank.length + unmatchedEnterprise.length < 3) break;
     }

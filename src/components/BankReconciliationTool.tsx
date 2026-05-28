@@ -106,14 +106,29 @@ export default function BankReconciliationTool() {
     const skippedEnt = allEntAccounts.filter((a) => !allBankAccounts.includes(a));
 
     function buildInterimSummary(accResults: AccountResult[]): BankReconSummary {
+      // 单次遍历汇总所有统计字段（原来 7 次遍历 → 1 次）
+      let fullyMatched = 0;
+      let hasUnmatched = 0;
+      let totalUnmatchedBank = 0;
+      let totalUnmatchedEnterprise = 0;
+      let totalMNMatched = 0;
+      let quickMatchedAccounts = 0;
+      for (const r of accResults) {
+        if (r.unmatchedBank.length === 0 && r.unmatchedEnterprise.length === 0 && r.totalBank > 0) fullyMatched++;
+        if (r.unmatchedBank.length > 0 || r.unmatchedEnterprise.length > 0) hasUnmatched++;
+        totalUnmatchedBank += r.unmatchedBank.length;
+        totalUnmatchedEnterprise += r.unmatchedEnterprise.length;
+        totalMNMatched += r.mnMatched.length;
+        if (r.quickMatched > 0 && r.unmatchedBank.length === 0 && r.unmatchedEnterprise.length === 0) quickMatchedAccounts++;
+      }
       return {
         totalAccounts: accResults.length,
-        fullyMatched: accResults.filter((r) => r.unmatchedBank.length === 0 && r.unmatchedEnterprise.length === 0 && r.totalBank > 0).length,
-        hasUnmatched: accResults.filter((r) => r.unmatchedBank.length > 0 || r.unmatchedEnterprise.length > 0).length,
-        totalUnmatchedBank: accResults.reduce((s, r) => s + r.unmatchedBank.length, 0),
-        totalUnmatchedEnterprise: accResults.reduce((s, r) => s + r.unmatchedEnterprise.length, 0),
-        totalMNMatched: accResults.reduce((s, r) => s + r.mnMatched.length, 0),
-        quickMatchedAccounts: accResults.filter((r) => r.quickMatched > 0 && r.unmatchedBank.length === 0 && r.unmatchedEnterprise.length === 0).length,
+        fullyMatched,
+        hasUnmatched,
+        totalUnmatchedBank,
+        totalUnmatchedEnterprise,
+        totalMNMatched,
+        quickMatchedAccounts,
         bankTxCount: bankTxns.length,
         enterpriseTxCount: entTxns.length,
         bankAccounts: allBankAccounts,

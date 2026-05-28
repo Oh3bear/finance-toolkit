@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import * as XLSX from 'xlsx';
 import { fmtExportDate } from '../utils/dateUtils';
 import {
@@ -53,7 +53,7 @@ function getDisplayColumns(
 }
 
 /** 单组 M:N 匹配卡片 */
-function MNMatchCard({ group }: { group: MNMatchGroup }) {
+const MNMatchCard = memo(function MNMatchCard({ group }: { group: MNMatchGroup }) {
   const bankSum = group.bankItems.reduce((s, t) => s + Math.abs(t.amount), 0);
   const entSum = group.enterpriseItems.reduce((s, t) => s + Math.abs(t.amount), 0);
 
@@ -172,10 +172,10 @@ function MNMatchCard({ group }: { group: MNMatchGroup }) {
       </div>
     </div>
   );
-}
+});
 
 /** 诊断面板：显示各阶段中间值，帮助排查为什么对符失败 */
-function DiagnosticsPanel({ debug }: { debug: ReconDebugInfo }) {
+const DiagnosticsPanel = memo(function DiagnosticsPanel({ debug }: { debug: ReconDebugInfo }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -329,7 +329,7 @@ function DiagnosticsPanel({ debug }: { debug: ReconDebugInfo }) {
       )}
     </div>
   );
-}
+});
 
 export default function BankResultTable({ result, bankFileName, enterpriseFileName }: Props) {
   const { accounts, summary } = result;
