@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "cp index.dev.html index.html && vite",
     "build": "tsc -b && vite build",
-    "postbuild": "cp dist/index.html index.html && cp dist/assets/* assets/ && cp dist/pdf.worker.mjs . && node -e \"const t=new Date().toLocaleString('zh-CN',{timeZone:'Asia/Shanghai'});const f=require('fs');let h=f.readFileSync('index.html','utf8');h=h.replace('</body>','<div style=\\\"text-align:center;color:#9ca3af;font-size:11px;padding:2px 0;position:fixed;bottom:0;left:0;right:0;background:#fff;z-index:9999;border-top:1px solid #e5e7eb\\\">Build: '+t+'</div></body>');f.writeFileSync('index.html',h)\"",
+    "postbuild": "cp dist/index.html index.html && cp -r dist/assets/* assets/ && cp dist/pdf.worker.mjs . && node scripts/inject-build-time.js",
     "lint": "eslint .",
     "preview": "vite preview"
   },
