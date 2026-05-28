@@ -525,12 +525,12 @@ export const RECON_PHASES = [
   '后处理验证',
 ] as const;
 
-export function reconcileOneAccount(
+export async function reconcileOneAccount(
   account: string,
   bankTxns: BankTransaction[],
   enterpriseTxns: EnterpriseTransaction[],
   onPhase?: (phase: string, phaseIndex: number, totalPhases: number) => void,
-): AccountResult {
+): Promise<AccountResult> {
   // 筛选该账号的交易
   let bankList = bankTxns.filter((t) => t.account === account);
   let entList = enterpriseTxns.filter((t) => t.account === account);
@@ -612,6 +612,7 @@ export function reconcileOneAccount(
   }
 
   onPhase?.(RECON_PHASES[0], 0, RECON_PHASES.length);
+  await new Promise<void>(r => setTimeout(r, 0));
 
   // ---- Phase 1: 冲销预处理（仅扫描快速通道剩余的未匹配企业账）----
   const entReversalUsed = new Set<number>();
@@ -662,6 +663,7 @@ export function reconcileOneAccount(
   }
 
   onPhase?.(RECON_PHASES[1], 1, RECON_PHASES.length);
+  await new Promise<void>(r => setTimeout(r, 0));
 
   // ---- Phase 2: 1:1 逐笔匹配（哈希表 + 日期窗口） ----
   // 步骤 1: 建哈希表 — 金额(分) → [{日期, 企业索引}]
@@ -719,6 +721,7 @@ export function reconcileOneAccount(
   }
 
   onPhase?.(RECON_PHASES[2], 2, RECON_PHASES.length);
+  await new Promise<void>(r => setTimeout(r, 0));
 
   // ---- Phase 2.5: 日期分桶快速通道 ----
   // 思路：Phase 2 (1:1) 之后，将剩余未匹配条目按日期分桶，
@@ -787,6 +790,7 @@ export function reconcileOneAccount(
   }
 
   onPhase?.(RECON_PHASES[3], 3, RECON_PHASES.length);
+  await new Promise<void>(r => setTimeout(r, 0));
 
   // ---- Phase 3: 渐进式 M:N 匹配 ----
   // 多阶段渐进松弛：从紧窗口/小N开始，逐级放大
@@ -841,6 +845,7 @@ export function reconcileOneAccount(
   }
 
   onPhase?.(RECON_PHASES[4], 4, RECON_PHASES.length);
+  await new Promise<void>(r => setTimeout(r, 0));
 
   // ---- Phase 3.5: 方向整体匹配（兜底 + 日期窗口） ----
   // 思路：1:N 迭代后，按方向（收入/支出）取较小方汇总作为 target，
@@ -944,6 +949,7 @@ export function reconcileOneAccount(
   }
 
   onPhase?.(RECON_PHASES[5], 5, RECON_PHASES.length);
+  await new Promise<void>(r => setTimeout(r, 0));
 
   // ---- Phase 4: 差额填补 M:N 匹配 ----
   // 查找近匹配对（|B-E| ≤ 5,000），在对侧找填补条目组成 2:1 或 1:2
@@ -960,6 +966,7 @@ export function reconcileOneAccount(
   }
 
   onPhase?.(RECON_PHASES[6], 6, RECON_PHASES.length);
+  await new Promise<void>(r => setTimeout(r, 0));
 
   // ---- 后处理验证 ----
   const quickMatchCount = matched.filter((p) => p.quickMatch).length;
@@ -974,6 +981,7 @@ export function reconcileOneAccount(
   const expenseDiffCents = Math.round(bankExpenseSum * 100) - Math.round(entCreditSum * 100);
 
   onPhase?.(RECON_PHASES[7], 7, RECON_PHASES.length);
+  await new Promise<void>(r => setTimeout(r, 0));
 
   return {
     account,
@@ -1013,10 +1021,10 @@ export function reconcileOneAccount(
  * @param enterpriseTxns 企业银行明细账交易列表
  * @returns 核对结果
  */
-export function reconcile(
+export async function reconcile(
   bankTxns: BankTransaction[],
   enterpriseTxns: EnterpriseTransaction[]
-): BankReconResult {
+): Promise<BankReconResult> {
   // 1. 提取不重复账号
   const bankAcctSet = new Set<string>();
   for (const t of bankTxns) {
@@ -1055,7 +1063,7 @@ export function reconcile(
   const accountResults: AccountResult[] = [];
 
   for (const account of reconcileAccounts) {
-    accountResults.push(reconcileOneAccount(account, bankTxns, enterpriseTxns));
+    accountResults.push(await reconcileOneAccount(account, bankTxns, enterpriseTxns));
   }
 
   // 3. 汇总统计
@@ -1142,25 +1150,56 @@ export async function* reconcileStream(
 
   for (let i = 0; i < reconcileAccounts.length; i++) {
     const account = reconcileAccounts[i];
-    const phaseQueue: ReconStreamEvent[] = [];
 
-    const result = reconcileOneAccount(account, bankTxns, enterpriseTxns,
-      (phase, idx, total) => {
-        phaseQueue.push({
-          type: 'phase_progress',
-          account,
-          phase,
-          phaseIndex: idx,
-          totalPhases: total,
-          accountIndex: i,
-          totalAccounts: total,
-        });
+    // Phase 事件桥：onPhase 通过 resolver 通知 generator 来 yield 事件
+    let phaseNotify: ((event: ReconStreamEvent) => void) | null = null;
+    let pendingEvent: ReconStreamEvent | null = null;
+
+    const onPhase = (phase: string, idx: number, totalPhases: number) => {
+      const event: ReconStreamEvent = {
+        type: 'phase_progress', account, phase,
+        phaseIndex: idx, totalPhases: totalPhases,
+        accountIndex: i, totalAccounts: total,
+      };
+      if (phaseNotify) {
+        phaseNotify(event);
+        phaseNotify = null;
+      } else {
+        pendingEvent = event;
       }
-    );
+    };
 
-    // 先 yield 所有相位进度，再 yield 账户结果
-    for (const ev of phaseQueue) {
-      yield ev;
+    // 启动核对（不 await — 事件在执行过程中通过 onPhase 实时回调）
+    const reconPromise = reconcileOneAccount(account, bankTxns, enterpriseTxns, onPhase);
+
+    // 泵循环：reconcileOneAccount 在每个 Phase 后 await setTimeout(0) 让出控制权，
+    // 我们在每个 tick 中消费一个事件并 yield 出去
+    let result: AccountResult;
+    while (true) {
+      // 先处理缓冲的事件
+      if (pendingEvent) {
+        const ev = pendingEvent;
+        pendingEvent = null;
+        yield ev;
+        await new Promise((r) => setTimeout(r, 0));
+        continue;
+      }
+
+      // 等待下一阶段事件或核对完成
+      const outcome = await Promise.race([
+        reconPromise.then((r) => ({ _done: true as const, result: r })),
+        new Promise<ReconStreamEvent>((resolve) => {
+          phaseNotify = resolve;
+        }),
+      ]);
+
+      if ('_done' in outcome) {
+        result = outcome.result;
+        break;
+      }
+
+      // Phase 事件
+      yield outcome as ReconStreamEvent;
       await new Promise((r) => setTimeout(r, 0));
     }
 
