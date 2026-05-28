@@ -226,13 +226,13 @@ function findMNMatches(
     if (capsReached()) break;
     const target = ent.amount;
 
-    // 按符号 + 同日期筛选候选（日期分桶后候选数大幅缩减）
+    // 按符号 + 日期窗口筛选候选
     const candidateIdx: number[] = [];
     for (let bi = 0; bi < unmatchedBank.length; bi++) {
       if (usedBankIdx.has(bi)) continue;
       const sameSign = (target > 0) === (unmatchedBank[bi].amount > 0);
       if (!sameSign) continue;
-      if (toDateKey(ent.date) !== toDateKey(unmatchedBank[bi].date)) continue;
+      if (!withinDateWindow(ent.date, unmatchedBank[bi].date)) continue;
       candidateIdx.push(bi);
     }
 
@@ -262,13 +262,13 @@ function findMNMatches(
     if (capsReached()) break;
     const target = bank.amount;
 
-    // 按符号 + 同日期筛选候选（日期分桶后候选数大幅缩减）
+    // 按符号 + 日期窗口筛选候选
     const candidateIdx: number[] = [];
     for (let ei = 0; ei < unmatchedEnterprise.length; ei++) {
       if (usedEntIdx.has(ei)) continue;
       const sameSign = (target > 0) === (unmatchedEnterprise[ei].amount > 0);
       if (!sameSign) continue;
-      if (toDateKey(bank.date) !== toDateKey(unmatchedEnterprise[ei].date)) continue;
+      if (!withinDateWindow(bank.date, unmatchedEnterprise[ei].date)) continue;
       candidateIdx.push(ei);
     }
 
