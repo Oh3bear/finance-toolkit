@@ -460,7 +460,7 @@ function findGapFillMatches(
   // |gap| 升序：差额越小越优先（手续费嫌疑最大）
   pairs.sort((a, b) => Math.abs(a.gapCents) - Math.abs(b.gapCents));
 
-  for (const { bi, ei, gap, gapCents } of pairs) {
+  for (const { bi, ei, gapCents } of pairs) {
     if (usedBankIdx.has(bi) || usedEntIdx.has(ei)) continue;
 
     // 方向 A: 在 E 侧找 amount = gap → B ↔ (E₁ + E₂)
@@ -513,10 +513,23 @@ function findGapFillMatches(
  * 单账户核对：对单个账户执行完整的 Phase 0-3 匹配流水线
  * 纯函数，不修改输入数组
  */
+/** Phase 进度报告的相位定义 */
+export const RECON_PHASES = [
+  '快速对符通道',
+  '冲销清理',
+  '1:1 逐笔匹配',
+  '日期分桶快速通道',
+  '渐进式 M:N 匹配',
+  '方向整体匹配',
+  '差额填补匹配',
+  '后处理验证',
+] as const;
+
 export function reconcileOneAccount(
   account: string,
   bankTxns: BankTransaction[],
   enterpriseTxns: EnterpriseTransaction[],
+  onPhase?: (phase: string, phaseIndex: number, totalPhases: number) => void,
 ): AccountResult {
   // 筛选该账号的交易
   let bankList = bankTxns.filter((t) => t.account === account);
@@ -598,6 +611,8 @@ export function reconcileOneAccount(
     }
   }
 
+  onPhase?.(RECON_PHASES[0], 0, RECON_PHASES.length);
+
   // ---- Phase 1: 冲销预处理（仅扫描快速通道剩余的未匹配企业账）----
   const entReversalUsed = new Set<number>();
   let reversalPairCount = 0;
@@ -645,6 +660,8 @@ export function reconcileOneAccount(
   for (const i of entReversalUsed) {
     entUsed[i] = true;
   }
+
+  onPhase?.(RECON_PHASES[1], 1, RECON_PHASES.length);
 
   // ---- Phase 2: 1:1 逐笔匹配（哈希表 + 日期窗口） ----
   // 步骤 1: 建哈希表 — 金额(分) → [{日期, 企业索引}]
@@ -700,6 +717,8 @@ export function reconcileOneAccount(
       entUsed[bestEi] = true;
     }
   }
+
+  onPhase?.(RECON_PHASES[2], 2, RECON_PHASES.length);
 
   // ---- Phase 2.5: 日期分桶快速通道 ----
   // 思路：Phase 2 (1:1) 之后，将剩余未匹配条目按日期分桶，
@@ -767,6 +786,8 @@ export function reconcileOneAccount(
     }
   }
 
+  onPhase?.(RECON_PHASES[3], 3, RECON_PHASES.length);
+
   // ---- Phase 3: 渐进式 M:N 匹配 ----
   // 多阶段渐进松弛：从紧窗口/小N开始，逐级放大
   // 每个阶段内迭代直到无新匹配，缩小池子后再进入下一阶段
@@ -818,6 +839,8 @@ export function reconcileOneAccount(
     // 池子太小就退出
     if (unmatchedBank.length + unmatchedEnterprise.length < 3) break;
   }
+
+  onPhase?.(RECON_PHASES[4], 4, RECON_PHASES.length);
 
   // ---- Phase 3.5: 方向整体匹配（兜底 + 日期窗口） ----
   // 思路：1:N 迭代后，按方向（收入/支出）取较小方汇总作为 target，
@@ -920,6 +943,8 @@ export function reconcileOneAccount(
     } // end if (unmatched <= 30)
   }
 
+  onPhase?.(RECON_PHASES[5], 5, RECON_PHASES.length);
+
   // ---- Phase 4: 差额填补 M:N 匹配 ----
   // 查找近匹配对（|B-E| ≤ 5,000），在对侧找填补条目组成 2:1 或 1:2
   {
@@ -934,6 +959,8 @@ export function reconcileOneAccount(
     console.log(`[DIAG-P42] Phase 4 gap-fill: ${gapResult.groups.length} groups, remaining B:${unmatchedBank.length} E:${unmatchedEnterprise.length}`);
   }
 
+  onPhase?.(RECON_PHASES[6], 6, RECON_PHASES.length);
+
   // ---- 后处理验证 ----
   const quickMatchCount = matched.filter((p) => p.quickMatch).length;
   const oneToOneBefore = matched.length;
@@ -945,6 +972,8 @@ export function reconcileOneAccount(
 
   const incomeDiffCents = Math.round(bankIncomeSum * 100) - Math.round(entDebitSum * 100);
   const expenseDiffCents = Math.round(bankExpenseSum * 100) - Math.round(entCreditSum * 100);
+
+  onPhase?.(RECON_PHASES[7], 7, RECON_PHASES.length);
 
   return {
     account,
@@ -1065,6 +1094,7 @@ export function reconcile(
 
 /** 流式核对事件类型 */
 export type ReconStreamEvent =
+  | { type: 'phase_progress'; account: string; phase: string; phaseIndex: number; totalPhases: number; accountIndex: number; totalAccounts: number }
   | { type: 'account'; result: AccountResult; accountIndex: number; totalAccounts: number }
   | { type: 'summary'; result: BankReconResult };
 
@@ -1112,10 +1142,30 @@ export async function* reconcileStream(
 
   for (let i = 0; i < reconcileAccounts.length; i++) {
     const account = reconcileAccounts[i];
-    const result = reconcileOneAccount(account, bankTxns, enterpriseTxns);
+    const phaseQueue: ReconStreamEvent[] = [];
+
+    const result = reconcileOneAccount(account, bankTxns, enterpriseTxns,
+      (phase, idx, total) => {
+        phaseQueue.push({
+          type: 'phase_progress',
+          account,
+          phase,
+          phaseIndex: idx,
+          totalPhases: total,
+          accountIndex: i,
+          totalAccounts: total,
+        });
+      }
+    );
+
+    // 先 yield 所有相位进度，再 yield 账户结果
+    for (const ev of phaseQueue) {
+      yield ev;
+      await new Promise((r) => setTimeout(r, 0));
+    }
+
     accountResults.push(result);
     yield { type: 'account', result, accountIndex: i, totalAccounts: total };
-    // 让出主线程，保持 UI 响应
     await new Promise((r) => setTimeout(r, 0));
   }
 

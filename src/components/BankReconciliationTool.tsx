@@ -77,7 +77,6 @@ export default function BankReconciliationTool() {
     const overlap = allBankAccounts.filter((a) => allEntAccounts.includes(a));
     const skippedBank = allBankAccounts.filter((a) => !allEntAccounts.includes(a));
     const skippedEnt = allEntAccounts.filter((a) => !allBankAccounts.includes(a));
-    const baseProgress = 30;
 
     function buildInterimSummary(accResults: AccountResult[]): BankReconSummary {
       return {
@@ -111,12 +110,26 @@ export default function BankReconciliationTool() {
           return;
         }
 
-        if (event.type === 'account') {
+        if (event.type === 'phase_progress') {
+          // Phase 粒度进度：20% 提取 + 70% 按 (账户+Phase) 分配 + 10% 汇总
+          const totalPhases = event.totalPhases;
+          const accountShare = event.totalAccounts > 0 ? 70 / event.totalAccounts : 70;
+          const phaseShare = accountShare / totalPhases;
+          const pct = Math.round(
+            20 + event.accountIndex * accountShare + event.phaseIndex * phaseShare
+          );
+          setProgress(pct);
+          setProgressText(
+            `核对中 ${event.accountIndex + 1}/${event.totalAccounts} · ${event.account} · ${event.phase}`
+          );
+        } else if (event.type === 'account') {
           assembledAccounts.push(event.result);
 
-          const pct = baseProgress + Math.round((assembledAccounts.length / event.totalAccounts) * 70);
+          // 账户完成时进度 = 提取 20% + 完成的账户数 * 每账户份额
+          const accountShare = event.totalAccounts > 0 ? 70 / event.totalAccounts : 70;
+          const pct = Math.round(20 + (assembledAccounts.length) * accountShare);
           setProgress(pct);
-          setProgressText(`核对中 ${assembledAccounts.length}/${event.totalAccounts} · ${event.result.account}`);
+          setProgressText(`核对中 ${assembledAccounts.length}/${event.totalAccounts} · ${event.result.account} · 完成`);
 
           if (assembledAccounts.length === 1) {
             setStep(3);
