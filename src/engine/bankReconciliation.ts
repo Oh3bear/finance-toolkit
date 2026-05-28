@@ -114,11 +114,13 @@ export interface BankReconSummary {
 
 // ---- 辅助函数 ----
 
-/** Excel 序号日期转为 Date */
+/** Excel 序号日期转为 Date（基于 UTC，避免本地时区偏移） */
 function excelSerialToDate(serial: number): Date {
-  const excelEpoch = new Date(1899, 11, 30);
-  const msPerDay = 86400000;
-  return new Date(excelEpoch.getTime() + serial * msPerDay);
+  // Excel 序号 = 距离 1899-12-30 的天数
+  // Unix 序号 = 距离 1970-01-01 的天数
+  // 差值 = 25569 天
+  // 用 UTC 毫秒构造，toLocaleDateString 自动转本地时区
+  return new Date((serial - 25569) * 86400000);
 }
 
 /** 尝试将任意值解析为 Date */

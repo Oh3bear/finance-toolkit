@@ -95,7 +95,7 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const wb = XLSX.read(e.target?.result, { type: 'array', cellDates: true });
+        const wb = XLSX.read(e.target?.result, { type: 'array' });
         const sheetName = wb.SheetNames[0];
         const sheet = wb.Sheets[sheetName];
         const data = XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1, defval: '' });

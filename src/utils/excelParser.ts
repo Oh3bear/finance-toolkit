@@ -7,9 +7,8 @@ function formatDateCell(v: any): string {
     return toLocalDateStr(v);
   }
   if (typeof v === 'number') {
-    // Excel serial date: convert to JS Date
-    const epoch = new Date(1899, 11, 30);
-    const d = new Date(epoch.getTime() + v * 86400000);
+    // Excel serial date → UTC-based Date（与 formatCell 一致）
+    const d = new Date((v - 25569) * 86400000);
     return toLocalDateStr(d);
   }
   return String(v || '');
