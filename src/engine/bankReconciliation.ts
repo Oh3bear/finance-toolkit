@@ -116,11 +116,13 @@ export interface BankReconSummary {
 
 /** Excel 序号日期转为 Date（基于 UTC，避免本地时区偏移） */
 function excelSerialToDate(serial: number): Date {
-  // Excel 序号 = 距离 1899-12-30 的天数
-  // Unix 序号 = 距离 1970-01-01 的天数
-  // 差值 = 25569 天
-  // 用 UTC 毫秒构造，toLocaleDateString 自动转本地时区
-  return new Date((serial - 25569) * 86400000);
+  // Excel 序列号转 JavaScript Date
+  // 关键：Excel 错误地将 1900 视为闰年（序列号 60 = 假的 1900-02-29）
+  // 因此所有 >= 61 的序列号比真实天数多 1，必须减去来校正
+  // 示例：真实 2026-03-31 → Excel 序列号 46111 → 校正后 46110 → 正确日期
+  const corrected = serial >= 61 ? serial - 1 : serial;
+  // 25569 = 1899-12-30 到 1970-01-01 的真实天数（不含假闰日）
+  return new Date((corrected - 25569) * 86400000);
 }
 
 /** 尝试将任意值解析为 Date */
