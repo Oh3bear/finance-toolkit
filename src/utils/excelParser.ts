@@ -7,8 +7,10 @@ function formatDateCell(v: any): string {
     return toLocalDateStr(v);
   }
   if (typeof v === 'number') {
-    // Excel serial date → UTC-based Date（与 formatCell 一致）
-    const d = new Date((v - 25569) * 86400000);
+    // Excel serial date → UTC-based Date
+    // 1900 假闰年 bug：序列号 >= 61 需减 1（与 bankReconciliation.excelSerialToDate 一致）
+    const corrected = v >= 61 ? v - 1 : v;
+    const d = new Date((corrected - 25569) * 86400000);
     return toLocalDateStr(d);
   }
   return String(v || '');

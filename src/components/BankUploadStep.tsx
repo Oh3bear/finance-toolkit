@@ -28,7 +28,9 @@ function formatCell(v: unknown): string {
   }
   if (typeof v === 'number') {
     if (v > 30000 && v < 100000) {
-      const d = new Date((v - 25569) * 86400000);
+      // 1900 假闰年 bug：序列号 >= 61 需减 1
+      const corrected = v >= 61 ? v - 1 : v;
+      const d = new Date((corrected - 25569) * 86400000);
       if (!_formatCellDiagDone) { _formatCellDiagDone = true; console.log('[DIAG-P40] formatCell received number:', v, '→ date:', d.toISOString(), '→ locale:', d.toLocaleDateString('zh-CN'), 'getDate:', d.getDate()); }
       return d.toLocaleDateString('zh-CN');
     }
