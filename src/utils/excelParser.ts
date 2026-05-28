@@ -4,15 +4,23 @@ import type { RawLedgerRow, SubjectMapping, EntityMapping } from '@/types';
 // ==================== 解析明细账 ====================
 function formatDateCell(v: any): string {
   if (v instanceof Date) {
-    return v.toISOString().slice(0, 10);
+    return toLocalDateStr(v);
   }
   if (typeof v === 'number') {
     // Excel serial date: convert to JS Date
     const epoch = new Date(1899, 11, 30);
     const d = new Date(epoch.getTime() + v * 86400000);
-    return d.toISOString().slice(0, 10);
+    return toLocalDateStr(d);
   }
   return String(v || '');
+}
+
+/** Date → YYYY-MM-DD，使用本地时间避免 UTC 偏移 */
+function toLocalDateStr(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 export function parseLedgerExcel(file: ArrayBuffer): RawLedgerRow[] {
