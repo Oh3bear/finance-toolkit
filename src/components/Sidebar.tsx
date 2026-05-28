@@ -88,19 +88,21 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
   return (
     <aside
       className={cn(
-        'h-screen bg-white border-r border-gray-200 flex flex-col transition-all duration-200 shrink-0',
+        'h-screen bg-card border-r border-border flex flex-col transition-all duration-200 shrink-0 hidden md:flex',
         collapsed ? 'w-16' : 'w-64'
       )}
+      role="navigation"
+      aria-label="工具导航"
     >
       {/* Logo */}
-      <div className="flex items-center justify-between px-3 h-14 border-b border-gray-200">
+      <div className="flex items-center justify-between px-3 h-14 border-b border-border">
         {!collapsed && (
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white text-xs font-bold">工</span>
             </div>
             <div>
-              <h1 className="text-sm font-bold text-gray-900 leading-tight">财务工具集</h1>
+              <h1 className="text-sm font-bold text-foreground leading-tight">财务工具集</h1>
             </div>
           </div>
         )}
@@ -109,6 +111,7 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
           size="sm"
           className="h-7 w-7 p-0 ml-auto"
           onClick={onToggleCollapse}
+          aria-label={collapsed ? '展开侧边栏' : '折叠侧边栏'}
         >
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </Button>
@@ -120,7 +123,7 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
           {categories.map((cat) => (
             <div key={cat} className="mb-2">
               {!collapsed && (
-                <div className="px-3 py-1.5 text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   {cat}
                 </div>
               )}
@@ -134,11 +137,13 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
                       <TooltipTrigger asChild>
                         <button
                           onClick={() => onSelectTool(tool.id)}
+                          aria-label={tool.name}
+                          aria-current={isActive ? 'page' : undefined}
                           className={cn(
                             'w-full flex items-center justify-center py-2.5 px-2 transition-colors',
                             isActive
                               ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
-                              : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+                              : 'text-muted-foreground hover:bg-background hover:text-foreground'
                           )}
                         >
                           <Icon className="w-5 h-5" />
@@ -150,17 +155,18 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
                     <button
                       key={tool.id}
                       onClick={() => onSelectTool(tool.id)}
+                      aria-current={isActive ? 'page' : undefined}
                       className={cn(
                         'w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-colors',
                         isActive
                           ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          : 'text-muted-foreground hover:bg-background hover:text-foreground'
                       )}
                     >
                       <Icon className="w-4.5 h-4.5 shrink-0" />
                       <div className="text-left">
                         <div className="font-medium">{tool.name}</div>
-                        <div className="text-xs text-gray-400 leading-tight">{tool.description}</div>
+                        <div className="text-xs text-muted-foreground leading-tight">{tool.description}</div>
                       </div>
                     </button>
                   );
@@ -170,7 +176,7 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
 
           {/* 预留工具 */}
           {!collapsed && (
-            <div className="px-3 py-1.5 text-xs font-medium text-gray-400 uppercase tracking-wider mt-2">
+            <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider mt-2">
               即将上线
             </div>
           )}
@@ -181,7 +187,8 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
                 <TooltipTrigger asChild>
                   <button
                     disabled
-                    className="w-full flex items-center justify-center py-2.5 px-2 text-gray-300 cursor-not-allowed"
+                    aria-label={`${tool.name}（即将上线）`}
+                    className="w-full flex items-center justify-center py-2.5 px-2 text-muted-foreground/60 cursor-not-allowed"
                   >
                     <Icon className="w-5 h-5" />
                   </button>
@@ -192,12 +199,12 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
               <button
                 key={tool.id}
                 disabled
-                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-gray-300 cursor-not-allowed"
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-muted-foreground/60 cursor-not-allowed"
               >
                 <Icon className="w-4.5 h-4.5 shrink-0" />
                 <div className="text-left">
                   <div className="font-medium">{tool.name}</div>
-                  <div className="text-xs text-gray-300 leading-tight">即将上线</div>
+                  <div className="text-xs text-muted-foreground/60 leading-tight">即将上线</div>
                 </div>
               </button>
             );
@@ -206,7 +213,7 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
       </ScrollArea>
 
       {/* 底部 */}
-      <div className="px-3 py-3 border-t border-gray-200 text-xs text-gray-400 text-center">
+      <div className="px-3 py-3 border-t border-border text-xs text-muted-foreground text-center">
         {!collapsed && (
           <div>
             <div>财务工具集 v1.0</div>

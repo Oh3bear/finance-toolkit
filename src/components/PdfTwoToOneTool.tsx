@@ -25,7 +25,7 @@ function formatSize(bytes: number): string {
 
 type LayoutMode = 'side-by-side' | 'stacked';
 
-export default function PdfTwoToOneTool() {
+export default function PdfTwoToOneTool({ sidebarCollapsed = false }: { sidebarCollapsed?: boolean }) {
   const [files, setFiles] = useState<PdfFile[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const [layout, setLayout] = useState<LayoutMode>('side-by-side');
@@ -179,19 +179,19 @@ export default function PdfTwoToOneTool() {
         onDragLeave={() => setDragOver(false)}
         onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files); }}
         className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all ${
-          dragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
+          dragOver ? 'border-blue-500 bg-blue-50' : 'border-border hover:border-blue-400 hover:bg-background'
         }`}
       >
-        <Upload className={`w-12 h-12 mx-auto mb-3 ${dragOver ? 'text-blue-500' : 'text-gray-400'}`} />
-        <h3 className="text-base font-medium text-gray-900 mb-1">拖放 PDF 文件至此，或点击选择</h3>
-        <p className="text-sm text-gray-500">每2页合并为1页，保留原文件名输出。所有处理均在浏览器本地完成。</p>
+        <Upload className={`w-12 h-12 mx-auto mb-3 ${dragOver ? 'text-blue-500' : 'text-muted-foreground'}`} />
+        <h3 className="text-base font-medium text-foreground mb-1">拖放 PDF 文件至此，或点击选择</h3>
+        <p className="text-sm text-muted-foreground">每2页合并为1页，保留原文件名输出。所有处理均在浏览器本地完成。</p>
         <input ref={fileInputRef} type="file" accept=".pdf" multiple className="hidden" onChange={(e) => handleFiles(e.target.files)} />
       </div>
 
       {files.length > 0 && (
         <>
           {/* 工具栏 */}
-          <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white rounded-lg border">
+          <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-card rounded-lg border">
             <div className="flex items-center gap-3">
               <Button variant="outline" size="sm" onClick={sortByName}>
                 <ArrowDown className="w-3.5 h-3.5 mr-1" />
@@ -221,16 +221,16 @@ export default function PdfTwoToOneTool() {
 
               {/* 实时预览小图 */}
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-400">预览：</span>
+                <span className="text-xs text-muted-foreground">预览：</span>
                 {layout === 'side-by-side' ? (
-                  <div className="w-16 h-10 bg-gray-100 rounded border flex gap-0.5 p-0.5" title="左右并排">
-                    <div className="flex-1 bg-white border shadow-sm" />
-                    <div className="flex-1 bg-white border shadow-sm" />
+                  <div className="w-16 h-10 bg-muted rounded border flex gap-0.5 p-0.5" title="左右并排">
+                    <div className="flex-1 bg-card border shadow-sm" />
+                    <div className="flex-1 bg-card border shadow-sm" />
                   </div>
                 ) : (
-                  <div className="w-10 h-14 bg-gray-100 rounded border flex flex-col gap-0.5 p-0.5" title="上下堆叠">
-                    <div className="flex-1 bg-white border shadow-sm" />
-                    <div className="flex-1 bg-white border shadow-sm" />
+                  <div className="w-10 h-14 bg-muted rounded border flex flex-col gap-0.5 p-0.5" title="上下堆叠">
+                    <div className="flex-1 bg-card border shadow-sm" />
+                    <div className="flex-1 bg-card border shadow-sm" />
                   </div>
                 )}
               </div>
@@ -246,38 +246,38 @@ export default function PdfTwoToOneTool() {
                     <FileText className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
                     <span className="text-sm font-medium truncate flex-1" title={item.name}>{item.name}</span>
                     <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => removeFile(item.id)}>
-                      <Trash2 className="w-3.5 h-3.5 text-gray-400 hover:text-red-500" />
+                      <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-red-500" />
                     </Button>
                   </div>
                   {/* 布局预览 */}
-                  <div className="aspect-[1/1.414] bg-gray-100 rounded border overflow-hidden p-2">
+                  <div className="aspect-[1/1.414] bg-muted rounded border overflow-hidden p-2">
                     {layout === 'side-by-side' ? (
                       /* 左右并排预览 */
                       <div className="w-full h-full flex gap-1">
-                        <div className="flex-1 bg-white rounded-sm border shadow-sm flex flex-col items-center justify-center p-1">
+                        <div className="flex-1 bg-card rounded-sm border shadow-sm flex flex-col items-center justify-center p-1">
                           <div className="w-full h-2/3 bg-gradient-to-b from-gray-100 to-gray-200 rounded-sm" />
-                          <span className="text-[8px] text-gray-400 mt-1">第1页</span>
+                          <span className="text-[8px] text-muted-foreground mt-1">第1页</span>
                         </div>
-                        <div className="flex-1 bg-white rounded-sm border shadow-sm flex flex-col items-center justify-center p-1">
+                        <div className="flex-1 bg-card rounded-sm border shadow-sm flex flex-col items-center justify-center p-1">
                           <div className="w-full h-2/3 bg-gradient-to-b from-gray-200 to-gray-300 rounded-sm" />
-                          <span className="text-[8px] text-gray-400 mt-1">第2页</span>
+                          <span className="text-[8px] text-muted-foreground mt-1">第2页</span>
                         </div>
                       </div>
                     ) : (
                       /* 上下堆叠预览 */
                       <div className="w-full h-full flex flex-col gap-1">
-                        <div className="flex-1 bg-white rounded-sm border shadow-sm flex flex-col items-center justify-center p-1">
+                        <div className="flex-1 bg-card rounded-sm border shadow-sm flex flex-col items-center justify-center p-1">
                           <div className="w-full h-2/3 bg-gradient-to-b from-gray-100 to-gray-200 rounded-sm" />
-                          <span className="text-[8px] text-gray-400 mt-0.5">第1页</span>
+                          <span className="text-[8px] text-muted-foreground mt-0.5">第1页</span>
                         </div>
-                        <div className="flex-1 bg-white rounded-sm border shadow-sm flex flex-col items-center justify-center p-1">
+                        <div className="flex-1 bg-card rounded-sm border shadow-sm flex flex-col items-center justify-center p-1">
                           <div className="w-full h-2/3 bg-gradient-to-b from-gray-200 to-gray-300 rounded-sm" />
-                          <span className="text-[8px] text-gray-400 mt-0.5">第2页</span>
+                          <span className="text-[8px] text-muted-foreground mt-0.5">第2页</span>
                         </div>
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center justify-between text-xs text-gray-500">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>{formatSize(item.size)}</span>
                     <Badge variant="outline" className="text-xs">
                       {item.pages % 2 === 1 ? '奇数页' : '偶数页'}
@@ -291,8 +291,8 @@ export default function PdfTwoToOneTool() {
       )}
 
       {files.length === 0 && (
-        <div className="text-center py-16 text-gray-400">
-          <FileText className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+        <div className="text-center py-16 text-muted-foreground">
+          <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground/60" />
           <p className="text-sm">暂无文件，请拖放或选择 PDF</p>
         </div>
       )}
@@ -300,10 +300,9 @@ export default function PdfTwoToOneTool() {
       {/* 底部操作栏 */}
       {files.length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 z-50">
-          <div className="flex items-center justify-between gap-4 p-4 bg-white border-t shadow-[0_-4px_20px_rgba(0,0,0,0.08)]"
-               style={{ marginLeft: '64px' }}>
-            <span className="text-sm text-gray-500">
-              已选 <strong className="text-gray-900">{files.length}</strong> 个文件
+          <div className={`flex items-center justify-between gap-4 p-4 bg-card border-t shadow-[0_-4px_20px_rgba(0,0,0,0.08)] ${sidebarCollapsed ? 'ml-16' : 'ml-64'}`}>
+            <span className="text-sm text-muted-foreground">
+              已选 <strong className="text-foreground">{files.length}</strong> 个文件
               {processing && (
                 <span className="ml-2">（{progress.current}/{progress.total}）</span>
               )}

@@ -15,4 +15,22 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (!id.includes('node_modules')) return;
+          const normalized = id.replace(/\\/g, '/');
+          if (normalized.includes('node_modules/xlsx')) return 'xlsx';
+          if (normalized.includes('node_modules/pdfjs-dist')) return 'pdfjs';
+          if (normalized.includes('node_modules/pdf-lib')) return 'pdflib';
+          if (normalized.includes('node_modules/recharts')) return 'charts';
+          if (normalized.includes('node_modules/react-dom') || normalized.includes('node_modules/react/')) return 'vendor';
+          if (normalized.includes('node_modules/react-router')) return 'vendor';
+          if (normalized.includes('node_modules/@radix-ui')) return 'ui';
+          if (normalized.includes('node_modules/lucide-react')) return 'ui';
+        },
+      },
+    },
+  },
 });

@@ -788,7 +788,6 @@ export async function reconcileOneAccount(
   // 每个阶段内迭代直到无新匹配，缩小池子后再进入下一阶段
   let unmatchedBank = bankList.filter((_, i) => !bankUsed[i]);
   let unmatchedEnterprise = entList.filter((_, i) => !entUsed[i]);
-  console.log('[DIAG-P40] Phase 2.5 date-bucket matched:', dateBucketMatched.length, 'groups,', dateBucketMatched.reduce((s,g) => s+g.bankItems.length+g.enterpriseItems.length, 0), 'items. Remaining bank:', unmatchedBank.length, 'ent:', unmatchedEnterprise.length);
   const allMNGroups: MNMatchGroup[] = [...dateBucketMatched];
 
   // 渐进式配置：逐级放大窗口、深度、候选数
@@ -831,8 +830,6 @@ export async function reconcileOneAccount(
       // 池子太小就无法做 M:N（至少需要 1+2=3 条）
       if (unmatchedBank.length + unmatchedEnterprise.length < 3) break;
     }
-
-    console.log(`[DIAG-P41] Stage ${stage + 1} (w=${cfg.dateWindow}, d=${cfg.maxDepth}, c=${cfg.maxCandidates}): ${stagePassCount} passes, remaining B:${unmatchedBank.length} E:${unmatchedEnterprise.length}`);
 
     // 池子太小就退出
     if (unmatchedBank.length + unmatchedEnterprise.length < 3) break;
@@ -956,7 +953,6 @@ export async function reconcileOneAccount(
       unmatchedBank = unmatchedBank.filter((_, i) => !usedB.has(i));
       unmatchedEnterprise = unmatchedEnterprise.filter((_, i) => !usedE.has(i));
     }
-    console.log(`[DIAG-P42] Phase 4 gap-fill: ${gapResult.groups.length} groups, remaining B:${unmatchedBank.length} E:${unmatchedEnterprise.length}`);
   }
 
   onPhase?.(RECON_PHASES[6], 6, RECON_PHASES.length);

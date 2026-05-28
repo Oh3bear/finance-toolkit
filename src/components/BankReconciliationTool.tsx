@@ -206,15 +206,15 @@ export default function BankReconciliationTool() {
   };
 
   return (
-    <div className="min-h-full bg-gray-50">
+    <div className="min-h-full bg-background">
       {/* 步骤指示器 */}
-      <div className="sticky top-0 z-40 bg-white border-b shadow-sm">
+      <div className="sticky top-0 z-40 bg-card border-b shadow-sm">
         <div className="max-w-4xl mx-auto px-6 py-3">
           <div className="flex items-center justify-between mb-2">
-            <h1 className="text-lg font-bold text-gray-800">银企对账</h1>
+            <h1 className="text-lg font-bold text-foreground">银企对账</h1>
             <button
               onClick={handleReset}
-              className="text-xs text-gray-400 hover:text-gray-600 underline"
+              className="text-xs text-muted-foreground hover:text-muted-foreground underline"
             >
               重新开始
             </button>
@@ -240,8 +240,8 @@ export default function BankReconciliationTool() {
                         : isDone
                         ? 'bg-green-100 text-green-700 border border-green-300'
                         : isDisabled
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                        : 'bg-muted text-muted-foreground hover:bg-muted'
                     }`}
                   >
                     {isDone ? (
@@ -255,7 +255,7 @@ export default function BankReconciliationTool() {
                   {i < steps.length - 1 && (
                     <div
                       className={`flex-1 h-0.5 mx-2 ${
-                        isDone ? 'bg-green-400' : 'bg-gray-200'
+                        isDone ? 'bg-green-400' : 'bg-muted'
                       }`}
                     />
                   )}
@@ -316,14 +316,14 @@ export default function BankReconciliationTool() {
             )}
 
             {processing && (
-              <div className="space-y-3 p-6 bg-white border rounded-xl shadow-sm">
-                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+              <div className="space-y-3 p-6 bg-card border rounded-xl shadow-sm">
+                <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
                   <div
                     className="bg-blue-600 h-2 rounded-full transition-all duration-75 ease-linear"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
-                <p className="text-sm text-center text-gray-600">{progressText}</p>
+                <p className="text-sm text-center text-muted-foreground">{progressText}</p>
               </div>
             )}
           </div>

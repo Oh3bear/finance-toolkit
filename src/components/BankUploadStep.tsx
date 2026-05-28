@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import * as XLSX from 'xlsx';
 import { Upload, FileSpreadsheet, AlertCircle, Check } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { BankAmountMode, ColumnConfig } from '../engine/bankReconciliation';
 import { formatDateCell } from '../utils/dateUtils';
 
@@ -145,7 +146,7 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
-      <h2 className="text-xl font-bold text-gray-800">
+      <h2 className="text-xl font-bold text-foreground">
         {state === 'upload' && `上传${title}`}
         {state === 'config' && `配置${title}列`}
         {state === 'done' && `${title}已配置`}
@@ -157,16 +158,16 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
           className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors ${
             dragover
               ? 'border-blue-400 bg-blue-50'
-              : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
+              : 'border-border hover:border-blue-400 hover:bg-background'
           }`}
           onClick={() => inputRef.current?.click()}
           onDragOver={(e) => { e.preventDefault(); setDragover(true); }}
           onDragLeave={() => setDragover(false)}
           onDrop={handleDrop}
         >
-          <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-          <p className="text-gray-600 mb-2">拖拽或点击上传 {title} Excel 文件</p>
-          <p className="text-gray-400 text-sm">支持 .xlsx / .xls 格式</p>
+          <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+          <p className="text-muted-foreground mb-2">拖拽或点击上传 {title} Excel 文件</p>
+          <p className="text-muted-foreground text-sm">支持 .xlsx / .xls 格式</p>
           <input
             ref={inputRef}
             type="file"
@@ -181,17 +182,17 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
 
       {/* 错误提示 */}
       {error && (
-        <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          {error}
-        </div>
+        <Alert variant="destructive">
+          <AlertCircle className="w-4 h-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       {/* 列配置区域 */}
       {state === 'config' && (
         <>
           {/* 文件信息 */}
-          <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
             <FileSpreadsheet className="w-5 h-5 text-blue-600" />
             <span className="font-medium text-blue-800">{fileName}</span>
             <span className="text-blue-500 text-sm">
@@ -206,11 +207,11 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
           </div>
 
           {/* 列选择 */}
-          <div className="p-5 bg-white border rounded-xl shadow-sm space-y-4">
+          <div className="p-5 bg-card border rounded-xl shadow-sm space-y-4">
             {/* 银行流水专属：金额格式切换 */}
             {isBank && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">金额列格式</label>
+                <label className="block text-sm font-medium text-foreground mb-2">金额列格式</label>
                 <div className="flex gap-6">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -221,7 +222,7 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
                       onChange={() => setBankAmountMode('split')}
                       className="accent-blue-600"
                     />
-                    <span className="text-sm text-gray-700">双列（独立收入列 + 支出列）</span>
+                    <span className="text-sm text-foreground">双列（独立收入列 + 支出列）</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -232,7 +233,7 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
                       onChange={() => setBankAmountMode('combined')}
                       className="accent-blue-600"
                     />
-                    <span className="text-sm text-gray-700">单列（金额列 + DR/CR 方向列）</span>
+                    <span className="text-sm text-foreground">单列（金额列 + DR/CR 方向列）</span>
                   </label>
                 </div>
               </div>
@@ -240,9 +241,9 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">账号列</label>
+                <label className="block text-sm font-medium text-foreground mb-1">账号列</label>
                 <select
-                  className="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full border rounded-lg px-3 py-2 text-sm bg-card focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={accountCol ?? ''}
                   onChange={(e) => setAccountCol(e.target.value === '' ? null : Number(e.target.value))}
                 >
@@ -255,9 +256,9 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">日期列</label>
+                <label className="block text-sm font-medium text-foreground mb-1">日期列</label>
                 <select
-                  className="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full border rounded-lg px-3 py-2 text-sm bg-card focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={dateCol ?? ''}
                   onChange={(e) => setDateCol(e.target.value === '' ? null : Number(e.target.value))}
                 >
@@ -270,12 +271,12 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
                   <span className={`inline-block w-2 h-2 rounded-full ${isBank ? 'bg-green-500' : 'bg-blue-500'} mr-1`} />
                   {amount1Label}
                 </label>
                 <select
-                  className="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full border rounded-lg px-3 py-2 text-sm bg-card focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   value={amount1Col ?? ''}
                   onChange={(e) => setAmount1Col(e.target.value === '' ? null : Number(e.target.value))}
                 >
@@ -292,12 +293,12 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
               {isCombined ? (
                 <>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-foreground mb-1">
                       <span className="inline-block w-2 h-2 rounded-full bg-orange-500 mr-1" />
                       方向列（DR/CR）
                     </label>
                     <select
-                      className="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full border rounded-lg px-3 py-2 text-sm bg-card focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       value={directionCol ?? ''}
                       onChange={(e) => setDirectionCol(e.target.value === '' ? null : Number(e.target.value))}
                     >
@@ -310,7 +311,7 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
                     </select>
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-foreground mb-1">
                       支出/扣账 标识符（默认 DR）
                     </label>
                     <div className="flex items-center gap-3">
@@ -321,19 +322,19 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
                         placeholder="DR"
                         className="w-40 border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       />
-                      <span className="text-xs text-gray-400">其余值均视为收入（CR）</span>
+                      <span className="text-xs text-muted-foreground">其余值均视为收入（CR）</span>
                     </div>
                   </div>
                 </>
               ) : (
                 /* split 模式：独立支出列 */
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-foreground mb-1">
                     <span className="inline-block w-2 h-2 rounded-full bg-red-500 mr-1" />
                     {amount2Label}
                   </label>
                   <select
-                    className="w-full border rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border rounded-lg px-3 py-2 text-sm bg-card focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     value={amount2Col ?? ''}
                     onChange={(e) => setAmount2Col(e.target.value === '' ? null : Number(e.target.value))}
                   >
@@ -351,20 +352,20 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
 
           {/* 数据预览 */}
           {headers.length > 0 && (
-            <div className="bg-white border rounded-xl shadow-sm overflow-hidden">
-              <div className="p-3 bg-gray-50 border-b text-sm font-medium text-gray-600">
+            <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
+              <div className="p-3 bg-background border-b text-sm font-medium text-muted-foreground">
                 数据预览（前 20 行，共 {rows.length - 1} 行）
               </div>
               <div className="overflow-auto max-h-[400px]">
                 <table className="w-full text-xs border-collapse">
                   <thead className="sticky top-0 z-10">
-                    <tr className="bg-gray-100">
-                      <th className="border px-2 py-1.5 text-gray-500 w-10">#</th>
+                    <tr className="bg-muted">
+                      <th className="border px-2 py-1.5 text-muted-foreground w-10">#</th>
                       {headers.slice(0, 26).map((h, i) => {
                         const isAmount1 = i === amount1Col;
                         const isAmount2 = i === amount2Col;
                         const isDirection = isCombined && i === directionCol;
-                        let bg = 'bg-gray-100';
+                        let bg = 'bg-muted';
                         if (isAmount1) bg = 'bg-green-100';
                         else if (isDirection) bg = 'bg-orange-100';
                         else if (isAmount2) bg = 'bg-red-100';
@@ -372,9 +373,9 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
                         return (
                           <th
                             key={i}
-                            className={`border px-2 py-1.5 text-gray-600 font-medium whitespace-nowrap ${bg}`}
+                            className={`border px-2 py-1.5 text-muted-foreground font-medium whitespace-nowrap ${bg}`}
                           >
-                            <span className="text-gray-400 mr-1">{colLabel(i)}</span>
+                            <span className="text-muted-foreground mr-1">{colLabel(i)}</span>
                             {String(h || '')}
                           </th>
                         );
@@ -383,8 +384,8 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
                   </thead>
                   <tbody>
                     {previewRows.map((row, ri) => (
-                      <tr key={ri} className="hover:bg-gray-50">
-                        <td className="border px-2 py-1 text-gray-400 text-center">{ri + 1}</td>
+                      <tr key={ri} className="hover:bg-background">
+                        <td className="border px-2 py-1 text-muted-foreground text-center">{ri + 1}</td>
                         {headers.slice(0, 26).map((_, ci) => {
                           const isAmount1 = ci === amount1Col;
                           const isAmount2 = ci === amount2Col;
@@ -409,7 +410,7 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
                 </table>
               </div>
               {headers.length > 26 && (
-                <div className="p-2 text-center text-xs text-gray-400 bg-gray-50 border-t">
+                <div className="p-2 text-center text-xs text-muted-foreground bg-background border-t">
                   仅显示前 26 列（共 {headers.length} 列）
                 </div>
               )}
@@ -424,7 +425,7 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
               className={`px-6 py-2.5 rounded-lg font-medium text-sm transition-colors ${
                 canConfirm
                   ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
-                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : 'bg-muted text-muted-foreground cursor-not-allowed'
               }`}
             >
               确认，下一步

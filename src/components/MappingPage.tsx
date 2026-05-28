@@ -7,13 +7,19 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { AlertCircle, Trash2, Plus, ArrowRight, FileDown, Lightbulb, Wand2, Check, X } from 'lucide-react';
+import { AlertCircle, Trash2, Plus, ArrowRight, FileDown, Lightbulb, Wand2, Check } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import type { SubjectMapping, EntityMapping } from '@/types';
 import * as XLSX from 'xlsx';
 
 export function MappingPage() {
-  const { subjectMappings, entityMappings, setSubjectMappings, setEntityMappings, setStep, rawData } = useAppStore();
+  const subjectMappings = useAppStore(s => s.subjectMappings);
+  const entityMappings = useAppStore(s => s.entityMappings);
+  const setSubjectMappings = useAppStore(s => s.setSubjectMappings);
+  const setEntityMappings = useAppStore(s => s.setEntityMappings);
+  const setStep = useAppStore(s => s.setStep);
+  const rawData = useAppStore(s => s.rawData);
   const [activeTab, setActiveTab] = useState('subjects');
   const [subjectSearch, setSubjectSearch] = useState('');
   const [entitySearch, setEntitySearch] = useState('');
@@ -276,8 +282,8 @@ export function MappingPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">映射表维护</h1>
-      <p className="text-gray-500 mb-6">
+      <h1 className="text-2xl font-bold text-foreground mb-2">映射表维护</h1>
+      <p className="text-muted-foreground mb-6">
         维护参与抵消核对的科目和内部客商映射。只有这里配置的科目和客商才会参与核对。
         <Badge variant="outline" className="ml-2">
           {subjectMappings.length} 科目
@@ -345,7 +351,7 @@ export function MappingPage() {
             </CardHeader>
             <CardContent>
               {/* 新增科目 */}
-              <div className="flex gap-2 mb-4 p-3 bg-gray-50 rounded-lg">
+              <div className="flex gap-2 mb-4 p-3 bg-background rounded-lg">
                 <Input
                   placeholder="科目编码"
                   value={newSubject.科目编码}
@@ -400,7 +406,7 @@ export function MappingPage() {
                     ))}
                     {filteredSubjects.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={3} className="text-center text-gray-400 py-8">
+                        <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
                           暂无科目映射，请导入或手动添加
                         </TableCell>
                       </TableRow>
@@ -430,7 +436,7 @@ export function MappingPage() {
             </CardHeader>
             <CardContent>
               {/* 新增客商 */}
-              <div className="flex gap-2 mb-4 p-3 bg-gray-50 rounded-lg flex-wrap">
+              <div className="flex gap-2 mb-4 p-3 bg-background rounded-lg flex-wrap">
                 <Input
                   placeholder="客商名称（来自明细账）"
                   value={newEntity.客商名称}
@@ -499,7 +505,7 @@ export function MappingPage() {
                     ))}
                     {filteredEntities.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center text-gray-400 py-8">
+                        <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
                           暂无客商映射，请导入或手动添加
                         </TableCell>
                       </TableRow>
@@ -523,27 +529,17 @@ export function MappingPage() {
       </div>
 
       {/* ============ 智能推断弹窗 ============ */}
-      {inferModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[85vh] flex flex-col">
-            {/* 弹窗标题 */}
-            <div className="flex items-center justify-between p-5 border-b">
-              <div>
-                <h2 className="text-lg font-bold text-gray-900">智能推断内部客商</h2>
-                <p className="text-sm text-gray-500 mt-0.5">
-                  以利润中心名称为锚，匹配客户/供应商名称（L1精确/L2去本部）+ 编码7位备选
-                </p>
-              </div>
-              <button
-                onClick={() => setInferModalOpen(false)}
-                className="p-1 hover:bg-gray-100 rounded"
-              >
-                <X className="w-5 h-5 text-gray-400" />
-              </button>
-            </div>
+      <Dialog open={inferModalOpen} onOpenChange={setInferModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>智能推断内部客商</DialogTitle>
+            <DialogDescription>
+              以利润中心名称为锚，匹配客户/供应商名称（L1精确/L2去本部）+ 编码7位备选
+            </DialogDescription>
+          </DialogHeader>
 
             {/* 弹窗内容 */}
-            <div className="flex-1 overflow-auto p-5 space-y-5">
+            <div className="flex-1 overflow-auto space-y-5">
               {/* 已确认组 */}
               <div>
                 <div className="flex items-center justify-between mb-2">
@@ -565,7 +561,7 @@ export function MappingPage() {
                   </button>
                 </div>
                 {inferConfirmed.length === 0 ? (
-                  <p className="text-xs text-gray-400 py-3">无自动匹配结果</p>
+                  <p className="text-xs text-muted-foreground py-3">无自动匹配结果</p>
                 ) : (
                   <div className="border rounded-lg overflow-hidden">
                     <table className="text-xs w-full">
@@ -581,7 +577,7 @@ export function MappingPage() {
                         {inferConfirmed.map((e, i) => {
                           const isL1 = e.利润中心名称 === e.客商名称;
                           return (
-                            <tr key={i} className={`border-t ${inferCheckedConfirmed.has(i) ? 'bg-green-50' : 'hover:bg-gray-50'}`}>
+                            <tr key={i} className={`border-t ${inferCheckedConfirmed.has(i) ? 'bg-green-50' : 'hover:bg-background'}`}>
                               <td className="p-2 text-center">
                                 <input
                                   type="checkbox"
@@ -596,7 +592,7 @@ export function MappingPage() {
                                 />
                               </td>
                               <td className="p-2 font-medium">{e.客商名称}</td>
-                              <td className="p-2 text-gray-600 font-mono">{e.利润中心编码} / {e.利润中心名称}</td>
+                              <td className="p-2 text-muted-foreground font-mono">{e.利润中心编码} / {e.利润中心名称}</td>
                               <td className="p-2">
                                 <Badge variant="outline" className="text-xs">
                                   {isL1 ? 'L1 精确' : 'L2 去本部'}
@@ -634,10 +630,10 @@ export function MappingPage() {
                   )}
                 </div>
                 {inferUnmatched.length === 0 ? (
-                  <p className="text-xs text-gray-400 py-3">所有编码7位的客商均已自动匹配</p>
+                  <p className="text-xs text-muted-foreground py-3">所有编码7位的客商均已自动匹配</p>
                 ) : (
                   <div>
-                    <p className="text-xs text-gray-400 mb-2">
+                    <p className="text-xs text-muted-foreground mb-2">
                       以下客商编码为7位，但未在利润中心名称中找到匹配。可手动核实后添加。
                     </p>
                     <div className="border rounded-lg overflow-hidden">
@@ -651,7 +647,7 @@ export function MappingPage() {
                         </thead>
                         <tbody>
                           {inferUnmatched.map((e, i) => (
-                            <tr key={i} className={`border-t ${inferCheckedUnmatched.has(i) ? 'bg-orange-50' : 'hover:bg-gray-50'}`}>
+                            <tr key={i} className={`border-t ${inferCheckedUnmatched.has(i) ? 'bg-orange-50' : 'hover:bg-background'}`}>
                               <td className="p-2 text-center">
                                 <input
                                   type="checkbox"
@@ -666,7 +662,7 @@ export function MappingPage() {
                                 />
                               </td>
                               <td className="p-2 font-medium">{e.客商名称}</td>
-                              <td className="p-2 text-gray-400">需手动指定利润中心编码和标准化名称</td>
+                              <td className="p-2 text-muted-foreground">需手动指定利润中心编码和标准化名称</td>
                             </tr>
                           ))}
                         </tbody>
@@ -677,39 +673,37 @@ export function MappingPage() {
               </div>
             </div>
 
-            {/* 弹窗底部 */}
-            <div className="flex items-center justify-between p-5 border-t bg-gray-50 rounded-b-xl">
-              <p className="text-xs text-gray-500">
-                确认添加 <span className="font-medium text-green-600">{inferCheckedConfirmed.size}</span> 条已匹配 + <span className="font-medium text-orange-600">{inferCheckedUnmatched.size}</span> 条待手动
-              </p>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => setInferModalOpen(false)}>
-                  取消
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    const toAdd: EntityMapping[] = [];
-                    inferConfirmed.forEach((e, i) => {
-                      if (inferCheckedConfirmed.has(i)) toAdd.push(e);
-                    });
-                    inferUnmatched.forEach((e, i) => {
-                      if (inferCheckedUnmatched.has(i)) toAdd.push(e);
-                    });
-                    if (toAdd.length > 0) {
-                      setEntityMappings([...entityMappings, ...toAdd]);
-                    }
-                    setInferModalOpen(false);
-                    setWarning(`已添加 ${toAdd.length} 个客商（${inferCheckedConfirmed.size} 自动匹配 + ${inferCheckedUnmatched.size} 待手动）`);
-                  }}
-                >
-                  确认添加
-                </Button>
-              </div>
+          <DialogFooter className="flex items-center justify-between sm:justify-between">
+            <p className="text-xs text-muted-foreground">
+              确认添加 <span className="font-medium text-green-600">{inferCheckedConfirmed.size}</span> 条已匹配 + <span className="font-medium text-orange-600">{inferCheckedUnmatched.size}</span> 条待手动
+            </p>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setInferModalOpen(false)}>
+                取消
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  const toAdd: EntityMapping[] = [];
+                  inferConfirmed.forEach((e, i) => {
+                    if (inferCheckedConfirmed.has(i)) toAdd.push(e);
+                  });
+                  inferUnmatched.forEach((e, i) => {
+                    if (inferCheckedUnmatched.has(i)) toAdd.push(e);
+                  });
+                  if (toAdd.length > 0) {
+                    setEntityMappings([...entityMappings, ...toAdd]);
+                  }
+                  setInferModalOpen(false);
+                  setWarning(`已添加 ${toAdd.length} 个客商（${inferCheckedConfirmed.size} 自动匹配 + ${inferCheckedUnmatched.size} 待手动）`);
+                }}
+              >
+                确认添加
+              </Button>
             </div>
-          </div>
-        </div>
-      )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

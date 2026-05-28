@@ -10,7 +10,13 @@ import { Separator } from '@/components/ui/separator';
 import { Calculator, ArrowRight, ArrowLeft, CheckCircle, RefreshCw } from 'lucide-react';
 
 export function ReconcilePage() {
-  const { rawData, subjectMappings, entityMappings, setReconResult, setStep, setIsProcessing, isProcessing } = useAppStore();
+  const rawData = useAppStore(s => s.rawData);
+  const subjectMappings = useAppStore(s => s.subjectMappings);
+  const entityMappings = useAppStore(s => s.entityMappings);
+  const setReconResult = useAppStore(s => s.setReconResult);
+  const setStep = useAppStore(s => s.setStep);
+  const setIsProcessing = useAppStore(s => s.setIsProcessing);
+  const isProcessing = useAppStore(s => s.isProcessing);
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState('');
   const [done, setDone] = useState(false);
@@ -49,8 +55,8 @@ export function ReconcilePage() {
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">执行核对</h1>
-      <p className="text-gray-500 mb-6">
+      <h1 className="text-2xl font-bold text-foreground mb-2">执行核对</h1>
+      <p className="text-muted-foreground mb-6">
         系统将自动完成：数据清洗 → 映射过滤 → 利润中心配对分组 → 零值核对 → M:N 明细核对
       </p>
 
@@ -84,7 +90,7 @@ export function ReconcilePage() {
 
             <Separator className="my-4" />
 
-            <div className="space-y-2 text-sm text-gray-600">
+            <div className="space-y-2 text-sm text-muted-foreground">
               <p className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-500" />
                 数据安全：所有计算在浏览器本地完成，数据不会离开本机
@@ -123,8 +129,8 @@ export function ReconcilePage() {
                 {isProcessing && (
                   <div className="mt-6 space-y-3">
                     <Progress value={progress} className="w-full" />
-                    <p className="text-sm text-gray-500">{statusText}</p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-sm text-muted-foreground">{statusText}</p>
+                    <p className="text-xs text-muted-foreground">
                       M:N 子集匹配算法时间复杂度较高，大数据量请耐心等待...
                     </p>
                   </div>

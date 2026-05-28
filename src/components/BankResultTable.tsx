@@ -61,7 +61,7 @@ function MNMatchCard({ group }: { group: MNMatchGroup }) {
   const entDisplayCols = getDisplayColumns(group.enterpriseItems);
 
   return (
-    <div className="border border-purple-200 rounded-lg overflow-hidden bg-white">
+    <div className="border border-purple-200 rounded-lg overflow-hidden bg-card">
       <div className="px-4 py-2 bg-purple-50 border-b flex items-center gap-2 text-sm">
         <Link2 className="w-4 h-4 text-purple-600" />
         <span className="font-medium text-purple-800">
@@ -81,13 +81,13 @@ function MNMatchCard({ group }: { group: MNMatchGroup }) {
                 <th className="border px-2 py-1 text-left">日期</th>
                 <th className="border px-2 py-1 text-right">金额</th>
                 {bankDisplayCols.slice(0, 3).map((c) => (
-                  <th key={c} className="border px-2 py-1 text-left text-gray-500">{c}</th>
+                  <th key={c} className="border px-2 py-1 text-left text-muted-foreground">{c}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {group.bankItems.map((t, i) => (
-                <tr key={i} className="hover:bg-gray-50">
+                <tr key={i} className="hover:bg-background">
                   <td className="border px-2 py-1">
                     {t.direction === '收入' ? (
                       <span className="inline-flex items-center gap-0.5 text-green-600">
@@ -130,13 +130,13 @@ function MNMatchCard({ group }: { group: MNMatchGroup }) {
                 <th className="border px-2 py-1 text-left">日期</th>
                 <th className="border px-2 py-1 text-right">金额</th>
                 {entDisplayCols.slice(0, 3).map((c) => (
-                  <th key={c} className="border px-2 py-1 text-left text-gray-500">{c}</th>
+                  <th key={c} className="border px-2 py-1 text-left text-muted-foreground">{c}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {group.enterpriseItems.map((t, i) => (
-                <tr key={i} className="hover:bg-gray-50">
+                <tr key={i} className="hover:bg-background">
                   <td className="border px-2 py-1">
                     {t.direction === '借方' ? (
                       <span className="inline-flex items-center gap-0.5 text-green-600">
@@ -203,19 +203,19 @@ function DiagnosticsPanel({ debug }: { debug: ReconDebugInfo }) {
         <div className="px-4 pb-4 space-y-3 border-t border-amber-200">
           {/* 银行侧 */}
           <div>
-            <h4 className="text-xs font-semibold text-gray-600 mt-3 mb-1.5">银行流水</h4>
+            <h4 className="text-xs font-semibold text-muted-foreground mt-3 mb-1.5">银行流水</h4>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="bg-white border rounded px-2 py-1.5">
+              <div className="bg-card border rounded px-2 py-1.5">
                 <span className="text-green-600 font-medium">收入</span>
-                <span className="text-gray-400 ml-1">({debug.bankIncomeCount}笔)</span>
-                <div className="font-mono text-gray-800 mt-0.5">
+                <span className="text-muted-foreground ml-1">({debug.bankIncomeCount}笔)</span>
+                <div className="font-mono text-foreground mt-0.5">
                   ¥{debug.bankIncomeSum.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
                 </div>
               </div>
-              <div className="bg-white border rounded px-2 py-1.5">
+              <div className="bg-card border rounded px-2 py-1.5">
                 <span className="text-red-600 font-medium">支出</span>
-                <span className="text-gray-400 ml-1">({debug.bankExpenseCount}笔)</span>
-                <div className="font-mono text-gray-800 mt-0.5">
+                <span className="text-muted-foreground ml-1">({debug.bankExpenseCount}笔)</span>
+                <div className="font-mono text-foreground mt-0.5">
                   ¥{Math.abs(debug.bankExpenseSum).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
                 </div>
               </div>
@@ -224,19 +224,19 @@ function DiagnosticsPanel({ debug }: { debug: ReconDebugInfo }) {
 
           {/* 企业侧 */}
           <div>
-            <h4 className="text-xs font-semibold text-gray-600 mb-1.5">企业账（Phase 0 冲销预处理后）</h4>
+            <h4 className="text-xs font-semibold text-muted-foreground mb-1.5">企业账（Phase 0 冲销预处理后）</h4>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="bg-white border rounded px-2 py-1.5">
+              <div className="bg-card border rounded px-2 py-1.5">
                 <span className="text-green-600 font-medium">借方</span>
-                <span className="text-gray-400 ml-1">({debug.entDebitCount}笔)</span>
-                <div className="font-mono text-gray-800 mt-0.5">
+                <span className="text-muted-foreground ml-1">({debug.entDebitCount}笔)</span>
+                <div className="font-mono text-foreground mt-0.5">
                   ¥{debug.entDebitSum.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
                 </div>
               </div>
-              <div className="bg-white border rounded px-2 py-1.5">
+              <div className="bg-card border rounded px-2 py-1.5">
                 <span className="text-red-600 font-medium">贷方</span>
-                <span className="text-gray-400 ml-1">({debug.entCreditCount}笔)</span>
-                <div className="font-mono text-gray-800 mt-0.5">
+                <span className="text-muted-foreground ml-1">({debug.entCreditCount}笔)</span>
+                <div className="font-mono text-foreground mt-0.5">
                   ¥{Math.abs(debug.entCreditSum).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
                 </div>
               </div>
@@ -245,7 +245,7 @@ function DiagnosticsPanel({ debug }: { debug: ReconDebugInfo }) {
 
           {/* 快速通道判定 */}
           <div>
-            <h4 className="text-xs font-semibold text-gray-600 mb-1.5">快速通道判定</h4>
+            <h4 className="text-xs font-semibold text-muted-foreground mb-1.5">快速通道判定</h4>
             <div className="space-y-1.5 text-xs">
               <div className={`flex items-center gap-2 px-2 py-1.5 rounded border ${debug.fastTrackIncomeTriggered ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
                 {debug.fastTrackIncomeTriggered ? (
@@ -286,39 +286,39 @@ function DiagnosticsPanel({ debug }: { debug: ReconDebugInfo }) {
 
           {/* 匹配统计 */}
           <div>
-            <h4 className="text-xs font-semibold text-gray-600 mb-1.5">匹配统计</h4>
+            <h4 className="text-xs font-semibold text-muted-foreground mb-1.5">匹配统计</h4>
             <div className="grid grid-cols-4 gap-2 text-xs text-center">
-              <div className="bg-white border rounded px-2 py-1.5">
+              <div className="bg-card border rounded px-2 py-1.5">
                 <div className="font-bold text-teal-700">{debug.fastTrackIncomeTriggered ? debug.bankIncomeCount : 0}</div>
-                <div className="text-gray-500">快速通道(收↔借)</div>
+                <div className="text-muted-foreground">快速通道(收↔借)</div>
               </div>
-              <div className="bg-white border rounded px-2 py-1.5">
+              <div className="bg-card border rounded px-2 py-1.5">
                 <div className="font-bold text-teal-700">{debug.fastTrackExpenseTriggered ? debug.bankExpenseCount : 0}</div>
-                <div className="text-gray-500">快速通道(支↔贷)</div>
+                <div className="text-muted-foreground">快速通道(支↔贷)</div>
               </div>
-              <div className="bg-white border rounded px-2 py-1.5">
+              <div className="bg-card border rounded px-2 py-1.5">
                 <div className="font-bold text-blue-700">{debug.oneToOneMatched}</div>
-                <div className="text-gray-500">1:1逐笔匹配</div>
+                <div className="text-muted-foreground">1:1逐笔匹配</div>
               </div>
-              <div className="bg-white border rounded px-2 py-1.5">
+              <div className="bg-card border rounded px-2 py-1.5">
                 <div className="font-bold text-purple-700">{debug.mnGroupsFound}</div>
-                <div className="text-gray-500">M:N合并匹配</div>
+                <div className="text-muted-foreground">M:N合并匹配</div>
               </div>
             </div>
           </div>
 
           {/* 剩余未对符 signed sum */}
           <div>
-            <h4 className="text-xs font-semibold text-gray-600 mb-1.5">剩余未对符 signed sum</h4>
+            <h4 className="text-xs font-semibold text-muted-foreground mb-1.5">剩余未对符 signed sum</h4>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="bg-white border rounded px-2 py-1.5">
-                <span className="text-gray-500">银行</span>
+              <div className="bg-card border rounded px-2 py-1.5">
+                <span className="text-muted-foreground">银行</span>
                 <div className={`font-mono mt-0.5 ${Math.abs(debug.bankUnmatchedSignedSum) < 0.01 ? 'text-green-600' : 'text-amber-600'}`}>
                   ¥{debug.bankUnmatchedSignedSum.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
               </div>
-              <div className="bg-white border rounded px-2 py-1.5">
-                <span className="text-gray-500">企业</span>
+              <div className="bg-card border rounded px-2 py-1.5">
+                <span className="text-muted-foreground">企业</span>
                 <div className={`font-mono mt-0.5 ${Math.abs(debug.entUnmatchedSignedSum) < 0.01 ? 'text-green-600' : 'text-amber-600'}`}>
                   ¥{debug.entUnmatchedSignedSum.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
@@ -454,12 +454,12 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
 
     return (
       <div className="border rounded-lg overflow-hidden">
-        <div className="px-4 py-2 bg-gray-50 border-b text-sm font-medium text-gray-700">
+        <div className="px-4 py-2 bg-background border-b text-sm font-medium text-foreground">
           {title}（{items.length} 笔）
         </div>
         <div className="overflow-auto max-h-[400px]">
           <table className="w-full text-xs border-collapse">
-            <thead className="sticky top-0 bg-gray-100">
+            <thead className="sticky top-0 bg-muted">
               <tr>
                 <th className="border px-2 py-1.5 text-left">日期</th>
                 <th className="border px-2 py-1.5 text-center w-12">方向</th>
@@ -471,7 +471,7 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
             </thead>
             <tbody>
               {items.map((t, i) => (
-                <tr key={i} className="hover:bg-gray-50">
+                <tr key={i} className="hover:bg-background">
                   <td className="border px-2 py-1 whitespace-nowrap">
                     {fmtDate(t.date)}
                   </td>
@@ -508,7 +508,7 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-800">核对结果</h2>
+        <h2 className="text-xl font-bold text-foreground">核对结果</h2>
         <button
           onClick={handleExport}
           className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 shadow-sm transition-colors"
@@ -520,9 +520,9 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
 
       {/* 统计卡片 */}
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
-        <div className="bg-white border rounded-xl p-4 shadow-sm text-center">
-          <p className="text-2xl font-bold text-gray-800">{summary.totalAccounts}</p>
-          <p className="text-xs text-gray-500 mt-1">总账户数</p>
+        <div className="bg-card border rounded-xl p-4 shadow-sm text-center">
+          <p className="text-2xl font-bold text-foreground">{summary.totalAccounts}</p>
+          <p className="text-xs text-muted-foreground mt-1">总账户数</p>
         </div>
         <div className="bg-green-50 border border-green-200 rounded-xl p-4 shadow-sm text-center">
           <p className="text-2xl font-bold text-green-700">{summary.fullyMatched}</p>
@@ -556,18 +556,18 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
             </p>
           </div>
         )}
-        <div className="bg-white border rounded-xl p-4 shadow-sm text-center">
+        <div className="bg-card border rounded-xl p-4 shadow-sm text-center">
           <p className="text-2xl font-bold text-green-700">{summary.totalUnmatchedBank}</p>
-          <p className="text-xs text-gray-500 mt-1">银行未对符</p>
+          <p className="text-xs text-muted-foreground mt-1">银行未对符</p>
         </div>
-        <div className="bg-white border rounded-xl p-4 shadow-sm text-center">
+        <div className="bg-card border rounded-xl p-4 shadow-sm text-center">
           <p className="text-2xl font-bold text-blue-700">{summary.totalUnmatchedEnterprise}</p>
-          <p className="text-xs text-gray-500 mt-1">企业未对符</p>
+          <p className="text-xs text-muted-foreground mt-1">企业未对符</p>
         </div>
       </div>
 
       {/* 数据来源 */}
-      <div className="flex gap-4 text-xs text-gray-500">
+      <div className="flex gap-4 text-xs text-muted-foreground">
         <span>银行流水: {bankFileName}（{summary.bankTxCount} 笔）</span>
         <span>企业账: {enterpriseFileName}（{summary.enterpriseTxCount} 笔）</span>
       </div>
@@ -587,7 +587,7 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
               <p className="text-xs font-medium text-red-600 mb-1">银行流水账号（{summary.bankAccounts.length} 个）</p>
               <div className="flex flex-wrap gap-1">
                 {summary.bankAccounts.map((a) => (
-                  <span key={a} className="px-2 py-0.5 bg-white border border-red-200 rounded text-xs font-mono text-red-700">{a}</span>
+                  <span key={a} className="px-2 py-0.5 bg-card border border-red-200 rounded text-xs font-mono text-red-700">{a}</span>
                 ))}
               </div>
             </div>
@@ -595,7 +595,7 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
               <p className="text-xs font-medium text-red-600 mb-1">企业账账号（{summary.enterpriseAccounts.length} 个）</p>
               <div className="flex flex-wrap gap-1">
                 {summary.enterpriseAccounts.map((a) => (
-                  <span key={a} className="px-2 py-0.5 bg-white border border-red-200 rounded text-xs font-mono text-red-700">{a}</span>
+                  <span key={a} className="px-2 py-0.5 bg-card border border-red-200 rounded text-xs font-mono text-red-700">{a}</span>
                 ))}
               </div>
             </div>
@@ -637,7 +637,7 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
       {/* 账户 Tab */}
       {hasData && (
         <>
-          <div className="flex flex-wrap gap-1 bg-gray-100 p-1 rounded-lg">
+          <div className="flex flex-wrap gap-1 bg-muted p-1 rounded-lg">
             {accounts.map((acc) => {
               const isActive = acc.account === activeAccount;
               const hasIssue = acc.unmatchedBank.length > 0 || acc.unmatchedEnterprise.length > 0;
@@ -647,8 +647,8 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
                   onClick={() => setActiveAccount(acc.account)}
                   className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 ${
                     isActive
-                      ? 'bg-white text-gray-800 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-800 hover:bg-gray-200'
+                      ? 'bg-card text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                   }`}
                 >
                   {!hasIssue ? (
@@ -666,17 +666,17 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
           {current && (
             <div className="space-y-4">
               {/* 对符统计 */}
-              <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg text-sm flex-wrap">
-                <span className="text-gray-600">
-                  账号: <span className="font-mono font-medium text-gray-800">{current.account}</span>
+              <div className="flex items-center gap-4 p-3 bg-background rounded-lg text-sm flex-wrap">
+                <span className="text-muted-foreground">
+                  账号: <span className="font-mono font-medium text-foreground">{current.account}</span>
                 </span>
-                <span className="text-gray-400">|</span>
+                <span className="text-muted-foreground">|</span>
                 <span className="text-green-600">
                   已匹配: <strong>{current.matched.length}</strong> 对
                 </span>
                 {current.quickMatched > 0 && (
                   <>
-                    <span className="text-gray-400">|</span>
+                    <span className="text-muted-foreground">|</span>
                     <span className="text-teal-600">
                       <Zap className="w-3 h-3 inline mr-0.5" />
                       快速对符: <strong>{current.quickMatched}</strong> 对
@@ -685,17 +685,17 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
                 )}
                 {current.mnMatched.length > 0 && (
                   <>
-                    <span className="text-gray-400">|</span>
+                    <span className="text-muted-foreground">|</span>
                     <span className="text-purple-600">
                       可能合并: <strong>{current.mnMatched.length}</strong> 组
                     </span>
                   </>
                 )}
-                <span className="text-gray-400">|</span>
+                <span className="text-muted-foreground">|</span>
                 <span className="text-amber-600">
                   银行未对符: <strong>{current.unmatchedBank.length}</strong>
                 </span>
-                <span className="text-gray-400">|</span>
+                <span className="text-muted-foreground">|</span>
                 <span className="text-blue-600">
                   企业未对符: <strong>{current.unmatchedEnterprise.length}</strong>
                 </span>
@@ -709,7 +709,7 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
               {/* M:N 匹配（可能合并处理） */}
               {current.mnMatched.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                  <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-purple-500" />
                     可能合并处理（M:N 匹配）
                   </h3>
@@ -740,7 +740,7 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
 
               {/* 银行流水未对符 */}
               <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-green-500" />
                   银行流水未对符
                 </h3>
@@ -752,7 +752,7 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
 
               {/* 企业账未对符 */}
               <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-blue-500" />
                   企业银行存款明细账未对符
                 </h3>
@@ -768,7 +768,7 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
 
       {/* 无数据 */}
       {!hasData && (
-        <div className="text-center py-12 text-gray-400">
+        <div className="text-center py-12 text-muted-foreground">
           <Search className="w-12 h-12 mx-auto mb-3 opacity-50" />
           <p>未找到银行账户数据</p>
         </div>

@@ -73,3 +73,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* 页面切换过渡动画 */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-page-enter {
+  animation: page-enter 0.2s ease-out;
+}

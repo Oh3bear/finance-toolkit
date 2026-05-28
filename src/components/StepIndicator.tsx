@@ -10,7 +10,12 @@ const steps: { key: AppStep; label: string; icon: React.ReactNode }[] = [
 ];
 
 export function StepIndicator() {
-  const { step, setStep, rawData, subjectMappings, entityMappings, reconResult } = useAppStore();
+  const step = useAppStore(s => s.step);
+  const setStep = useAppStore(s => s.setStep);
+  const rawData = useAppStore(s => s.rawData);
+  const subjectMappings = useAppStore(s => s.subjectMappings);
+  const entityMappings = useAppStore(s => s.entityMappings);
+  const reconResult = useAppStore(s => s.reconResult);
 
   const canNavigateTo = (target: AppStep): boolean => {
     const idx = steps.findIndex((s) => s.key === step);
@@ -43,8 +48,8 @@ export function StepIndicator() {
                     : isCompleted
                     ? 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100'
                     : canClick
-                    ? 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
-                    : 'bg-gray-50 text-gray-400 cursor-not-allowed border border-gray-100'
+                    ? 'bg-background text-muted-foreground border border-border hover:bg-muted'
+                    : 'bg-background text-muted-foreground cursor-not-allowed border border-border'
                 }`}
                 disabled={!canClick}
               >
@@ -54,7 +59,7 @@ export function StepIndicator() {
                 {s.label}
               </button>
               {i < steps.length - 1 && (
-                <div className={`w-8 h-0.5 mx-1 ${isCompleted ? 'bg-green-400' : 'bg-gray-200'}`} />
+                <div className={`w-8 h-0.5 mx-1 ${isCompleted ? 'bg-green-400' : 'bg-muted'}`} />
               )}
             </div>
           );

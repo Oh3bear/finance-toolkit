@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { StepIndicator } from '@/components/StepIndicator';
 import { ImportPage } from '@/components/ImportPage';
@@ -11,16 +11,35 @@ import PdfTwoToOneTool from '@/components/PdfTwoToOneTool';
 import BatchExcelExtractor from '@/components/BatchExcelExtractor';
 import DataCleaner from '@/components/DataCleaner';
 import BankReconciliationTool from '@/components/BankReconciliationTool';
-import { Shield } from 'lucide-react';
+import { Shield, Sun, Moon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
+// 简单的主题管理 hook（替代 next-themes）
+function useTheme() {
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window === 'undefined') return 'light';
+    const stored = localStorage.getItem('theme');
+    if (stored === 'dark' || stored === 'light') return stored;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.toggle('dark', theme === 'dark');
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  return { theme, toggle: () => setTheme(t => t === 'dark' ? 'light' : 'dark') };
+}
 
 // 内部往来核对工具包装器
 function IntercoReconcileTool() {
-  const { step } = useAppStore();
+  const step = useAppStore(s => s.step);
 
   return (
-    <div className="min-h-full bg-gray-50">
+    <div className="min-h-full bg-background">
       {/* 步骤导航 */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-40">
+      <div className="bg-card border-b border-border sticky top-0 z-40">
         <StepIndicator />
       </div>
       {/* 主内容区 */}
@@ -37,11 +56,12 @@ function IntercoReconcileTool() {
 export default function App() {
   const [currentTool, setCurrentTool] = useState('interco-reconcile');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { theme, toggle: toggleTheme } = useTheme();
 
   const currentToolConfig = tools.find((t) => t.id === currentTool);
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-background overflow-hidden">
       {/* 侧边栏 */}
       <Sidebar
         currentTool={currentTool}
@@ -53,37 +73,50 @@ export default function App() {
       {/* 主内容区 */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* 顶部标题栏 */}
-        <header className="bg-white border-b border-gray-200 shrink-0">
-          <div className="px-6 py-3 flex items-center justify-between">
+        <header className="bg-card border-b border-border shrink-0">
+          <div className="px-4 md:px-6 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <h2 className="text-base font-bold text-gray-900">
+              <h2 className="text-base font-bold text-foreground">
                 {currentToolConfig?.name || '工具'}
               </h2>
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-muted-foreground">
                 {currentToolConfig?.description}
               </span>
             </div>
-            <div className="text-xs text-gray-400 flex items-center gap-2">
-              <Shield className="w-3.5 h-3.5 text-green-500" />
-              <span className="w-2 h-2 rounded-full bg-green-400"></span>
-              纯客户端处理 · 数据零上传
+            <div className="text-xs text-muted-foreground flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0"
+                onClick={toggleTheme}
+                aria-label={theme === 'dark' ? '切换到亮色模式' : '切换到暗色模式'}
+              >
+                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </Button>
+              <span className="flex items-center gap-2">
+                <Shield className="w-3.5 h-3.5 text-green-500" />
+                <span className="w-2 h-2 rounded-full bg-green-400"></span>
+                纯客户端处理 · 数据零上传
+              </span>
             </div>
           </div>
         </header>
 
-        {/* 工具内容 */}
-        <div className="flex-1 overflow-y-auto">
+        {/* 工具内容 — key 驱动切换时重新触发入场动画 */}
+        <div className="flex-1 overflow-y-auto" key={currentTool}>
+          <div className="animate-page-enter">
           {currentTool === 'interco-reconcile' && <IntercoReconcileTool />}
-          {currentTool === 'pdf-merge' && <PdfMergeTool />}
-          {currentTool === 'pdf-2to1' && <PdfTwoToOneTool />}
+          {currentTool === 'pdf-merge' && <PdfMergeTool sidebarCollapsed={sidebarCollapsed} />}
+          {currentTool === 'pdf-2to1' && <PdfTwoToOneTool sidebarCollapsed={sidebarCollapsed} />}
           {currentTool === 'batch-excel' && <BatchExcelExtractor />}
           {currentTool === 'data-cleaner' && <DataCleaner />}
           {currentTool === 'bank-recon' && <BankReconciliationTool />}
+          </div>
         </div>
 
         {/* 底部 */}
-        <footer className="border-t border-gray-200 bg-white py-3 shrink-0">
-          <div className="px-6 text-center text-xs text-gray-400">
+        <footer className="border-t border-border bg-card py-3 shrink-0">
+          <div className="px-4 md:px-6 text-center text-xs text-muted-foreground">
             财务工具集 v1.0 · 所有数据仅在浏览器本地处理 · 不会上传到任何服务器
           </div>
         </footer>

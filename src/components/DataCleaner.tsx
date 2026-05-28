@@ -16,24 +16,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { formatDateCell as formatCellValue } from '../utils/dateUtils';
-
-// ============ Helpers ============
-
-function colLabel(col: number): string {
-  let s = '';
-  let c = col;
-  while (c >= 0) {
-    s = String.fromCharCode(65 + (c % 26)) + s;
-    c = Math.floor(c / 26) - 1;
-  }
-  return s;
-}
-
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-  return (bytes / 1024 / 1024).toFixed(1) + ' MB';
-}
+import { colLabel, formatSize } from '../utils/shared';
 
 // ============ Clean Rules ============
 
@@ -387,14 +370,14 @@ export default function DataCleaner() {
   // ============ Render ============
 
   const renderSampleUpload = () => (
-    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-colors"
+    <div className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-colors"
       onClick={() => sampleInputRef.current?.click()}
       onDrop={e => handleFileDrop(e, handleSampleUpload)}
       onDragOver={e => e.preventDefault()}
     >
-      <Upload className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-      <p className="text-sm text-gray-500">拖拽或点击上传<strong className="text-blue-600">Excel 样本</strong></p>
-      <p className="text-xs text-gray-400 mt-1">支持 .xlsx / .xls 格式</p>
+      <Upload className="w-8 h-8 text-muted-foreground/60 mx-auto mb-2" />
+      <p className="text-sm text-muted-foreground">拖拽或点击上传<strong className="text-blue-600">Excel 样本</strong></p>
+      <p className="text-xs text-muted-foreground mt-1">支持 .xlsx / .xls 格式</p>
       <input
         ref={sampleInputRef}
         type="file"
@@ -409,7 +392,7 @@ export default function DataCleaner() {
     if (sheetNames.length <= 1) return null;
     return (
       <div className="flex items-center gap-1 flex-wrap">
-        <span className="text-xs text-gray-400 mr-1">工作表:</span>
+        <span className="text-xs text-muted-foreground mr-1">工作表:</span>
         {sheetNames.map(name => (
           <button
             key={name}
@@ -417,7 +400,7 @@ export default function DataCleaner() {
             className={`px-2.5 py-1 text-xs rounded-md transition-colors ${
               name === activeSheet
                 ? 'bg-blue-100 text-blue-700 font-medium'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                : 'bg-muted text-muted-foreground hover:bg-muted'
             }`}
           >
             {name}
@@ -432,12 +415,12 @@ export default function DataCleaner() {
     const displayCols = Math.min(maxCols, 26);
 
     return (
-      <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+      <div className="border border-border rounded-lg overflow-hidden bg-card">
         <div className="overflow-auto max-h-[420px]">
           <table className="border-collapse text-xs">
             <thead>
               <tr>
-                <th className="sticky top-0 left-0 z-20 bg-gray-100 border border-gray-300 px-2 py-1 w-10 min-w-10 text-center text-gray-500 font-medium">#</th>
+                <th className="sticky top-0 left-0 z-20 bg-muted border border-border px-2 py-1 w-10 min-w-10 text-center text-muted-foreground font-medium">#</th>
                 {Array.from({ length: displayCols }).map((_, ci) => {
                   const isSelected = selectedCol === ci;
                   const hasRule = rules.some(r => r.colIndex === ci);
@@ -445,12 +428,12 @@ export default function DataCleaner() {
                     <th
                       key={ci}
                       onClick={() => setSelectedCol(ci)}
-                      className={`sticky top-0 z-10 border border-gray-300 px-2 py-1 min-w-[80px] max-w-[120px] text-center font-medium cursor-pointer transition-colors ${
+                      className={`sticky top-0 z-10 border border-border px-2 py-1 min-w-[80px] max-w-[120px] text-center font-medium cursor-pointer transition-colors ${
                         isSelected
                           ? 'bg-blue-500 text-white'
                           : hasRule
                           ? 'bg-green-50 text-green-700'
-                          : 'bg-gray-100 text-gray-500 hover:bg-blue-100'
+                          : 'bg-muted text-muted-foreground hover:bg-blue-100'
                       }`}
                       title="点击选中此列"
                     >
@@ -474,7 +457,7 @@ export default function DataCleaner() {
             <tbody>
               {previewRows.map((row, ri) => (
                 <tr key={ri}>
-                  <td className="sticky left-0 z-10 bg-gray-50 border border-gray-300 px-2 py-1 text-center text-gray-400 font-mono w-10 min-w-10">
+                  <td className="sticky left-0 z-10 bg-background border border-border px-2 py-1 text-center text-muted-foreground font-mono w-10 min-w-10">
                     {ri + 1}
                   </td>
                   {Array.from({ length: displayCols }).map((_, ci) => {
@@ -486,7 +469,7 @@ export default function DataCleaner() {
                     return (
                       <td
                         key={ci}
-                        className={`border border-gray-200 px-2 py-1 max-w-[120px] truncate ${
+                        className={`border border-border px-2 py-1 max-w-[120px] truncate ${
                           isSelected ? 'bg-blue-50' : ''
                         }`}
                         title={String(cellValue)}
@@ -501,7 +484,7 @@ export default function DataCleaner() {
           </table>
         </div>
         {(maxRows > 50 || maxCols > 26) && (
-          <div className="px-3 py-1.5 text-[11px] text-gray-400 bg-gray-50 border-t border-gray-200">
+          <div className="px-3 py-1.5 text-[11px] text-muted-foreground bg-background border-t border-border">
             仅显示前 50 行 × 26 列（共 {maxRows} 行 × {maxCols} 列）
           </div>
         )}
@@ -512,7 +495,7 @@ export default function DataCleaner() {
   const renderRulePanel = () => {
     if (selectedCol == null) {
       return (
-        <div className="text-center py-8 text-gray-400 text-xs">
+        <div className="text-center py-8 text-muted-foreground text-xs">
           ← 点击上方预览表的<strong>列头</strong>选中一列<br/>然后在此配置清洗规则
         </div>
       );
@@ -534,7 +517,7 @@ export default function DataCleaner() {
 
         {/* Operation selector */}
         <div>
-          <Label className="text-xs text-gray-500">选择清洗操作</Label>
+          <Label className="text-xs text-muted-foreground">选择清洗操作</Label>
           <div className="mt-1 space-y-1">
             {(Object.keys(OP_LABELS) as CleanOp[]).map(op => (
               <button
@@ -543,7 +526,7 @@ export default function DataCleaner() {
                 className={`w-full text-left px-2.5 py-1.5 text-xs rounded-md transition-colors ${
                   currentOp === op
                     ? 'bg-blue-500 text-white font-medium'
-                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                    : 'bg-background text-muted-foreground hover:bg-muted'
                 }`}
               >
                 {OP_LABELS[op]}
@@ -556,7 +539,7 @@ export default function DataCleaner() {
         {currentOp === 'findReplace' && (
           <div className="space-y-2 p-2 bg-yellow-50 rounded-lg border border-yellow-200">
             <div>
-              <Label className="text-xs text-gray-500">查找内容</Label>
+              <Label className="text-xs text-muted-foreground">查找内容</Label>
               <Input
                 value={findStr}
                 onChange={e => setFindStr(e.target.value)}
@@ -565,7 +548,7 @@ export default function DataCleaner() {
               />
             </div>
             <div>
-              <Label className="text-xs text-gray-500">替换为</Label>
+              <Label className="text-xs text-muted-foreground">替换为</Label>
               <Input
                 value={replaceStr}
                 onChange={e => setReplaceStr(e.target.value)}
@@ -573,7 +556,7 @@ export default function DataCleaner() {
                 className="h-7 text-xs mt-0.5"
               />
             </div>
-            <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer">
+            <label className="flex items-center gap-1.5 text-xs text-muted-foreground cursor-pointer">
               <input
                 type="checkbox"
                 checked={useRegex}
@@ -599,21 +582,21 @@ export default function DataCleaner() {
         {/* Rules for this column */}
         {colRules.length > 0 && (
           <div className="space-y-1">
-            <div className="text-xs text-gray-500 font-medium">已添加规则</div>
+            <div className="text-xs text-muted-foreground font-medium">已添加规则</div>
             {colRules.map((rule, idx) => (
-              <div key={rule.id} className="flex items-center gap-1.5 px-2 py-1 bg-white rounded border border-gray-200 text-xs">
-                <span className="text-gray-400 w-4 text-right">{idx + 1}.</span>
+              <div key={rule.id} className="flex items-center gap-1.5 px-2 py-1 bg-card rounded border border-border text-xs">
+                <span className="text-muted-foreground w-4 text-right">{idx + 1}.</span>
                 <Badge variant="outline" className="text-[10px] h-5 px-1">
                   {OP_LABELS[rule.op]}
                 </Badge>
                 {rule.op === 'findReplace' && (
-                  <span className="text-[10px] text-gray-400 truncate">
+                  <span className="text-[10px] text-muted-foreground truncate">
                     "{rule.findStr}"→"{rule.replaceStr}"
                   </span>
                 )}
                 <button
                   onClick={() => handleDeleteRule(rule.id)}
-                  className="ml-auto text-gray-400 hover:text-red-500 shrink-0"
+                  className="ml-auto text-muted-foreground hover:text-red-500 shrink-0"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -647,13 +630,13 @@ export default function DataCleaner() {
 
     return (
       <div className="space-y-2">
-        <div className="text-xs font-medium text-gray-500 flex items-center gap-2">
+        <div className="text-xs font-medium text-muted-foreground flex items-center gap-2">
           <Play className="w-3 h-3" />
           全部清洗规则 ({rules.length} 条)
         </div>
         {Array.from(byCol.entries()).map(([colIdx, colRules]) => (
-          <div key={colIdx} className="px-2 py-1.5 bg-white rounded border border-gray-200">
-            <div className="text-xs font-medium text-gray-700 mb-1">
+          <div key={colIdx} className="px-2 py-1.5 bg-card rounded border border-border">
+            <div className="text-xs font-medium text-foreground mb-1">
               {colLabel(colIdx)}列 {colRules[0].colName && `(${colRules[0].colName})`}
             </div>
             <div className="flex flex-wrap gap-1">
@@ -681,17 +664,17 @@ export default function DataCleaner() {
 
     return (
       <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-6" onClick={() => setShowPreview(false)}>
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[80vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="bg-card rounded-xl shadow-2xl w-full max-w-3xl max-h-[80vh] overflow-hidden" onClick={e => e.stopPropagation()}>
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-            <div className="text-sm font-bold text-gray-800">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+            <div className="text-sm font-bold text-foreground">
               清洗预览: {colLabel(previewCol)}列 ({getColHeader(previewCol)})
             </div>
             <div className="flex items-center gap-3">
               <Badge variant="outline" className="text-xs">
                 {changedCount}/{rows.length} 行有变化
               </Badge>
-              <button onClick={() => setShowPreview(false)} className="text-gray-400 hover:text-gray-600">
+              <button onClick={() => setShowPreview(false)} className="text-muted-foreground hover:text-muted-foreground">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -701,27 +684,27 @@ export default function DataCleaner() {
           <div className="overflow-auto max-h-[60vh] p-4">
             <table className="w-full text-xs border-collapse">
               <thead>
-                <tr className="bg-gray-50">
-                  <th className="text-left px-3 py-2 border-b border-gray-200 w-12">行</th>
-                  <th className="text-left px-3 py-2 border-b border-gray-200">清洗前</th>
-                  <th className="w-8 px-1 py-2 border-b border-gray-200 text-center"><ArrowRight className="w-3 h-3 inline" /></th>
-                  <th className="text-left px-3 py-2 border-b border-gray-200">清洗后</th>
-                  <th className="w-12 px-3 py-2 border-b border-gray-200 text-center">状态</th>
+                <tr className="bg-background">
+                  <th className="text-left px-3 py-2 border-b border-border w-12">行</th>
+                  <th className="text-left px-3 py-2 border-b border-border">清洗前</th>
+                  <th className="w-8 px-1 py-2 border-b border-border text-center"><ArrowRight className="w-3 h-3 inline" /></th>
+                  <th className="text-left px-3 py-2 border-b border-border">清洗后</th>
+                  <th className="w-12 px-3 py-2 border-b border-border text-center">状态</th>
                 </tr>
               </thead>
               <tbody>
                 {display.map((r, i) => (
                   <tr key={i} className={r.changed ? 'bg-yellow-50/50' : ''}>
-                    <td className="px-3 py-1 text-gray-400 font-mono">{r.rowIdx}</td>
-                    <td className="px-3 py-1 text-gray-600 max-w-[200px] truncate">{r.original || '(空)'}</td>
-                    <td className="px-1 py-1 text-center text-gray-300"><ArrowRight className="w-3 h-3" /></td>
-                    <td className={`px-3 py-1 max-w-[200px] truncate ${r.changed ? 'text-green-700 font-medium' : 'text-gray-600'}`}>
+                    <td className="px-3 py-1 text-muted-foreground font-mono">{r.rowIdx}</td>
+                    <td className="px-3 py-1 text-muted-foreground max-w-[200px] truncate">{r.original || '(空)'}</td>
+                    <td className="px-1 py-1 text-center text-muted-foreground/60"><ArrowRight className="w-3 h-3" /></td>
+                    <td className={`px-3 py-1 max-w-[200px] truncate ${r.changed ? 'text-green-700 font-medium' : 'text-muted-foreground'}`}>
                       {r.cleaned || '(空)'}
                     </td>
                     <td className="px-3 py-1 text-center">
                       {r.changed
                         ? <CheckCircle2 className="w-3.5 h-3.5 text-green-500 mx-auto" />
-                        : <XCircle className="w-3.5 h-3.5 text-gray-300 mx-auto" />
+                        : <XCircle className="w-3.5 h-3.5 text-muted-foreground/60 mx-auto" />
                       }
                     </td>
                   </tr>
@@ -729,7 +712,7 @@ export default function DataCleaner() {
               </tbody>
             </table>
             {rows.length > 50 && (
-              <div className="text-center text-xs text-gray-400 py-2">
+              <div className="text-center text-xs text-muted-foreground py-2">
                 仅显示前 50 行（共 {rows.length} 行）
               </div>
             )}
@@ -744,14 +727,14 @@ export default function DataCleaner() {
 
     return (
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
           <FileSpreadsheet className="w-4 h-4" />
           批量处理
         </div>
 
         {/* Batch upload */}
         <div
-          className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-colors"
+          className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-colors"
           onClick={() => batchInputRef.current?.click()}
           onDrop={e => {
             e.preventDefault();
@@ -767,8 +750,8 @@ export default function DataCleaner() {
           }}
           onDragOver={e => e.preventDefault()}
         >
-          <Upload className="w-6 h-6 text-gray-300 mx-auto mb-1" />
-          <p className="text-sm text-gray-500">上传待处理的 Excel 文件（支持多选）</p>
+          <Upload className="w-6 h-6 text-muted-foreground/60 mx-auto mb-1" />
+          <p className="text-sm text-muted-foreground">上传待处理的 Excel 文件（支持多选）</p>
           <input
             ref={batchInputRef}
             type="file"
@@ -794,11 +777,11 @@ export default function DataCleaner() {
         {batchFiles.length > 0 && (
           <div className="space-y-1 max-h-[150px] overflow-y-auto">
             {batchFiles.map(bf => (
-              <div key={bf.id} className="flex items-center gap-2 px-3 py-1.5 bg-white rounded border border-gray-200 text-xs">
-                <FileSpreadsheet className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                <span className="flex-1 truncate text-gray-700">{bf.name}</span>
-                <span className="text-gray-400 shrink-0">{formatSize(bf.size)}</span>
-                <button onClick={() => setBatchFiles(prev => prev.filter(f => f.id !== bf.id))} className="text-gray-400 hover:text-red-500 shrink-0">
+              <div key={bf.id} className="flex items-center gap-2 px-3 py-1.5 bg-card rounded border border-border text-xs">
+                <FileSpreadsheet className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                <span className="flex-1 truncate text-foreground">{bf.name}</span>
+                <span className="text-muted-foreground shrink-0">{formatSize(bf.size)}</span>
+                <button onClick={() => setBatchFiles(prev => prev.filter(f => f.id !== bf.id))} className="text-muted-foreground hover:text-red-500 shrink-0">
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -822,31 +805,31 @@ export default function DataCleaner() {
 
     return (
       <div className="space-y-3">
-        <div className="text-sm font-semibold text-gray-700">
+        <div className="text-sm font-semibold text-foreground">
           处理结果
-          <span className="ml-2 text-xs text-gray-400 font-normal">
+          <span className="ml-2 text-xs text-muted-foreground font-normal">
             {results.filter(r => r.status === 'success').length}/{results.length} 成功
           </span>
         </div>
 
-        <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+        <div className="border border-border rounded-lg overflow-hidden bg-card">
           <div className="overflow-auto max-h-[300px]">
             <table className="w-full text-xs">
               <thead>
-                <tr className="bg-gray-50">
-                  <th className="text-left px-3 py-2 font-medium text-gray-500 border-b">文件名</th>
-                  <th className="text-left px-3 py-2 font-medium text-gray-500 border-b">列</th>
-                  <th className="text-left px-3 py-2 font-medium text-gray-500 border-b">规则</th>
-                  <th className="text-right px-3 py-2 font-medium text-gray-500 border-b">变更行数</th>
-                  <th className="text-center px-3 py-2 font-medium text-gray-500 border-b w-16">状态</th>
+                <tr className="bg-background">
+                  <th className="text-left px-3 py-2 font-medium text-muted-foreground border-b">文件名</th>
+                  <th className="text-left px-3 py-2 font-medium text-muted-foreground border-b">列</th>
+                  <th className="text-left px-3 py-2 font-medium text-muted-foreground border-b">规则</th>
+                  <th className="text-right px-3 py-2 font-medium text-muted-foreground border-b">变更行数</th>
+                  <th className="text-center px-3 py-2 font-medium text-muted-foreground border-b w-16">状态</th>
                 </tr>
               </thead>
               <tbody>
                 {results.map((r, i) => (
-                  <tr key={i} className={r.status === 'error' ? 'bg-red-50/50' : 'hover:bg-gray-50'}>
-                    <td className="px-3 py-1.5 text-gray-700 max-w-[180px] truncate" title={r.fileName}>{r.fileName}</td>
-                    <td className="px-3 py-1.5 text-gray-600">{r.colLabel} {r.colHeader && `(${r.colHeader})`}</td>
-                    <td className="px-3 py-1.5 text-gray-600">{r.ruleName}</td>
+                  <tr key={i} className={r.status === 'error' ? 'bg-red-50/50' : 'hover:bg-background'}>
+                    <td className="px-3 py-1.5 text-foreground max-w-[180px] truncate" title={r.fileName}>{r.fileName}</td>
+                    <td className="px-3 py-1.5 text-muted-foreground">{r.colLabel} {r.colHeader && `(${r.colHeader})`}</td>
+                    <td className="px-3 py-1.5 text-muted-foreground">{r.ruleName}</td>
                     <td className="px-3 py-1.5 text-right font-mono">{r.status === 'success' ? `${r.changedCount}/${r.totalCount}` : '-'}</td>
                     <td className="px-3 py-1.5 text-center">
                       {r.status === 'success'
@@ -861,7 +844,7 @@ export default function DataCleaner() {
           </div>
         </div>
 
-        <div className="text-[11px] text-gray-400">
+        <div className="text-[11px] text-muted-foreground">
           每个文件会自动下载清洗后的版本（原文件不变）
         </div>
       </div>
@@ -871,7 +854,7 @@ export default function DataCleaner() {
   // ============ Main Render ============
 
   return (
-    <div className="min-h-full bg-gray-50">
+    <div className="min-h-full bg-background">
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-white text-sm px-4 py-2 rounded-lg shadow-lg">
@@ -887,28 +870,28 @@ export default function DataCleaner() {
         <div className="flex flex-col items-center justify-center py-20">
           {renderSampleUpload()}
           <div className="mt-6 grid grid-cols-3 gap-4 max-w-lg">
-            <div className="text-center p-3 bg-white rounded-lg border border-gray-200">
+            <div className="text-center p-3 bg-card rounded-lg border border-border">
               <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-1 text-sm font-bold">1</div>
-              <p className="text-xs text-gray-500">上传 Excel 样本</p>
+              <p className="text-xs text-muted-foreground">上传 Excel 样本</p>
             </div>
-            <div className="text-center p-3 bg-white rounded-lg border border-gray-200">
+            <div className="text-center p-3 bg-card rounded-lg border border-border">
               <div className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-1 text-sm font-bold">2</div>
-              <p className="text-xs text-gray-500">选中列 + 配置规则</p>
+              <p className="text-xs text-muted-foreground">选中列 + 配置规则</p>
             </div>
-            <div className="text-center p-3 bg-white rounded-lg border border-gray-200">
+            <div className="text-center p-3 bg-card rounded-lg border border-border">
               <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-1 text-sm font-bold">3</div>
-              <p className="text-xs text-gray-500">批量清洗导出</p>
+              <p className="text-xs text-muted-foreground">批量清洗导出</p>
             </div>
           </div>
         </div>
       ) : (
         <div className="px-6 pt-4 pb-8 space-y-4">
           {/* Sample file info */}
-          <div className="flex items-center gap-3 p-3 bg-white rounded-lg border border-gray-200">
+          <div className="flex items-center gap-3 p-3 bg-card rounded-lg border border-border">
             <FileSpreadsheet className="w-8 h-8 text-green-600 shrink-0" />
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold text-gray-900 truncate">{sampleFile.name}</div>
-              <div className="text-xs text-gray-400">{formatSize(sampleFile.size)} · {sheetNames.length} 个工作表 · {maxRows} 行 × {maxCols} 列</div>
+              <div className="text-sm font-semibold text-foreground truncate">{sampleFile.name}</div>
+              <div className="text-xs text-muted-foreground">{formatSize(sampleFile.size)} · {sheetNames.length} 个工作表 · {maxRows} 行 × {maxCols} 列</div>
             </div>
             <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => {
               setSampleFile(null);
@@ -926,16 +909,16 @@ export default function DataCleaner() {
           {renderSheetTabs()}
 
           {/* Main: Table + Rule Panel */}
-          <div className="flex gap-4">
+          <div className="flex flex-col lg:flex-row gap-4">
             {/* Left: Table */}
             <div className="flex-1 min-w-0">
               {renderTable()}
             </div>
 
             {/* Right: Rule Panel */}
-            <div className="w-64 shrink-0">
-              <div className="bg-white rounded-lg border border-gray-200 p-3 space-y-3">
-                <div className="text-xs font-bold text-gray-700 flex items-center gap-1">
+            <div className="w-full lg:w-64 shrink-0">
+              <div className="bg-card rounded-lg border border-border p-3 space-y-3">
+                <div className="text-xs font-bold text-foreground flex items-center gap-1">
                   <Columns3 className="w-3.5 h-3.5" />
                   清洗规则配置
                 </div>

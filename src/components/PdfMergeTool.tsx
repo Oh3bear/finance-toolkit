@@ -139,7 +139,7 @@ async function genThumb(item: PdfFile): Promise<{ url: string | null; pages: num
   }
 }
 
-export default function PdfMergeTool() {
+export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarCollapsed?: boolean }) {
   // --- 文件状态 ---
   const [files, setFiles] = useState<PdfFile[]>([]);
   const [dragOver, setDragOver] = useState(false);
@@ -476,28 +476,28 @@ export default function PdfMergeTool() {
     >
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-2">
-          <GripVertical className="w-4 h-4 text-gray-300 mt-0.5 shrink-0" />
+          <GripVertical className="w-4 h-4 text-muted-foreground/60 mt-0.5 shrink-0" />
           <span className="text-sm font-medium truncate flex-1" title={item.name}>{item.name}</span>
           <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => removeFile(item.id)}>
-            <Trash2 className="w-3.5 h-3.5 text-gray-400 hover:text-red-500" />
+            <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-red-500" />
           </Button>
         </div>
-        <div className="aspect-[1/1.414] bg-gray-50 rounded border flex items-center justify-center overflow-hidden">
+        <div className="aspect-[1/1.414] bg-background rounded border flex items-center justify-center overflow-hidden">
           {item.thumbUrl ? (
             <img src={item.thumbUrl} className="w-full h-full object-contain" alt="预览" />
           ) : item.thumbStatus === 'loading' ? (
             <div className="flex flex-col items-center gap-2">
-              <div className="w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
-              <span className="text-xs text-gray-400">生成中...</span>
+              <div className="w-6 h-6 border-2 border-border border-t-blue-500 rounded-full animate-spin" />
+              <span className="text-xs text-muted-foreground">生成中...</span>
             </div>
           ) : (
-            <div className="flex flex-col items-center gap-1 text-gray-400">
+            <div className="flex flex-col items-center gap-1 text-muted-foreground">
               <FileText className="w-8 h-8" />
               <span className="text-xs">预览失败</span>
             </div>
           )}
         </div>
-        <div className="flex items-center justify-between text-xs text-gray-500">
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>{item.pages} 页 · {formatSize(item.size)}</span>
           {autoGroup && <Badge variant="outline" className="text-xs">{computeGroup(item.name)}</Badge>}
         </div>
@@ -519,11 +519,11 @@ export default function PdfMergeTool() {
       );
       return sortedPrefixes.map((prefix) => (
         <div key={prefix}>
-          <div className="flex items-center gap-3 py-2 text-sm text-gray-500 font-medium">
+          <div className="flex items-center gap-3 py-2 text-sm text-muted-foreground font-medium">
             {/* 复选框 */}
             <button
               onClick={() => toggleGroup(prefix)}
-              className="text-gray-400 hover:text-blue-500 transition-colors shrink-0"
+              className="text-muted-foreground hover:text-blue-500 transition-colors shrink-0"
               title={checkedGroups.has(prefix) ? '取消选中' : '选中'}
             >
               {checkedGroups.has(prefix) ? (
@@ -532,10 +532,10 @@ export default function PdfMergeTool() {
                 <Square className="w-5 h-5" />
               )}
             </button>
-            <div className="flex-1 h-px bg-gray-200" />
+            <div className="flex-1 h-px bg-muted" />
             <span>分组：{prefix}</span>
-            <span className="text-xs text-gray-400">({groupMap[prefix].length} 个文件)</span>
-            <div className="flex-1 h-px bg-gray-200" />
+            <span className="text-xs text-muted-foreground">({groupMap[prefix].length} 个文件)</span>
+            <div className="flex-1 h-px bg-muted" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {groupMap[prefix].map((item) => renderFileCard(item, files.indexOf(item)))}
@@ -564,10 +564,10 @@ export default function PdfMergeTool() {
       : [];
 
     return (
-      <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-4">
+      <div className="mt-3 p-4 bg-background rounded-lg border border-border space-y-4">
         {/* 分组方式选择 */}
         <div>
-          <label className="text-sm font-medium text-gray-700 mb-2 block">分组方式</label>
+          <label className="text-sm font-medium text-foreground mb-2 block">分组方式</label>
           <div className="flex gap-4 flex-wrap">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -606,11 +606,11 @@ export default function PdfMergeTool() {
         {groupMode === 'delimiter' && (
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <label className="text-sm text-gray-600 whitespace-nowrap">分隔符:</label>
+              <label className="text-sm text-muted-foreground whitespace-nowrap">分隔符:</label>
               <select
                 value={delimiterPreset}
                 onChange={(e) => setDelimiterPreset(e.target.value)}
-                className="text-sm border rounded px-2 py-1 bg-white"
+                className="text-sm border rounded px-2 py-1 bg-card"
               >
                 {DELIMITER_PRESETS.map(p => (
                   <option key={p.value} value={p.value}>{p.label}</option>
@@ -630,18 +630,18 @@ export default function PdfMergeTool() {
             {/* 分组字段选择 */}
             {maxSegments > 0 && (
               <div className="flex items-center gap-3">
-                <label className="text-sm text-gray-600 whitespace-nowrap">分组字段:</label>
+                <label className="text-sm text-muted-foreground whitespace-nowrap">分组字段:</label>
                 <select
                   value={selectedSegment}
                   onChange={(e) => setSelectedSegment(Number(e.target.value))}
-                  className="text-sm border rounded px-2 py-1 bg-white"
+                  className="text-sm border rounded px-2 py-1 bg-card"
                 >
                   {Array.from({ length: maxSegments }, (_, i) => (
                     <option key={i} value={i}>第{i + 1}段</option>
                   ))}
                 </select>
                 {splitPreview.length > 0 && (
-                  <span className="text-xs text-gray-400 ml-1">
+                  <span className="text-xs text-muted-foreground ml-1">
                     (例: {splitPreview[0]?.segments[selectedSegment] || '-'})
                   </span>
                 )}
@@ -659,10 +659,10 @@ export default function PdfMergeTool() {
                   切分预览
                 </button>
                 {showPreview && (
-                  <div className="mt-2 overflow-x-auto border rounded bg-white">
+                  <div className="mt-2 overflow-x-auto border rounded bg-card">
                     <table className="text-xs w-full">
                       <thead>
-                        <tr className="bg-gray-100">
+                        <tr className="bg-muted">
                           <th className="text-left p-2 border-r">文件名</th>
                           {Array.from({ length: maxSegments }, (_, i) => (
                             <th key={i} className={`text-left p-2 ${i < maxSegments - 1 ? 'border-r' : ''} ${i === selectedSegment ? 'bg-blue-50 text-blue-700' : ''}`}>
@@ -673,7 +673,7 @@ export default function PdfMergeTool() {
                       </thead>
                       <tbody>
                         {splitPreview.slice(0, 10).map((row, ri) => (
-                          <tr key={ri} className="border-t hover:bg-gray-50">
+                          <tr key={ri} className="border-t hover:bg-background">
                             <td className="p-2 border-r truncate max-w-[200px]" title={row.name}>{row.name}</td>
                             {Array.from({ length: maxSegments }, (_, i) => (
                               <td key={i} className={`p-2 ${i < maxSegments - 1 ? 'border-r' : ''} ${i === selectedSegment ? 'bg-blue-50 font-medium' : ''}`}>
@@ -685,7 +685,7 @@ export default function PdfMergeTool() {
                       </tbody>
                     </table>
                     {splitPreview.length > 10 && (
-                      <p className="text-xs text-gray-400 p-2 text-center">
+                      <p className="text-xs text-muted-foreground p-2 text-center">
                         仅显示前 10 条，共 {splitPreview.length} 个文件
                       </p>
                     )}
@@ -700,7 +700,7 @@ export default function PdfMergeTool() {
         {groupMode === 'fixedLength' && (
           <div className="space-y-3">
             <div className="flex items-center gap-3 flex-wrap">
-              <label className="text-sm text-gray-600 whitespace-nowrap">起始位置:</label>
+              <label className="text-sm text-muted-foreground whitespace-nowrap">起始位置:</label>
               <input
                 type="number"
                 value={fixedStart}
@@ -709,7 +709,7 @@ export default function PdfMergeTool() {
                 max={100}
                 className="text-sm border rounded px-2 py-1 w-20"
               />
-              <label className="text-sm text-gray-600 whitespace-nowrap">截取长度:</label>
+              <label className="text-sm text-muted-foreground whitespace-nowrap">截取长度:</label>
               <input
                 type="number"
                 value={fixedLength}
@@ -718,18 +718,18 @@ export default function PdfMergeTool() {
                 max={50}
                 className="text-sm border rounded px-2 py-1 w-20"
               />
-              <span className="text-sm text-gray-400">个字符</span>
+              <span className="text-sm text-muted-foreground">个字符</span>
             </div>
             {files.length > 0 && (
-              <div className="p-2 bg-white border rounded text-xs text-gray-600 space-y-1">
-                <p className="font-medium text-gray-500 mb-1">分组预览（前5个文件）</p>
+              <div className="p-2 bg-card border rounded text-xs text-muted-foreground space-y-1">
+                <p className="font-medium text-muted-foreground mb-1">分组预览（前5个文件）</p>
                 {files.slice(0, 5).map((f, i) => {
                   const base = f.name.replace(/\.pdf$/i, '');
                   const group = base.slice(fixedStart, fixedStart + fixedLength) || '(空)';
                   return (
                     <div key={i} className="flex items-center gap-2">
-                      <span className="text-gray-400 truncate max-w-[180px]" title={f.name}>{f.name}</span>
-                      <span className="text-gray-400">→</span>
+                      <span className="text-muted-foreground truncate max-w-[180px]" title={f.name}>{f.name}</span>
+                      <span className="text-muted-foreground">→</span>
                       <span className="font-medium text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">{group}</span>
                     </div>
                   );
@@ -744,9 +744,9 @@ export default function PdfMergeTool() {
           <div className="space-y-3">
             {/* 样例输入 + 推断 */}
             <div>
-              <label className="text-sm text-gray-600 block mb-1">
+              <label className="text-sm text-muted-foreground block mb-1">
                 输入文件名样例
-                <span className="text-gray-400 ml-1 font-normal">（系统将自动推断匹配规则）</span>
+                <span className="text-muted-foreground ml-1 font-normal">（系统将自动推断匹配规则）</span>
               </label>
               <div className="flex gap-2 items-center">
                 <input
@@ -779,12 +779,12 @@ export default function PdfMergeTool() {
             {/* 推断结果 / 手动编辑正则 */}
             {(patternRegex || patternExample) && (
               <div>
-                <label className="text-sm text-gray-600 block mb-1">
+                <label className="text-sm text-muted-foreground block mb-1">
                   正则表达式
-                  <span className="text-gray-400 ml-1 font-normal">（可手动修改，括号内为分组键）</span>
+                  <span className="text-muted-foreground ml-1 font-normal">（可手动修改，括号内为分组键）</span>
                 </label>
                 <div className="flex gap-2 items-center">
-                  <span className="text-sm text-gray-400 font-mono">/</span>
+                  <span className="text-sm text-muted-foreground font-mono">/</span>
                   <input
                     type="text"
                     value={patternRegex}
@@ -800,16 +800,16 @@ export default function PdfMergeTool() {
                       }
                     }}
                     placeholder="自动生成或手动输入正则"
-                    className={`text-sm border rounded px-2 py-1.5 flex-1 font-mono ${patternError ? 'border-red-400 bg-red-50' : 'border-gray-300'}`}
+                    className={`text-sm border rounded px-2 py-1.5 flex-1 font-mono ${patternError ? 'border-red-400 bg-red-50' : 'border-border'}`}
                   />
-                  <span className="text-sm text-gray-400 font-mono">/i</span>
+                  <span className="text-sm text-muted-foreground font-mono">/i</span>
                 </div>
                 {patternError && (
                   <p className="text-xs text-red-500 mt-1">{patternError}</p>
                 )}
                 {!patternError && patternRegex && (
-                  <p className="text-xs text-gray-400 mt-1">
-                    提示：用括号 <code className="bg-gray-100 px-1 rounded">( )</code> 包围要用作分组键的部分，无括号则取整个匹配
+                  <p className="text-xs text-muted-foreground mt-1">
+                    提示：用括号 <code className="bg-muted px-1 rounded">( )</code> 包围要用作分组键的部分，无括号则取整个匹配
                   </p>
                 )}
               </div>
@@ -818,18 +818,18 @@ export default function PdfMergeTool() {
             {/* 匹配预览 */}
             {patternRegex && !patternError && files.length > 0 && (
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-1">匹配预览（前10个文件）</p>
-                <div className="overflow-x-auto border rounded bg-white">
+                <p className="text-xs font-medium text-muted-foreground mb-1">匹配预览（前10个文件）</p>
+                <div className="overflow-x-auto border rounded bg-card">
                   <table className="text-xs w-full">
                     <thead>
-                      <tr className="bg-gray-100">
+                      <tr className="bg-muted">
                         <th className="text-left p-2 border-r">文件名</th>
                         <th className="text-left p-2">分组键</th>
                       </tr>
                     </thead>
                     <tbody>
                       {patternPreviewRows.map((row, i) => (
-                        <tr key={i} className="border-t hover:bg-gray-50">
+                        <tr key={i} className="border-t hover:bg-background">
                           <td className="p-2 border-r truncate max-w-[240px] font-mono" title={row.name}>{row.name}</td>
                           <td className="p-2">
                             {row.matched != null
@@ -842,7 +842,7 @@ export default function PdfMergeTool() {
                     </tbody>
                   </table>
                   {files.length > 10 && (
-                    <p className="text-xs text-gray-400 p-2 text-center">仅显示前 10 条，共 {files.length} 个文件</p>
+                    <p className="text-xs text-muted-foreground p-2 text-center">仅显示前 10 条，共 {files.length} 个文件</p>
                   )}
                 </div>
               </div>
@@ -852,14 +852,14 @@ export default function PdfMergeTool() {
 
         {/* 命名模板 */}
         <div className="flex items-center gap-3">
-          <label className="text-sm text-gray-600 whitespace-nowrap">命名模板:</label>
+          <label className="text-sm text-muted-foreground whitespace-nowrap">命名模板:</label>
           <input
             type="text"
             value={nameTemplate}
             onChange={(e) => setNameTemplate(e.target.value)}
             className="text-sm border rounded px-2 py-1 flex-1"
           />
-          <span className="text-xs text-gray-400 whitespace-nowrap">
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
             {'{group}'}=分组名 {'{count}'}=文件数
           </span>
         </div>
@@ -876,19 +876,19 @@ export default function PdfMergeTool() {
         onDragLeave={() => setDragOver(false)}
         onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files); }}
         className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all ${
-          dragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
+          dragOver ? 'border-blue-500 bg-blue-50' : 'border-border hover:border-blue-400 hover:bg-background'
         }`}
       >
-        <Upload className={`w-12 h-12 mx-auto mb-3 ${dragOver ? 'text-blue-500' : 'text-gray-400'}`} />
-        <h3 className="text-base font-medium text-gray-900 mb-1">拖放 PDF 文件至此，或点击选择</h3>
-        <p className="text-sm text-gray-500">支持多文件、多选、拖拽排序。所有处理均在浏览器本地完成。</p>
+        <Upload className={`w-12 h-12 mx-auto mb-3 ${dragOver ? 'text-blue-500' : 'text-muted-foreground'}`} />
+        <h3 className="text-base font-medium text-foreground mb-1">拖放 PDF 文件至此，或点击选择</h3>
+        <p className="text-sm text-muted-foreground">支持多文件、多选、拖拽排序。所有处理均在浏览器本地完成。</p>
         <input ref={fileInputRef} type="file" accept=".pdf" multiple className="hidden" onChange={(e) => handleFiles(e.target.files)} />
       </div>
 
       {files.length > 0 && (
         <>
           {/* 工具栏 */}
-          <div className="p-4 bg-white rounded-lg border space-y-3">
+          <div className="p-4 bg-card rounded-lg border space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <Button variant="outline" size="sm" onClick={sortByName}>
@@ -900,7 +900,7 @@ export default function PdfMergeTool() {
                   清除全部
                 </Button>
               </div>
-              <div className="flex items-center gap-4 text-sm text-gray-600">
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
@@ -935,14 +935,14 @@ export default function PdfMergeTool() {
 
             {/* 全选/取消全选 */}
             {autoGroup && groupKeys.length > 0 && (
-              <div className="flex items-center gap-2 pt-1 border-t border-gray-100">
+              <div className="flex items-center gap-2 pt-1 border-t border-border">
                 <button
                   onClick={toggleAllGroups}
                   className="text-xs text-blue-600 hover:text-blue-800"
                 >
                   {checkedGroups.size === groupKeys.length ? '取消全选' : '全选'}
                 </button>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-muted-foreground">
                   已选 {checkedCount}/{totalGroupCount} 组
                 </span>
               </div>
@@ -954,8 +954,8 @@ export default function PdfMergeTool() {
       )}
 
       {files.length === 0 && (
-        <div className="text-center py-16 text-gray-400">
-          <FileText className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+        <div className="text-center py-16 text-muted-foreground">
+          <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground/60" />
           <p className="text-sm">暂无文件，请拖放或选择 PDF</p>
         </div>
       )}
@@ -963,16 +963,15 @@ export default function PdfMergeTool() {
       {/* 底部操作条 */}
       {files.length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 z-50">
-          <div className="flex items-center justify-between gap-4 p-4 bg-white border-t shadow-[0_-4px_20px_rgba(0,0,0,0.08)]"
-               style={{ marginLeft: '64px' }}>
-            <span className="text-sm text-gray-500">
-              已选 <strong className="text-gray-900">{files.length}</strong> 个文件，共 <strong className="text-gray-900">{totalPages}</strong> 页
-              {autoGroup && <> · <strong className="text-gray-900">{checkedCount}</strong>/<strong className="text-gray-900">{totalGroupCount}</strong> 组</>}
+          <div className={`flex items-center justify-between gap-4 p-4 bg-card border-t shadow-[0_-4px_20px_rgba(0,0,0,0.08)] ${sidebarCollapsed ? 'ml-16' : 'ml-64'}`}>
+            <span className="text-sm text-muted-foreground">
+              已选 <strong className="text-foreground">{files.length}</strong> 个文件，共 <strong className="text-foreground">{totalPages}</strong> 页
+              {autoGroup && <> · <strong className="text-foreground">{checkedCount}</strong>/<strong className="text-foreground">{totalGroupCount}</strong> 组</>}
             </span>
             {merging && (
               <div className="flex items-center gap-3 flex-1 max-w-md">
                 <Progress value={progress.pct} className="flex-1" />
-                <span className="text-xs text-gray-500 min-w-[80px] text-right">{progress.text}</span>
+                <span className="text-xs text-muted-foreground min-w-[80px] text-right">{progress.text}</span>
               </div>
             )}
             <div className="flex items-center gap-3">

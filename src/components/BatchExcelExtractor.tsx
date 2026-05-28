@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import { fmtExportDate, formatDateCell as formatCellValue } from '../utils/dateUtils';
+import { colLabel, formatSize } from '../utils/shared';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,22 +26,6 @@ import {
 } from 'lucide-react';
 
 // ============ Helpers ============
-
-function colLabel(col: number): string {
-  let s = '';
-  let c = col;
-  while (c >= 0) {
-    s = String.fromCharCode(65 + (c % 26)) + s;
-    c = Math.floor(c / 26) - 1;
-  }
-  return s;
-}
-
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return bytes + ' B';
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-  return (bytes / 1024 / 1024).toFixed(1) + ' MB';
-}
 
 // ============ Types ============
 
@@ -474,8 +459,8 @@ export default function BatchExcelExtractor() {
           <div className="flex items-center gap-3">
             <FileSpreadsheet className="w-8 h-8 text-green-600 shrink-0" />
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold text-gray-900 truncate">{sampleFile.name}</div>
-              <div className="text-xs text-gray-400">{formatSize(sampleFile.size)} · {sheetNames.length} 个工作表</div>
+              <div className="text-sm font-semibold text-foreground truncate">{sampleFile.name}</div>
+              <div className="text-xs text-muted-foreground">{formatSize(sampleFile.size)} · {sheetNames.length} 个工作表</div>
             </div>
             <div className="flex items-center gap-1">
               <Button variant="ghost" size="sm" className="h-7 text-xs"
@@ -490,14 +475,14 @@ export default function BatchExcelExtractor() {
           </div>
         ) : (
           <div
-            className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-colors"
+            className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-colors"
             onClick={() => sampleInputRef.current?.click()}
             onDrop={e => handleFileDrop(e, handleSampleUpload)}
             onDragOver={e => e.preventDefault()}
           >
-            <Upload className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">拖拽或点击上传<strong className="text-blue-600">Excel 样本</strong></p>
-            <p className="text-xs text-gray-400 mt-1">支持 .xlsx / .xls 格式</p>
+            <Upload className="w-8 h-8 text-muted-foreground/60 mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">拖拽或点击上传<strong className="text-blue-600">Excel 样本</strong></p>
+            <p className="text-xs text-muted-foreground mt-1">支持 .xlsx / .xls 格式</p>
           </div>
         )}
         <input
@@ -515,7 +500,7 @@ export default function BatchExcelExtractor() {
     if (sheetNames.length <= 1) return null;
     return (
       <div className="px-6 py-2 flex items-center gap-1 flex-wrap">
-        <span className="text-xs text-gray-400 mr-1">工作表:</span>
+        <span className="text-xs text-muted-foreground mr-1">工作表:</span>
         {sheetNames.map(name => (
           <button
             key={name}
@@ -523,7 +508,7 @@ export default function BatchExcelExtractor() {
             className={`px-2.5 py-1 text-xs rounded-md transition-colors ${
               name === activeSheet
                 ? 'bg-blue-100 text-blue-700 font-medium'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                : 'bg-muted text-muted-foreground hover:bg-muted'
             }`}
           >
             {name}
@@ -537,10 +522,10 @@ export default function BatchExcelExtractor() {
     if (!sampleFile) return null;
 
     return (
-      <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+      <div className="border border-border rounded-lg overflow-hidden bg-card">
         {/* Toolbar */}
-        <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b border-gray-200">
-          <div className="text-xs text-gray-500">
+        <div className="flex items-center justify-between px-3 py-2 bg-background border-b border-border">
+          <div className="text-xs text-muted-foreground">
             {mode === 'offset'
               ? '点击单元格设为锚点'
               : '输入行列关键词后点击定位'}
@@ -563,13 +548,13 @@ export default function BatchExcelExtractor() {
           <table className="border-collapse text-xs">
             <thead>
               <tr>
-                <th className="sticky top-0 left-0 z-20 bg-gray-100 border border-gray-300 px-2 py-1 w-10 min-w-10 text-center text-gray-500 font-medium">
+                <th className="sticky top-0 left-0 z-20 bg-muted border border-border px-2 py-1 w-10 min-w-10 text-center text-muted-foreground font-medium">
                   #
                 </th>
                 {Array.from({ length: Math.min(maxCols, 26) }).map((_, c) => (
                   <th
                     key={c}
-                    className="sticky top-0 z-10 bg-gray-100 border border-gray-300 px-2 py-1 min-w-[80px] max-w-[120px] text-center text-gray-500 font-medium"
+                    className="sticky top-0 z-10 bg-muted border border-border px-2 py-1 min-w-[80px] max-w-[120px] text-center text-muted-foreground font-medium"
                   >
                     {colLabel(c)}
                   </th>
@@ -579,7 +564,7 @@ export default function BatchExcelExtractor() {
             <tbody>
               {previewData.map((row, ri) => (
                 <tr key={ri}>
-                  <td className="sticky left-0 z-10 bg-gray-50 border border-gray-300 px-2 py-1 text-center text-gray-400 font-mono w-10 min-w-10">
+                  <td className="sticky left-0 z-10 bg-background border border-border px-2 py-1 text-center text-muted-foreground font-mono w-10 min-w-10">
                     {ri + 1}
                   </td>
                   {Array.from({ length: Math.min(maxCols, 26) }).map((_, ci) => {
@@ -598,7 +583,7 @@ export default function BatchExcelExtractor() {
                       <td
                         key={ci}
                         onClick={() => handleCellClick(ri, ci)}
-                        className={`border border-gray-200 px-2 py-1 max-w-[120px] truncate cursor-default select-none ${
+                        className={`border border-border px-2 py-1 max-w-[120px] truncate cursor-default select-none ${
                           isAnchor
                             ? 'bg-blue-500 text-white font-bold'
                             : isTarget
@@ -625,7 +610,7 @@ export default function BatchExcelExtractor() {
           </table>
         </div>
         {(currentData.length > 50 || maxCols > 26) && (
-          <div className="px-3 py-1.5 text-[11px] text-gray-400 bg-gray-50 border-t border-gray-200">
+          <div className="px-3 py-1.5 text-[11px] text-muted-foreground bg-background border-t border-border">
             仅显示前 50 行 × 26 列（共 {currentData.length} 行 × {maxCols} 列）
           </div>
         )}
@@ -659,8 +644,8 @@ export default function BatchExcelExtractor() {
 
         {/* Offset mode controls */}
         {mode === 'offset' && (
-          <div className="space-y-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-            <div className="text-xs text-gray-500">
+          <div className="space-y-3 p-3 bg-background rounded-lg border border-border">
+            <div className="text-xs text-muted-foreground">
               {anchorRow == null || anchorCol == null
                 ? '请在左侧预览表中点击单元格设定锚点'
                 : `锚点: ${colLabel(anchorCol)}${anchorRow + 1}`
@@ -671,7 +656,7 @@ export default function BatchExcelExtractor() {
               <>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <Label className="text-xs text-gray-500">行偏移</Label>
+                    <Label className="text-xs text-muted-foreground">行偏移</Label>
                     <div className="flex items-center gap-1 mt-0.5">
                       <Button variant="outline" size="sm" className="h-6 w-6 p-0"
                         onClick={() => setRowOffset(v => v - 1)}>
@@ -690,7 +675,7 @@ export default function BatchExcelExtractor() {
                     </div>
                   </div>
                   <div>
-                    <Label className="text-xs text-gray-500">列偏移</Label>
+                    <Label className="text-xs text-muted-foreground">列偏移</Label>
                     <div className="flex items-center gap-1 mt-0.5">
                       <Button variant="outline" size="sm" className="h-6 w-6 p-0"
                         onClick={() => setColOffset(v => v - 1)}>
@@ -710,11 +695,11 @@ export default function BatchExcelExtractor() {
                   </div>
                 </div>
 
-                <div className="bg-white p-2 rounded border border-gray-200">
-                  <div className="text-[11px] text-gray-400">目标单元格</div>
+                <div className="bg-card p-2 rounded border border-border">
+                  <div className="text-[11px] text-muted-foreground">目标单元格</div>
                   <div className="text-sm font-mono font-medium">
                     {colLabel(anchorCol + colOffset)}{anchorRow + rowOffset + 1}
-                    <span className="mx-2 text-gray-300">=</span>
+                    <span className="mx-2 text-muted-foreground/60">=</span>
                     <span className={previewValue.startsWith('(') ? 'text-red-500' : 'text-blue-600'}>
                       {previewValue || '(空)'}
                     </span>
@@ -727,9 +712,9 @@ export default function BatchExcelExtractor() {
 
         {/* Intersection mode controls */}
         {mode === 'intersection' && (
-          <div className="space-y-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="space-y-3 p-3 bg-background rounded-lg border border-border">
             <div>
-              <Label className="text-xs text-gray-500">行关键词</Label>
+              <Label className="text-xs text-muted-foreground">行关键词</Label>
               <div className="flex gap-1 mt-0.5">
                 <Input
                   placeholder="例: 合同金额"
@@ -741,7 +726,7 @@ export default function BatchExcelExtractor() {
               </div>
             </div>
             <div>
-              <Label className="text-xs text-gray-500">列关键词</Label>
+              <Label className="text-xs text-muted-foreground">列关键词</Label>
               <div className="flex gap-1 mt-0.5">
                 <Input
                   placeholder="例: 本期发生额"
@@ -758,11 +743,11 @@ export default function BatchExcelExtractor() {
             </Button>
 
             {foundRow != null && foundCol != null && (
-              <div className="bg-white p-2 rounded border border-gray-200">
-                <div className="text-[11px] text-gray-400">定位结果</div>
+              <div className="bg-card p-2 rounded border border-border">
+                <div className="text-[11px] text-muted-foreground">定位结果</div>
                 <div className="text-sm font-mono font-medium">
                   {colLabel(foundCol)}{foundRow + 1}
-                  <span className="mx-2 text-gray-300">=</span>
+                  <span className="mx-2 text-muted-foreground/60">=</span>
                   <span className="text-blue-600">{previewValue || '(空)'}</span>
                 </div>
               </div>
@@ -802,25 +787,25 @@ export default function BatchExcelExtractor() {
 
     return (
       <div className="space-y-1.5">
-        <div className="text-xs font-medium text-gray-500 flex items-center gap-2">
+        <div className="text-xs font-medium text-muted-foreground flex items-center gap-2">
           <GripVertical className="w-3 h-3" />
           提取规则 ({rules.length})
         </div>
         {rules.map((rule, idx) => (
-          <div key={rule.id} className="flex items-center gap-2 px-2 py-1.5 bg-white rounded border border-gray-200 group hover:border-blue-300 transition-colors">
+          <div key={rule.id} className="flex items-center gap-2 px-2 py-1.5 bg-card rounded border border-border group hover:border-blue-300 transition-colors">
             <Badge variant={rule.mode === 'offset' ? 'default' : 'secondary'} className="h-5 text-[10px] px-1.5 shrink-0">
               {rule.mode === 'offset' ? '偏移' : '搜索'}
             </Badge>
-            <span className="text-xs font-medium text-gray-800 flex-1 truncate">
+            <span className="text-xs font-medium text-foreground flex-1 truncate">
               {idx + 1}. {rule.name}
             </span>
-            <span className="text-[10px] text-gray-400 shrink-0">{rule.anchorLabel}</span>
+            <span className="text-[10px] text-muted-foreground shrink-0">{rule.anchorLabel}</span>
             <span className="text-[10px] text-blue-600 shrink-0 truncate max-w-[80px]" title={rule.previewValue}>
               {rule.previewValue}
             </span>
             <button
               onClick={() => handleDeleteRule(rule.id)}
-              className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500 shrink-0"
+              className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-red-500 shrink-0"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
@@ -835,14 +820,14 @@ export default function BatchExcelExtractor() {
 
     return (
       <div className="space-y-3">
-        <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
           <FileSpreadsheet className="w-4 h-4" />
           批量处理
         </div>
 
         {/* Batch upload */}
         <div
-          className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-colors"
+          className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-colors"
           onClick={() => batchInputRef.current?.click()}
           onDrop={e => {
             e.preventDefault();
@@ -850,9 +835,9 @@ export default function BatchExcelExtractor() {
           }}
           onDragOver={e => e.preventDefault()}
         >
-          <Upload className="w-6 h-6 text-gray-300 mx-auto mb-1" />
-          <p className="text-sm text-gray-500">上传待处理的 Excel 文件</p>
-          <p className="text-xs text-gray-400 mt-0.5">支持多选</p>
+          <Upload className="w-6 h-6 text-muted-foreground/60 mx-auto mb-1" />
+          <p className="text-sm text-muted-foreground">上传待处理的 Excel 文件</p>
+          <p className="text-xs text-muted-foreground mt-0.5">支持多选</p>
           <input
             ref={batchInputRef}
             type="file"
@@ -870,11 +855,11 @@ export default function BatchExcelExtractor() {
         {batchFiles.length > 0 && (
           <div className="space-y-1 max-h-[200px] overflow-y-auto">
             {batchFiles.map(bf => (
-              <div key={bf.id} className="flex items-center gap-2 px-3 py-1.5 bg-white rounded border border-gray-200 text-xs">
-                <FileSpreadsheet className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                <span className="flex-1 truncate text-gray-700">{bf.name}</span>
-                <span className="text-gray-400 shrink-0">{formatSize(bf.size)}</span>
-                <button onClick={() => handleRemoveBatchFile(bf.id)} className="text-gray-400 hover:text-red-500 shrink-0">
+              <div key={bf.id} className="flex items-center gap-2 px-3 py-1.5 bg-card rounded border border-border text-xs">
+                <FileSpreadsheet className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                <span className="flex-1 truncate text-foreground">{bf.name}</span>
+                <span className="text-muted-foreground shrink-0">{formatSize(bf.size)}</span>
+                <button onClick={() => handleRemoveBatchFile(bf.id)} className="text-muted-foreground hover:text-red-500 shrink-0">
                   <X className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -901,9 +886,9 @@ export default function BatchExcelExtractor() {
     return (
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <div className="text-sm font-semibold text-gray-700">
+          <div className="text-sm font-semibold text-foreground">
             提取结果
-            <span className="ml-2 text-xs text-gray-400 font-normal">
+            <span className="ml-2 text-xs text-muted-foreground font-normal">
               {results.filter(r => r.status === 'success').length}/{results.length} 成功
             </span>
           </div>
@@ -914,23 +899,23 @@ export default function BatchExcelExtractor() {
         </div>
 
         {/* Results table */}
-        <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+        <div className="border border-border rounded-lg overflow-hidden bg-card">
           <div className="overflow-auto max-h-[300px]">
             <table className="w-full text-xs">
               <thead>
-                <tr className="bg-gray-50">
-                  <th className="text-left px-3 py-2 font-medium text-gray-500 border-b border-gray-200">文件名</th>
-                  <th className="text-left px-3 py-2 font-medium text-gray-500 border-b border-gray-200">字段</th>
-                  <th className="text-left px-3 py-2 font-medium text-gray-500 border-b border-gray-200">提取值</th>
-                  <th className="text-center px-3 py-2 font-medium text-gray-500 border-b border-gray-200 w-16">状态</th>
-                  <th className="text-left px-3 py-2 font-medium text-gray-500 border-b border-gray-200">说明</th>
+                <tr className="bg-background">
+                  <th className="text-left px-3 py-2 font-medium text-muted-foreground border-b border-border">文件名</th>
+                  <th className="text-left px-3 py-2 font-medium text-muted-foreground border-b border-border">字段</th>
+                  <th className="text-left px-3 py-2 font-medium text-muted-foreground border-b border-border">提取值</th>
+                  <th className="text-center px-3 py-2 font-medium text-muted-foreground border-b border-border w-16">状态</th>
+                  <th className="text-left px-3 py-2 font-medium text-muted-foreground border-b border-border">说明</th>
                 </tr>
               </thead>
               <tbody>
                 {results.map((r, i) => (
-                  <tr key={i} className={`border-t border-gray-100 ${r.status === 'error' ? 'bg-red-50/50' : 'hover:bg-gray-50'}`}>
-                    <td className="px-3 py-1.5 text-gray-700 max-w-[200px] truncate" title={r.fileName}>{r.fileName}</td>
-                    <td className="px-3 py-1.5 text-gray-700">{r.ruleName}</td>
+                  <tr key={i} className={`border-t border-border ${r.status === 'error' ? 'bg-red-50/50' : 'hover:bg-background'}`}>
+                    <td className="px-3 py-1.5 text-foreground max-w-[200px] truncate" title={r.fileName}>{r.fileName}</td>
+                    <td className="px-3 py-1.5 text-foreground">{r.ruleName}</td>
                     <td className={`px-3 py-1.5 font-mono ${r.status === 'error' ? 'text-red-400' : 'text-blue-600 font-medium'}`}>
                       {r.value || '-'}
                     </td>
@@ -940,7 +925,7 @@ export default function BatchExcelExtractor() {
                         : <Badge variant="outline" className="text-[10px] h-5 px-1.5 text-red-600 border-red-300">失败</Badge>
                       }
                     </td>
-                    <td className="px-3 py-1.5 text-gray-400 text-[10px]">{r.error || '-'}</td>
+                    <td className="px-3 py-1.5 text-muted-foreground text-[10px]">{r.error || '-'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -954,7 +939,7 @@ export default function BatchExcelExtractor() {
   // ============ Main Render ============
 
   return (
-    <div className="min-h-full bg-gray-50">
+    <div className="min-h-full bg-background">
       {/* Toast */}
       {toast && (
         <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-white text-sm px-4 py-2 rounded-lg shadow-lg transition-opacity">
@@ -970,14 +955,14 @@ export default function BatchExcelExtractor() {
 
       {/* Main content: Preview + Config */}
       {sampleFile && (
-        <div className="flex gap-4 px-6 pt-3 pb-3">
+        <div className="flex flex-col lg:flex-row gap-4 px-4 md:px-6 pt-3 pb-3">
           {/* Left: Preview */}
           <div className="flex-1 min-w-0">
             {renderPreview()}
           </div>
 
           {/* Right: Config */}
-          <div className="w-72 shrink-0 space-y-4">
+          <div className="w-full lg:w-72 shrink-0 space-y-4">
             {renderConfig()}
             {renderRulesList()}
           </div>
@@ -994,22 +979,22 @@ export default function BatchExcelExtractor() {
 
       {/* Empty state */}
       {!sampleFile && (
-        <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
           <FileSpreadsheet className="w-16 h-16 mb-4 opacity-30" />
-          <p className="text-lg font-medium text-gray-500 mb-1">批量提取 Excel 数据</p>
+          <p className="text-lg font-medium text-muted-foreground mb-1">批量提取 Excel 数据</p>
           <p className="text-sm">上传一个 Excel 样本，配置提取规则，然后批量处理多个文件</p>
           <div className="mt-6 grid grid-cols-3 gap-4 max-w-lg">
-            <div className="text-center p-3 bg-white rounded-lg border border-gray-200">
+            <div className="text-center p-3 bg-card rounded-lg border border-border">
               <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-1 text-sm font-bold">1</div>
-              <p className="text-xs text-gray-500">上传样本 Excel</p>
+              <p className="text-xs text-muted-foreground">上传样本 Excel</p>
             </div>
-            <div className="text-center p-3 bg-white rounded-lg border border-gray-200">
+            <div className="text-center p-3 bg-card rounded-lg border border-border">
               <div className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-1 text-sm font-bold">2</div>
-              <p className="text-xs text-gray-500">配置提取规则</p>
+              <p className="text-xs text-muted-foreground">配置提取规则</p>
             </div>
-            <div className="text-center p-3 bg-white rounded-lg border border-gray-200">
+            <div className="text-center p-3 bg-card rounded-lg border border-border">
               <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-1 text-sm font-bold">3</div>
-              <p className="text-xs text-gray-500">批量处理导出</p>
+              <p className="text-xs text-muted-foreground">批量处理导出</p>
             </div>
           </div>
         </div>

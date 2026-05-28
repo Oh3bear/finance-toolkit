@@ -14,14 +14,15 @@ import { FileDown, ArrowLeft, CheckCircle, XCircle, Layers, DollarSign, Eye, Bui
 import type { ReconGroup } from '@/types';
 
 export function ResultPage() {
-  const { reconResult, setStep } = useAppStore();
+  const reconResult = useAppStore(s => s.reconResult);
+  const setStep = useAppStore(s => s.setStep);
   const [, setSelectedGroup] = useState<ReconGroup | null>(null);
   const [activeTab, setActiveTab] = useState('summary');
 
   if (!reconResult) {
     return (
       <div className="max-w-4xl mx-auto px-6 py-8 text-center">
-        <p className="text-gray-500">暂无核对结果，请先执行核对</p>
+        <p className="text-muted-foreground">暂无核对结果，请先执行核对</p>
         <Button className="mt-4" onClick={() => setStep('核对')}>
           去核对
         </Button>
@@ -47,7 +48,7 @@ export function ResultPage() {
       case '1:1': return 'bg-blue-100 text-blue-800';
       case '1:N': return 'bg-purple-100 text-purple-800';
       case 'M:N': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-muted text-foreground';
     }
   };
 
@@ -55,8 +56,8 @@ export function ResultPage() {
     <div className="max-w-7xl mx-auto px-6 py-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">核对结果</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-2xl font-bold text-foreground">核对结果</h1>
+          <p className="text-muted-foreground mt-1">
             共 {统计.总组数} 组，
             <span className="text-green-600 font-medium">{统计.对符组数} 组对符</span>，
             <span className="text-red-600 font-medium">{统计.未对符组数} 组未对符</span>
@@ -83,7 +84,7 @@ export function ResultPage() {
                 <Layers className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <div className="text-sm text-gray-500">总组数</div>
+                <div className="text-sm text-muted-foreground">总组数</div>
                 <div className="text-xl font-bold">{统计.总组数}</div>
               </div>
             </div>
@@ -96,7 +97,7 @@ export function ResultPage() {
                 <CheckCircle className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <div className="text-sm text-gray-500">对符组数</div>
+                <div className="text-sm text-muted-foreground">对符组数</div>
                 <div className="text-xl font-bold text-green-600">{统计.对符组数}</div>
               </div>
             </div>
@@ -109,7 +110,7 @@ export function ResultPage() {
                 <XCircle className="w-5 h-5 text-red-600" />
               </div>
               <div>
-                <div className="text-sm text-gray-500">未对符组数</div>
+                <div className="text-sm text-muted-foreground">未对符组数</div>
                 <div className="text-xl font-bold text-red-600">{统计.未对符组数}</div>
               </div>
             </div>
@@ -122,7 +123,7 @@ export function ResultPage() {
                 <DollarSign className="w-5 h-5 text-orange-600" />
               </div>
               <div>
-                <div className="text-sm text-gray-500">总差异金额</div>
+                <div className="text-sm text-muted-foreground">总差异金额</div>
                 <div className="text-xl font-bold text-orange-600">{formatAmount(统计.总差异金额)}</div>
               </div>
             </div>
@@ -208,7 +209,7 @@ export function ResultPage() {
                                 </Button>
                               </DialogTrigger>
                               <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-[95vw] h-[95vh] max-h-[95vh] overflow-hidden p-0 gap-0 flex flex-col">
-                                <DialogHeader className="shrink-0 bg-white px-6 pt-6 pb-4 border-b">
+                                <DialogHeader className="shrink-0 bg-card px-6 pt-6 pb-4 border-b">
                                   <DialogTitle>
                                     对符明细 - {group.利润中心A名称} ↔ {group.利润中心B名称}
                                   </DialogTitle>
@@ -282,7 +283,7 @@ export function ResultPage() {
                                 </Button>
                               </DialogTrigger>
                               <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-[95vw] h-[95vh] max-h-[95vh] overflow-hidden p-0 gap-0 flex flex-col">
-                                <DialogHeader className="shrink-0 bg-white px-6 pt-6 pb-4 border-b">
+                                <DialogHeader className="shrink-0 bg-card px-6 pt-6 pb-4 border-b">
                                   <DialogTitle>
                                     未对符明细 - {group.利润中心A名称} ↔ {group.利润中心B名称}
                                     <span className="ml-2 text-sm font-normal text-red-600">
@@ -318,7 +319,7 @@ function GroupDetailDialog({ group, matchTypeColor }: { group: ReconGroup; match
         <div key={chain.id} className="border rounded-lg p-4">
           <div className="flex items-center gap-2 mb-3">
             <Badge className={matchTypeColor(chain.匹配类型)}>{chain.匹配类型}</Badge>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-muted-foreground">
               借方：{formatAmount(chain.借方合计)} | 贷方：{formatAmount(chain.贷方合计)} | 差异：{formatAmount(chain.差异)}
             </span>
           </div>
@@ -385,13 +386,13 @@ function UnmatchedGroupDialog({ group, matchTypeColor }: { group: ReconGroup; ma
             <div key={chain.id} className="border border-green-200 rounded-lg p-4 mb-3 bg-green-50/30">
               <div className="flex items-center gap-2 mb-3">
                 <Badge className={matchTypeColor(chain.匹配类型)}>{chain.匹配类型}</Badge>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-muted-foreground">
                   借方：{formatAmount(chain.借方合计)} | 贷方：{formatAmount(chain.贷方合计)}
                 </span>
               </div>
               <div className="space-y-1 max-h-[200px] overflow-auto">
                 {[...chain.借方行, ...chain.贷方行].map((row, i) => (
-                  <div key={`m_${row.id}_${i}`} className="flex items-center gap-3 py-1 px-2 bg-white rounded text-sm">
+                  <div key={`m_${row.id}_${i}`} className="flex items-center gap-3 py-1 px-2 bg-card rounded text-sm">
                     <Badge className={row.净额 > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
                       {row.净额 > 0 ? '借' : '贷'}
                     </Badge>
@@ -597,10 +598,10 @@ function ProfitCenterSummary({ reconResult, matchTypeColor, setSelectedGroup }: 
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-[95vw] h-[95vh] max-h-[95vh] overflow-hidden p-0 gap-0 flex flex-col">
-                        <DialogHeader className="shrink-0 bg-white px-6 pt-6 pb-4 border-b">
+                        <DialogHeader className="shrink-0 bg-card px-6 pt-6 pb-4 border-b">
                           <DialogTitle>
                             {item.利润中心名称} ↔ {item.对方名称}
-                            <span className="ml-2 text-sm font-normal text-gray-500">
+                            <span className="ml-2 text-sm font-normal text-muted-foreground">
                               净额差异：{formatAmount(Math.abs(item.净额合计))}
                             </span>
                           </DialogTitle>
