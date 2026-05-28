@@ -181,6 +181,11 @@ function withinDateWindow(a: Date, b: Date, days: number = DATE_WINDOW_DAYS): bo
   return Math.abs(a.getTime() - b.getTime()) <= days * msPerDay;
 }
 
+/** Date → YYYY-MM-DD 字符串，用于日期分桶 */
+function toDateKey(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
 
 // ---- 主函数 ----
 
@@ -221,13 +226,13 @@ function findMNMatches(
     if (capsReached()) break;
     const target = ent.amount;
 
-    // 按符号 + 日期窗口筛选候选
+    // 按符号 + 同日期筛选候选（日期分桶后候选数大幅缩减）
     const candidateIdx: number[] = [];
     for (let bi = 0; bi < unmatchedBank.length; bi++) {
       if (usedBankIdx.has(bi)) continue;
       const sameSign = (target > 0) === (unmatchedBank[bi].amount > 0);
       if (!sameSign) continue;
-      if (!withinDateWindow(ent.date, unmatchedBank[bi].date)) continue;
+      if (toDateKey(ent.date) !== toDateKey(unmatchedBank[bi].date)) continue;
       candidateIdx.push(bi);
     }
 
@@ -257,13 +262,13 @@ function findMNMatches(
     if (capsReached()) break;
     const target = bank.amount;
 
-    // 按符号 + 日期窗口筛选候选
+    // 按符号 + 同日期筛选候选（日期分桶后候选数大幅缩减）
     const candidateIdx: number[] = [];
     for (let ei = 0; ei < unmatchedEnterprise.length; ei++) {
       if (usedEntIdx.has(ei)) continue;
       const sameSign = (target > 0) === (unmatchedEnterprise[ei].amount > 0);
       if (!sameSign) continue;
-      if (!withinDateWindow(bank.date, unmatchedEnterprise[ei].date)) continue;
+      if (toDateKey(bank.date) !== toDateKey(unmatchedEnterprise[ei].date)) continue;
       candidateIdx.push(ei);
     }
 
@@ -293,7 +298,7 @@ function findMNMatches(
  * 返回第一个匹配的原始索引数组，或 null
  */
 /** 单次 DFS 最大迭代次数（防止单次组合爆炸卡死） */
-const DFS_MAX_ITERATIONS = 5000;
+const DFS_MAX_ITERATIONS = 20000;
 
 /** 累计 DFS 迭代上限（findMNMatches 中所有 DFS 调用合计，防止大数据量下累积阻塞） */
 const DFS_CUMULATIVE_CAP = 200000;
@@ -554,11 +559,77 @@ export function reconcileOneAccount(
     }
   }
 
+  // ---- Phase 2.5: 日期分桶快速通道 ----
+  // 思路：Phase 2 (1:1) 之后，将剩余未匹配条目按日期分桶，
+  //       同日内银行合计 == 企业合计（分方向）直接整批匹配。
+  //       大幅压缩 Phase 3 DFS 的候选规模，让 1:5+ 匹配成为可能。
+  const dateBucketMatched: MNMatchGroup[] = [];
+  {
+    const bankByDate = new Map<string, number[]>();
+    const entByDate = new Map<string, number[]>();
+
+    for (let i = 0; i < bankList.length; i++) {
+      if (bankUsed[i]) continue;
+      const dk = toDateKey(bankList[i].date);
+      let b = bankByDate.get(dk);
+      if (!b) { b = []; bankByDate.set(dk, b); }
+      b.push(i);
+    }
+    for (let i = 0; i < entList.length; i++) {
+      if (entUsed[i]) continue;
+      const dk = toDateKey(entList[i].date);
+      let b = entByDate.get(dk);
+      if (!b) { b = []; entByDate.set(dk, b); }
+      b.push(i);
+    }
+
+    for (const [dateKey, bankIdx] of bankByDate) {
+      const entIdx = entByDate.get(dateKey);
+      if (!entIdx || entIdx.length === 0) continue;
+
+      // 收入方向
+      const bInc = bankIdx.filter((i) => bankList[i].amount > 0);
+      const eDeb = entIdx.filter((i) => entList[i].amount > 0 && entList[i].direction === '借方');
+      if (bInc.length > 0 && eDeb.length > 0) {
+        const bSum = bInc.reduce((s, i) => s + bankList[i].amount, 0);
+        const eSum = eDeb.reduce((s, i) => s + entList[i].amount, 0);
+        if (centsEqual(bSum, eSum)) {
+          for (const i of bInc) bankUsed[i] = true;
+          for (const i of eDeb) entUsed[i] = true;
+          dateBucketMatched.push({
+            bankItems: bInc.map((i) => bankList[i]),
+            enterpriseItems: eDeb.map((i) => entList[i]),
+            bankSum: bSum,
+            enterpriseSum: eSum,
+          });
+        }
+      }
+
+      // 支出方向
+      const bExp = bankIdx.filter((i) => bankList[i].amount < 0);
+      const eCre = entIdx.filter((i) => entList[i].amount < 0 && entList[i].direction === '貸方');
+      if (bExp.length > 0 && eCre.length > 0) {
+        const bSum = bExp.reduce((s, i) => s + bankList[i].amount, 0);
+        const eSum = eCre.reduce((s, i) => s + entList[i].amount, 0);
+        if (centsEqual(bSum, eSum)) {
+          for (const i of bExp) bankUsed[i] = true;
+          for (const i of eCre) entUsed[i] = true;
+          dateBucketMatched.push({
+            bankItems: bExp.map((i) => bankList[i]),
+            enterpriseItems: eCre.map((i) => entList[i]),
+            bankSum: bSum,
+            enterpriseSum: eSum,
+          });
+        }
+      }
+    }
+  }
+
   // ---- Phase 3: M:N 迭代匹配 ----
   // 不断缩小池子：每轮找到匹配后剔除已用条目，重跑直到无新匹配
   let unmatchedBank = bankList.filter((_, i) => !bankUsed[i]);
   let unmatchedEnterprise = entList.filter((_, i) => !entUsed[i]);
-  const allMNGroups: MNMatchGroup[] = [];
+  const allMNGroups: MNMatchGroup[] = [...dateBucketMatched];
   let mnPassCount = 0;
   const MN_MAX_PASSES = 5; // 最多迭代 5 轮，防止大数据量下无限循环
 
