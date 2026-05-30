@@ -523,11 +523,11 @@ export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarColl
             {/* 复选框 */}
             <button
               onClick={() => toggleGroup(prefix)}
-              className="text-muted-foreground hover:text-blue-500 transition-colors shrink-0"
+              className="text-muted-foreground hover:text-primary/70 transition-colors shrink-0"
               title={checkedGroups.has(prefix) ? '取消选中' : '选中'}
             >
               {checkedGroups.has(prefix) ? (
-                <CheckSquare className="w-5 h-5 text-blue-500" />
+                <CheckSquare className="w-5 h-5 text-primary/70" />
               ) : (
                 <Square className="w-5 h-5" />
               )}
@@ -575,7 +575,7 @@ export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarColl
                 name="groupMode"
                 checked={groupMode === 'delimiter'}
                 onChange={() => setGroupMode('delimiter')}
-                className="text-blue-600"
+                className="text-primary"
               />
               <span className="text-sm">按分隔符切割</span>
             </label>
@@ -585,7 +585,7 @@ export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarColl
                 name="groupMode"
                 checked={groupMode === 'fixedLength'}
                 onChange={() => setGroupMode('fixedLength')}
-                className="text-blue-600"
+                className="text-primary"
               />
               <span className="text-sm">按固定长度</span>
             </label>
@@ -595,7 +595,7 @@ export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarColl
                 name="groupMode"
                 checked={groupMode === 'pattern'}
                 onChange={() => setGroupMode('pattern')}
-                className="text-blue-600"
+                className="text-primary"
               />
               <span className="text-sm">按样例/正则</span>
             </label>
@@ -653,7 +653,7 @@ export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarColl
               <div>
                 <button
                   onClick={() => setShowPreview(!showPreview)}
-                  className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
+                  className="flex items-center gap-1 text-xs text-primary hover:text-primary/80"
                 >
                   {showPreview ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
                   切分预览
@@ -665,7 +665,7 @@ export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarColl
                         <tr className="bg-muted">
                           <th className="text-left p-2 border-r">文件名</th>
                           {Array.from({ length: maxSegments }, (_, i) => (
-                            <th key={i} className={`text-left p-2 ${i < maxSegments - 1 ? 'border-r' : ''} ${i === selectedSegment ? 'bg-blue-50 text-blue-700' : ''}`}>
+                            <th key={i} className={`text-left p-2 ${i < maxSegments - 1 ? 'border-r' : ''} ${i === selectedSegment ? 'bg-primary/5 text-primary' : ''}`}>
                               第{i + 1}段{i === selectedSegment ? ' ✓' : ''}
                             </th>
                           ))}
@@ -676,7 +676,7 @@ export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarColl
                           <tr key={ri} className="border-t hover:bg-background">
                             <td className="p-2 border-r truncate max-w-[200px]" title={row.name}>{row.name}</td>
                             {Array.from({ length: maxSegments }, (_, i) => (
-                              <td key={i} className={`p-2 ${i < maxSegments - 1 ? 'border-r' : ''} ${i === selectedSegment ? 'bg-blue-50 font-medium' : ''}`}>
+                              <td key={i} className={`p-2 ${i < maxSegments - 1 ? 'border-r' : ''} ${i === selectedSegment ? 'bg-primary/5 font-medium' : ''}`}>
                                 {row.segments[i] || '-'}
                               </td>
                             ))}
@@ -730,7 +730,7 @@ export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarColl
                     <div key={i} className="flex items-center gap-2">
                       <span className="text-muted-foreground truncate max-w-[180px]" title={f.name}>{f.name}</span>
                       <span className="text-muted-foreground">→</span>
-                      <span className="font-medium text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">{group}</span>
+                      <span className="font-medium text-primary bg-primary/5 px-1.5 py-0.5 rounded">{group}</span>
                     </div>
                   );
                 })}
@@ -769,7 +769,7 @@ export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarColl
                     setPatternRegex(pattern);
                     setPatternManual(false);
                   }}
-                  className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 whitespace-nowrap"
+                  className="text-xs px-3 py-1.5 bg-primary text-primary-foreground rounded hover:bg-primary/90 whitespace-nowrap"
                 >
                   重新推断
                 </button>
@@ -833,7 +833,7 @@ export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarColl
                           <td className="p-2 border-r truncate max-w-[240px] font-mono" title={row.name}>{row.name}</td>
                           <td className="p-2">
                             {row.matched != null
-                              ? <span className="font-medium text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">{row.matched}</span>
+                              ? <span className="font-medium text-primary bg-primary/5 px-1.5 py-0.5 rounded">{row.matched}</span>
                               : <span className="text-orange-500">未匹配</span>
                             }
                           </td>
@@ -876,10 +876,10 @@ export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarColl
         onDragLeave={() => setDragOver(false)}
         onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files); }}
         className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all ${
-          dragOver ? 'border-blue-500 bg-blue-50' : 'border-border hover:border-blue-400 hover:bg-background'
+          dragOver ? 'border-primary/60 bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-background'
         }`}
       >
-        <Upload className={`w-12 h-12 mx-auto mb-3 ${dragOver ? 'text-blue-500' : 'text-muted-foreground'}`} />
+        <Upload className={`w-12 h-12 mx-auto mb-3 ${dragOver ? 'text-primary/70' : 'text-muted-foreground'}`} />
         <h3 className="text-base font-medium text-foreground mb-1">拖放 PDF 文件至此，或点击选择</h3>
         <p className="text-sm text-muted-foreground">支持多文件、多选、拖拽排序。所有处理均在浏览器本地完成。</p>
         <input ref={fileInputRef} type="file" accept=".pdf" multiple className="hidden" onChange={(e) => handleFiles(e.target.files)} />
@@ -913,7 +913,7 @@ export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarColl
                 {autoGroup && (
                   <button
                     onClick={() => setConfigExpanded(!configExpanded)}
-                    className="flex items-center gap-1 text-blue-600 text-sm hover:text-blue-800"
+                    className="flex items-center gap-1 text-primary text-sm hover:text-primary/80"
                   >
                     {configExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
                     分组配置
@@ -938,7 +938,7 @@ export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarColl
               <div className="flex items-center gap-2 pt-1 border-t border-border">
                 <button
                   onClick={toggleAllGroups}
-                  className="text-xs text-blue-600 hover:text-blue-800"
+                  className="text-xs text-primary hover:text-primary/80"
                 >
                   {checkedGroups.size === groupKeys.length ? '取消全选' : '全选'}
                 </button>

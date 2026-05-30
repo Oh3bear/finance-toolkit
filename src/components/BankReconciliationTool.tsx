@@ -251,9 +251,9 @@ export default function BankReconciliationTool() {
                     disabled={isDisabled}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                       isActive
-                        ? 'bg-blue-600 text-white shadow'
+                        ? 'bg-primary text-primary-foreground shadow'
                         : isDone
-                        ? 'bg-green-100 text-green-700 border border-green-300'
+                        ? 'bg-primary/10 text-primary border border-primary/30'
                         : isDisabled
                         ? 'bg-muted text-muted-foreground cursor-not-allowed'
                         : 'bg-muted text-muted-foreground hover:bg-muted'
@@ -270,7 +270,7 @@ export default function BankReconciliationTool() {
                   {i < steps.length - 1 && (
                     <div
                       className={`flex-1 h-0.5 mx-2 ${
-                        isDone ? 'bg-green-400' : 'bg-muted'
+                        isDone ? 'bg-primary/50' : 'bg-muted'
                       }`}
                     />
                   )}
@@ -293,7 +293,7 @@ export default function BankReconciliationTool() {
               <div className="flex justify-center pt-6">
                 <button
                   onClick={() => setStep(2)}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium text-sm hover:bg-blue-700 shadow-md transition-colors flex items-center gap-2"
+                  className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium text-sm hover:bg-primary/90 shadow-md transition-colors flex items-center gap-2"
                 >
                   下一步：上传企业账
                   <ArrowRight className="w-4 h-4" />
@@ -306,9 +306,9 @@ export default function BankReconciliationTool() {
         {step === 2 && (
           <div className="space-y-8">
             {bankData && (
-              <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg text-sm">
-                <CheckCircle className="w-4 h-4 text-green-600 shrink-0" />
-                <span className="text-green-700">
+              <div className="flex items-center gap-3 p-3 bg-primary/5 border border-primary/20 rounded-lg text-sm">
+                <CheckCircle className="w-4 h-4 text-primary shrink-0" />
+                <span className="text-primary">
                   银行流水已配置: {bankData.fileName}
                 </span>
               </div>
@@ -323,7 +323,7 @@ export default function BankReconciliationTool() {
               <div className="flex justify-center pt-4">
                 <button
                   onClick={handleReconcile}
-                  className="px-8 py-3 bg-blue-600 text-white rounded-lg font-medium text-sm hover:bg-blue-700 shadow-md transition-colors"
+                  className="px-8 py-3 bg-primary text-primary-foreground rounded-lg font-medium text-sm hover:bg-primary/90 shadow-md transition-colors"
                 >
                   开始核对
                 </button>
@@ -334,7 +334,7 @@ export default function BankReconciliationTool() {
               <div className="space-y-3 p-6 bg-card border rounded-xl shadow-sm">
                 <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
                   <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-75 ease-linear"
+                    className="bg-primary h-2 rounded-full transition-all duration-75 ease-linear"
                     style={{ width: `${progress}%` }}
                   />
                 </div>

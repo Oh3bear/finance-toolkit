@@ -4,64 +4,83 @@
 
 @layer base {
   :root {
+    /* ── 基础色板 ── */
     --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --foreground: 224 14% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 224 14% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
+    --popover-foreground: 224 14% 12%;
+
+    /* ── 主色：浅绿 (green-600 ~= hsl 142 71% 45%) ── */
+    --primary: 142 71% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    /* ── 次要 / 静音：极浅绿灰 ── */
+    --secondary: 142 12% 94%;
+    --secondary-foreground: 142 20% 25%;
+    --muted: 142 8% 95%;
+    --muted-foreground: 220 9% 46%;
+    --accent: 142 12% 92%;
+    --accent-foreground: 142 20% 25%;
+
+    /* ── 语义色 ── */
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
-    --radius: 0.625rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    /* ── 边框 / 输入框 / 焦点环 ── */
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 142 71% 45%;
+
+    /* ── 圆角 ── */
+    --radius: 0.5rem;
+
+    /* ── Sidebar：白底亮色风格 ── */
+    --sidebar-background: 0 0% 99%;
+    --sidebar-foreground: 224 14% 30%;
+    --sidebar-primary: 142 71% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 142 12% 94%;
+    --sidebar-accent-foreground: 142 20% 25%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 142 71% 45%;
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --background: 224 14% 8%;
+    --foreground: 0 0% 97%;
+    --card: 224 14% 11%;
+    --card-foreground: 0 0% 97%;
+    --popover: 224 14% 11%;
+    --popover-foreground: 0 0% 97%;
+
+    /* 暗色模式：亮绿略调淡，保持可读性 */
+    --primary: 142 60% 52%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 224 10% 18%;
+    --secondary-foreground: 0 0% 90%;
+    --muted: 224 10% 16%;
+    --muted-foreground: 220 9% 60%;
+    --accent: 224 10% 18%;
+    --accent-foreground: 0 0% 90%;
+
+    --destructive: 0 63% 45%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+
+    --border: 224 10% 20%;
+    --input: 224 10% 20%;
+    --ring: 142 60% 52%;
+
+    --sidebar-background: 224 14% 10%;
+    --sidebar-foreground: 220 9% 70%;
+    --sidebar-primary: 142 60% 52%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 224 10% 16%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 224 10% 18%;
+    --sidebar-ring: 142 60% 52%;
   }
 }
 

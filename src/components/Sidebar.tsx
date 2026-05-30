@@ -97,19 +97,17 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
       {/* Logo */}
       <div className="flex items-center justify-between px-3 h-14 border-b border-border">
         {!collapsed && (
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white text-xs font-bold">工</span>
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-gradient-to-br from-primary to-emerald-500 rounded-lg flex items-center justify-center shrink-0 shadow-sm">
+              <span className="text-primary-foreground text-xs font-bold">工</span>
             </div>
-            <div>
-              <h1 className="text-sm font-bold text-foreground leading-tight">财务工具集</h1>
-            </div>
+            <h1 className="text-sm font-semibold text-foreground leading-tight">财务工具集</h1>
           </div>
         )}
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 w-7 p-0 ml-auto"
+          className="h-7 w-7 p-0 ml-auto shrink-0"
           onClick={onToggleCollapse}
           aria-label={collapsed ? '展开侧边栏' : '折叠侧边栏'}
         >
@@ -142,8 +140,8 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
                           className={cn(
                             'w-full flex items-center justify-center py-2.5 px-2 transition-colors',
                             isActive
-                              ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
-                              : 'text-muted-foreground hover:bg-background hover:text-foreground'
+                              ? 'bg-primary/10 text-primary border-r-2 border-primary'
+                              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                           )}
                         >
                           <Icon className="w-5 h-5" />
@@ -157,16 +155,16 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
                       onClick={() => onSelectTool(tool.id)}
                       aria-current={isActive ? 'page' : undefined}
                       className={cn(
-                        'w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-colors',
+                        'w-full flex items-start gap-3 px-3 py-2 text-sm transition-colors text-left',
                         isActive
-                          ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
-                          : 'text-muted-foreground hover:bg-background hover:text-foreground'
+                          ? 'bg-primary/10 text-primary border-r-2 border-primary'
+                          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                       )}
                     >
-                      <Icon className="w-4.5 h-4.5 shrink-0" />
-                      <div className="text-left">
+                      <Icon className="w-4 h-4 shrink-0 mt-0.5" />
+                      <div className="min-w-0 leading-snug">
                         <div className="font-medium">{tool.name}</div>
-                        <div className="text-xs text-muted-foreground leading-tight">{tool.description}</div>
+                        <div className="text-xs text-muted-foreground/70 mt-0.5 break-words">{tool.description}</div>
                       </div>
                     </button>
                   );
@@ -188,7 +186,7 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
                   <button
                     disabled
                     aria-label={`${tool.name}（即将上线）`}
-                    className="w-full flex items-center justify-center py-2.5 px-2 text-muted-foreground/60 cursor-not-allowed"
+                    className="w-full flex items-center justify-center py-2.5 px-2 text-muted-foreground/40 cursor-not-allowed"
                   >
                     <Icon className="w-5 h-5" />
                   </button>
@@ -199,12 +197,12 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
               <button
                 key={tool.id}
                 disabled
-                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-muted-foreground/60 cursor-not-allowed"
+                className="w-full flex items-start gap-3 px-3 py-2 text-sm text-muted-foreground/40 cursor-not-allowed text-left"
               >
-                <Icon className="w-4.5 h-4.5 shrink-0" />
-                <div className="text-left">
+                <Icon className="w-4 h-4 shrink-0 mt-0.5" />
+                <div className="min-w-0 leading-snug">
                   <div className="font-medium">{tool.name}</div>
-                  <div className="text-xs text-muted-foreground/60 leading-tight">即将上线</div>
+                  <div className="text-xs text-muted-foreground/40 mt-0.5 break-words">即将上线</div>
                 </div>
               </button>
             );
@@ -212,12 +210,10 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
         </TooltipProvider>
       </ScrollArea>
 
-      {/* 底部 */}
-      <div className="px-3 py-3 border-t border-border text-xs text-muted-foreground text-center">
+      {/* 底部版本号 */}
+      <div className="px-3 py-3 border-t border-border">
         {!collapsed && (
-          <div>
-            <div>财务工具集 v1.0</div>
-          </div>
+          <p className="text-xs text-muted-foreground text-center">财务工具集 v1.0</p>
         )}
       </div>
     </aside>

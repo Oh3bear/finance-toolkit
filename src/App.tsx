@@ -39,7 +39,7 @@ function IntercoReconcileTool() {
   return (
     <div className="min-h-full bg-background">
       {/* 步骤导航 */}
-      <div className="bg-card border-b border-border sticky top-0 z-40">
+      <div className="bg-gradient-to-r from-card via-card to-background border-b border-border sticky top-0 z-40">
         <StepIndicator />
       </div>
       {/* 主内容区 */}
@@ -73,17 +73,17 @@ export default function App() {
       {/* 主内容区 */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* 顶部标题栏 */}
-        <header className="bg-card border-b border-border shrink-0">
-          <div className="px-4 md:px-6 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <h2 className="text-base font-bold text-foreground">
+        <header className="bg-gradient-to-r from-card via-card to-background border-b border-border shrink-0">
+          <div className="px-4 md:px-6 h-14 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <h2 className="text-sm font-semibold text-foreground truncate">
                 {currentToolConfig?.name || '工具'}
               </h2>
-              <span className="text-xs text-muted-foreground">
+              <span className="hidden sm:block text-xs text-muted-foreground truncate">
                 {currentToolConfig?.description}
               </span>
             </div>
-            <div className="text-xs text-muted-foreground flex items-center gap-3">
+            <div className="flex items-center gap-2 shrink-0">
               <Button
                 variant="ghost"
                 size="sm"
@@ -93,9 +93,8 @@ export default function App() {
               >
                 {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </Button>
-              <span className="flex items-center gap-2">
-                <Shield className="w-3.5 h-3.5 text-green-500" />
-                <span className="w-2 h-2 rounded-full bg-green-400"></span>
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Shield className="w-3.5 h-3.5 text-primary shrink-0" />
                 纯客户端处理 · 数据零上传
               </span>
             </div>

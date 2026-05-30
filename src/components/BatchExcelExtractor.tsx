@@ -457,7 +457,7 @@ export default function BatchExcelExtractor() {
       <CardContent className="p-3">
         {sampleFile ? (
           <div className="flex items-center gap-3">
-            <FileSpreadsheet className="w-8 h-8 text-green-600 shrink-0" />
+            <FileSpreadsheet className="w-8 h-8 text-primary shrink-0" />
             <div className="flex-1 min-w-0">
               <div className="text-sm font-semibold text-foreground truncate">{sampleFile.name}</div>
               <div className="text-xs text-muted-foreground">{formatSize(sampleFile.size)} · {sheetNames.length} 个工作表</div>
@@ -475,13 +475,13 @@ export default function BatchExcelExtractor() {
           </div>
         ) : (
           <div
-            className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-colors"
+            className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 hover:bg-primary/5/30 transition-colors"
             onClick={() => sampleInputRef.current?.click()}
             onDrop={e => handleFileDrop(e, handleSampleUpload)}
             onDragOver={e => e.preventDefault()}
           >
             <Upload className="w-8 h-8 text-muted-foreground/60 mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">拖拽或点击上传<strong className="text-blue-600">Excel 样本</strong></p>
+            <p className="text-sm text-muted-foreground">拖拽或点击上传<strong className="text-primary">Excel 样本</strong></p>
             <p className="text-xs text-muted-foreground mt-1">支持 .xlsx / .xls 格式</p>
           </div>
         )}
@@ -507,7 +507,7 @@ export default function BatchExcelExtractor() {
             onClick={() => { setActiveSheet(name); setAnchorRow(null); setAnchorCol(null); setFoundRow(null); setFoundCol(null); }}
             className={`px-2.5 py-1 text-xs rounded-md transition-colors ${
               name === activeSheet
-                ? 'bg-blue-100 text-blue-700 font-medium'
+                ? 'bg-primary/10 text-primary font-medium'
                 : 'bg-muted text-muted-foreground hover:bg-muted'
             }`}
           >
@@ -585,15 +585,15 @@ export default function BatchExcelExtractor() {
                         onClick={() => handleCellClick(ri, ci)}
                         className={`border border-border px-2 py-1 max-w-[120px] truncate cursor-default select-none ${
                           isAnchor
-                            ? 'bg-blue-500 text-white font-bold'
+                            ? 'bg-primary/50 text-white font-bold'
                             : isTarget
-                            ? 'bg-green-400 text-white font-medium'
+                            ? 'bg-primary/50 text-white font-medium'
                             : isIntersection
                             ? 'bg-yellow-300 font-medium'
                             : isIntersectRow || isIntersectCol
                             ? 'bg-yellow-50'
                             : mode === 'offset'
-                            ? 'hover:bg-blue-50 cursor-crosshair'
+                            ? 'hover:bg-primary/5 cursor-crosshair'
                             : ''
                         }`}
                         title={String(cellValue)}
@@ -700,7 +700,7 @@ export default function BatchExcelExtractor() {
                   <div className="text-sm font-mono font-medium">
                     {colLabel(anchorCol + colOffset)}{anchorRow + rowOffset + 1}
                     <span className="mx-2 text-muted-foreground/60">=</span>
-                    <span className={previewValue.startsWith('(') ? 'text-red-500' : 'text-blue-600'}>
+                    <span className={previewValue.startsWith('(') ? 'text-red-500' : 'text-primary'}>
                       {previewValue || '(空)'}
                     </span>
                   </div>
@@ -748,7 +748,7 @@ export default function BatchExcelExtractor() {
                 <div className="text-sm font-mono font-medium">
                   {colLabel(foundCol)}{foundRow + 1}
                   <span className="mx-2 text-muted-foreground/60">=</span>
-                  <span className="text-blue-600">{previewValue || '(空)'}</span>
+                  <span className="text-primary">{previewValue || '(空)'}</span>
                 </div>
               </div>
             )}
@@ -792,7 +792,7 @@ export default function BatchExcelExtractor() {
           提取规则 ({rules.length})
         </div>
         {rules.map((rule, idx) => (
-          <div key={rule.id} className="flex items-center gap-2 px-2 py-1.5 bg-card rounded border border-border group hover:border-blue-300 transition-colors">
+          <div key={rule.id} className="flex items-center gap-2 px-2 py-1.5 bg-card rounded border border-border group hover:border-primary/30 transition-colors">
             <Badge variant={rule.mode === 'offset' ? 'default' : 'secondary'} className="h-5 text-[10px] px-1.5 shrink-0">
               {rule.mode === 'offset' ? '偏移' : '搜索'}
             </Badge>
@@ -800,7 +800,7 @@ export default function BatchExcelExtractor() {
               {idx + 1}. {rule.name}
             </span>
             <span className="text-[10px] text-muted-foreground shrink-0">{rule.anchorLabel}</span>
-            <span className="text-[10px] text-blue-600 shrink-0 truncate max-w-[80px]" title={rule.previewValue}>
+            <span className="text-[10px] text-primary shrink-0 truncate max-w-[80px]" title={rule.previewValue}>
               {rule.previewValue}
             </span>
             <button
@@ -827,7 +827,7 @@ export default function BatchExcelExtractor() {
 
         {/* Batch upload */}
         <div
-          className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-colors"
+          className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 hover:bg-primary/5/30 transition-colors"
           onClick={() => batchInputRef.current?.click()}
           onDrop={e => {
             e.preventDefault();
@@ -916,12 +916,12 @@ export default function BatchExcelExtractor() {
                   <tr key={i} className={`border-t border-border ${r.status === 'error' ? 'bg-red-50/50' : 'hover:bg-background'}`}>
                     <td className="px-3 py-1.5 text-foreground max-w-[200px] truncate" title={r.fileName}>{r.fileName}</td>
                     <td className="px-3 py-1.5 text-foreground">{r.ruleName}</td>
-                    <td className={`px-3 py-1.5 font-mono ${r.status === 'error' ? 'text-red-400' : 'text-blue-600 font-medium'}`}>
+                    <td className={`px-3 py-1.5 font-mono ${r.status === 'error' ? 'text-red-400' : 'text-primary font-medium'}`}>
                       {r.value || '-'}
                     </td>
                     <td className="px-3 py-1.5 text-center">
                       {r.status === 'success'
-                        ? <Badge variant="outline" className="text-[10px] h-5 px-1.5 text-green-600 border-green-300">成功</Badge>
+                        ? <Badge variant="outline" className="text-[10px] h-5 px-1.5 text-primary border-primary/30">成功</Badge>
                         : <Badge variant="outline" className="text-[10px] h-5 px-1.5 text-red-600 border-red-300">失败</Badge>
                       }
                     </td>
@@ -985,15 +985,15 @@ export default function BatchExcelExtractor() {
           <p className="text-sm">上传一个 Excel 样本，配置提取规则，然后批量处理多个文件</p>
           <div className="mt-6 grid grid-cols-3 gap-4 max-w-lg">
             <div className="text-center p-3 bg-card rounded-lg border border-border">
-              <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-1 text-sm font-bold">1</div>
+              <div className="w-8 h-8 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-1 text-sm font-bold">1</div>
               <p className="text-xs text-muted-foreground">上传样本 Excel</p>
             </div>
             <div className="text-center p-3 bg-card rounded-lg border border-border">
-              <div className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-1 text-sm font-bold">2</div>
+              <div className="w-8 h-8 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-1 text-sm font-bold">2</div>
               <p className="text-xs text-muted-foreground">配置提取规则</p>
             </div>
             <div className="text-center p-3 bg-card rounded-lg border border-border">
-              <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-1 text-sm font-bold">3</div>
+              <div className="w-8 h-8 bg-secondary text-muted-foreground rounded-full flex items-center justify-center mx-auto mb-1 text-sm font-bold">3</div>
               <p className="text-xs text-muted-foreground">批量处理导出</p>
             </div>
           </div>

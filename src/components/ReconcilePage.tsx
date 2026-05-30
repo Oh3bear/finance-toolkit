@@ -68,21 +68,21 @@ export function ReconcilePage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <div className="text-sm text-blue-600 mb-1">明细账记录数</div>
-                <div className="text-2xl font-bold text-blue-900">{rawData.length.toLocaleString()}</div>
+              <div className="p-4 bg-primary/5 rounded-lg">
+                <div className="text-sm text-primary mb-1">明细账记录数</div>
+                <div className="text-2xl font-bold text-primary/90">{rawData.length.toLocaleString()}</div>
               </div>
-              <div className="p-4 bg-green-50 rounded-lg">
-                <div className="text-sm text-green-600 mb-1">参与核对的科目数</div>
-                <div className="text-2xl font-bold text-green-900">{subjectMappings.length}</div>
+              <div className="p-4 bg-primary/5 rounded-lg">
+                <div className="text-sm text-primary mb-1">参与核对的科目数</div>
+                <div className="text-2xl font-bold text-primary/90">{subjectMappings.length}</div>
               </div>
-              <div className="p-4 bg-purple-50 rounded-lg">
-                <div className="text-sm text-purple-600 mb-1">参与核对的内部客商数</div>
-                <div className="text-2xl font-bold text-purple-900">{entityMappings.length}</div>
+              <div className="p-4 bg-secondary rounded-lg">
+                <div className="text-sm text-muted-foreground mb-1">参与核对的内部客商数</div>
+                <div className="text-2xl font-bold text-foreground">{entityMappings.length}</div>
               </div>
-              <div className="p-4 bg-orange-50 rounded-lg">
-                <div className="text-sm text-orange-600 mb-1">预计核对组数</div>
-                <div className="text-2xl font-bold text-orange-900">
+              <div className="p-4 bg-muted rounded-lg">
+                <div className="text-sm text-muted-foreground mb-1">预计核对组数</div>
+                <div className="text-2xl font-bold text-foreground">
                   ~{Math.min(entityMappings.length * (entityMappings.length - 1) / 2, rawData.length)}
                 </div>
               </div>
@@ -92,15 +92,15 @@ export function ReconcilePage() {
 
             <div className="space-y-2 text-sm text-muted-foreground">
               <p className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500" />
+                <CheckCircle className="w-4 h-4 text-primary/70" />
                 数据安全：所有计算在浏览器本地完成，数据不会离开本机
               </p>
               <p className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500" />
+                <CheckCircle className="w-4 h-4 text-primary/70" />
                 核对逻辑：先尝试整组零值对符，再进行 M:N 子集匹配
               </p>
               <p className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-green-500" />
+                <CheckCircle className="w-4 h-4 text-primary/70" />
                 浮点精度：使用 0.01 容差处理货币计算
               </p>
             </div>
@@ -138,9 +138,9 @@ export function ReconcilePage() {
               </div>
             ) : (
               <div className="text-center py-6">
-                <Alert className="mb-4 bg-green-50 border-green-200">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                  <AlertDescription className="text-green-700">{statusText}</AlertDescription>
+                <Alert className="mb-4 bg-primary/5 border-primary/20">
+                  <CheckCircle className="h-4 w-4 text-primary" />
+                  <AlertDescription className="text-primary">{statusText}</AlertDescription>
                 </Alert>
                 <div className="flex gap-3 justify-center">
                   <Button

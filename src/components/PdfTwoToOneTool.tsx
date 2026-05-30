@@ -179,10 +179,10 @@ export default function PdfTwoToOneTool({ sidebarCollapsed = false }: { sidebarC
         onDragLeave={() => setDragOver(false)}
         onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files); }}
         className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all ${
-          dragOver ? 'border-blue-500 bg-blue-50' : 'border-border hover:border-blue-400 hover:bg-background'
+          dragOver ? 'border-primary/60 bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-background'
         }`}
       >
-        <Upload className={`w-12 h-12 mx-auto mb-3 ${dragOver ? 'text-blue-500' : 'text-muted-foreground'}`} />
+        <Upload className={`w-12 h-12 mx-auto mb-3 ${dragOver ? 'text-primary/70' : 'text-muted-foreground'}`} />
         <h3 className="text-base font-medium text-foreground mb-1">拖放 PDF 文件至此，或点击选择</h3>
         <p className="text-sm text-muted-foreground">每2页合并为1页，保留原文件名输出。所有处理均在浏览器本地完成。</p>
         <input ref={fileInputRef} type="file" accept=".pdf" multiple className="hidden" onChange={(e) => handleFiles(e.target.files)} />
@@ -243,7 +243,7 @@ export default function PdfTwoToOneTool({ sidebarCollapsed = false }: { sidebarC
               <Card key={item.id} className="hover:shadow-md transition-shadow">
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-start justify-between gap-2">
-                    <FileText className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+                    <FileText className="w-4 h-4 text-primary/70 mt-0.5 shrink-0" />
                     <span className="text-sm font-medium truncate flex-1" title={item.name}>{item.name}</span>
                     <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => removeFile(item.id)}>
                       <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-red-500" />

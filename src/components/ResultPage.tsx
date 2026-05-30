@@ -44,9 +44,9 @@ export function ResultPage() {
 
   const matchTypeColor = (type: string) => {
     switch (type) {
-      case '汇总零值': return 'bg-green-100 text-green-800';
-      case '1:1': return 'bg-blue-100 text-blue-800';
-      case '1:N': return 'bg-purple-100 text-purple-800';
+      case '汇总零值': return 'bg-primary/10 text-primary/80';
+      case '1:1': return 'bg-primary/10 text-primary/80';
+      case '1:N': return 'bg-secondary text-foreground';
       case 'M:N': return 'bg-orange-100 text-orange-800';
       default: return 'bg-muted text-foreground';
     }
@@ -59,7 +59,7 @@ export function ResultPage() {
           <h1 className="text-2xl font-bold text-foreground">核对结果</h1>
           <p className="text-muted-foreground mt-1">
             共 {统计.总组数} 组，
-            <span className="text-green-600 font-medium">{统计.对符组数} 组对符</span>，
+            <span className="text-primary font-medium">{统计.对符组数} 组对符</span>，
             <span className="text-red-600 font-medium">{统计.未对符组数} 组未对符</span>
           </p>
         </div>
@@ -80,8 +80,8 @@ export function ResultPage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                <Layers className="w-5 h-5 text-blue-600" />
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Layers className="w-5 h-5 text-primary" />
               </div>
               <div>
                 <div className="text-sm text-muted-foreground">总组数</div>
@@ -93,12 +93,12 @@ export function ResultPage() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                <CheckCircle className="w-5 h-5 text-green-600" />
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <CheckCircle className="w-5 h-5 text-primary" />
               </div>
               <div>
                 <div className="text-sm text-muted-foreground">对符组数</div>
-                <div className="text-xl font-bold text-green-600">{统计.对符组数}</div>
+                <div className="text-xl font-bold text-primary">{统计.对符组数}</div>
               </div>
             </div>
           </CardContent>
@@ -157,9 +157,9 @@ export function ResultPage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
+                <CheckCircle className="w-5 h-5 text-primary" />
                 对符明细
-                <Badge variant="outline" className="ml-2 bg-green-50 text-green-700">
+                <Badge variant="outline" className="ml-2 bg-primary/5 text-primary">
                   {reconResult.对符明细.length} 组
                 </Badge>
               </CardTitle>
@@ -188,7 +188,7 @@ export function ResultPage() {
                           <TableCell>{group.利润中心A名称}</TableCell>
                           <TableCell>{group.利润中心B名称}</TableCell>
                           <TableCell className="text-right">{group.行.length}</TableCell>
-                          <TableCell className="text-right text-green-600">
+                          <TableCell className="text-right text-primary">
                             {formatAmount(
                               group.行.filter((r) => r.净额 > 0).reduce((s, r) => s + r.净额, 0)
                             )}
@@ -270,7 +270,7 @@ export function ResultPage() {
                           <TableCell>{group.利润中心A名称}</TableCell>
                           <TableCell>{group.利润中心B名称}</TableCell>
                           <TableCell className="text-right">{group.行.length}</TableCell>
-                          <TableCell className="text-right text-green-600">{matchedCount}</TableCell>
+                          <TableCell className="text-right text-primary">{matchedCount}</TableCell>
                           <TableCell className="text-right text-red-600 font-medium">{unmatchedCount}</TableCell>
                           <TableCell className="text-right text-red-600 font-bold">
                             {formatAmount(Math.abs(group.合计净额))}
@@ -339,14 +339,14 @@ function GroupDetailDialog({ group, matchTypeColor }: { group: ReconGroup; match
             <TableBody>
               {chain.借方行.map((row, i) => (
                 <TableRow key={`d_${row.id}_${i}`}>
-                  <TableCell><Badge className="bg-green-100 text-green-800">借</Badge></TableCell>
+                  <TableCell><Badge className="bg-primary/10 text-primary/80">借</Badge></TableCell>
                   <TableCell>{row.凭证编号}</TableCell>
                   <TableCell className="text-xs">{row.过帐日期}</TableCell>
                   <TableCell className="text-xs">{row.利润中心名称}</TableCell>
                   <TableCell className="text-xs max-w-[150px] truncate" title={row.科目名称}>{row.科目名称}</TableCell>
                   <TableCell className="text-xs max-w-[120px] truncate">{row.客商}</TableCell>
                   <TableCell className="text-xs max-w-[200px] truncate" title={row.文本}>{row.文本}</TableCell>
-                  <TableCell className="text-right text-green-600">{formatAmount(row.净额)}</TableCell>
+                  <TableCell className="text-right text-primary">{formatAmount(row.净额)}</TableCell>
                 </TableRow>
               ))}
               {chain.贷方行.map((row, i) => (
@@ -378,12 +378,12 @@ function UnmatchedGroupDialog({ group, matchTypeColor }: { group: ReconGroup; ma
       {/* 已匹配部分 */}
       {group.匹配链.length > 0 && (
         <div>
-          <h3 className="text-sm font-medium text-green-700 mb-2 flex items-center gap-2">
+          <h3 className="text-sm font-medium text-primary mb-2 flex items-center gap-2">
             <CheckCircle className="w-4 h-4" />
             已匹配明细
           </h3>
           {group.匹配链.map((chain) => (
-            <div key={chain.id} className="border border-green-200 rounded-lg p-4 mb-3 bg-green-50/30">
+            <div key={chain.id} className="border border-primary/20 rounded-lg p-4 mb-3 bg-primary/5/30">
               <div className="flex items-center gap-2 mb-3">
                 <Badge className={matchTypeColor(chain.匹配类型)}>{chain.匹配类型}</Badge>
                 <span className="text-sm text-muted-foreground">
@@ -393,12 +393,12 @@ function UnmatchedGroupDialog({ group, matchTypeColor }: { group: ReconGroup; ma
               <div className="space-y-1 max-h-[200px] overflow-auto">
                 {[...chain.借方行, ...chain.贷方行].map((row, i) => (
                   <div key={`m_${row.id}_${i}`} className="flex items-center gap-3 py-1 px-2 bg-card rounded text-sm">
-                    <Badge className={row.净额 > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                    <Badge className={row.净额 > 0 ? 'bg-primary/10 text-primary/80' : 'bg-red-100 text-red-800'}>
                       {row.净额 > 0 ? '借' : '贷'}
                     </Badge>
                     <span className="w-28 font-mono text-xs">{row.凭证编号}</span>
                     <span className="flex-1 text-xs truncate">{row.客商}</span>
-                    <span className={`w-24 text-right ${row.净额 > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className={`w-24 text-right ${row.净额 > 0 ? 'text-primary' : 'text-red-600'}`}>
                       {formatAmount(row.净额)}
                     </span>
                   </div>
@@ -439,7 +439,7 @@ function UnmatchedGroupDialog({ group, matchTypeColor }: { group: ReconGroup; ma
                 {unmatchedRows.map((row, i) => (
                   <TableRow key={`um_${row.id}_${i}`}>
                     <TableCell>
-                      <Badge className={row.净额 > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                      <Badge className={row.净额 > 0 ? 'bg-primary/10 text-primary/80' : 'bg-red-100 text-red-800'}>
                         {row.净额 > 0 ? '借' : '贷'}
                       </Badge>
                     </TableCell>
@@ -451,7 +451,7 @@ function UnmatchedGroupDialog({ group, matchTypeColor }: { group: ReconGroup; ma
                     </TableCell>
                     <TableCell className="text-xs max-w-[120px] truncate">{row.客商}</TableCell>
                     <TableCell className="text-xs max-w-[200px] truncate" title={row.文本}>{row.文本}</TableCell>
-                    <TableCell className={`text-right font-medium ${row.净额 > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <TableCell className={`text-right font-medium ${row.净额 > 0 ? 'text-primary' : 'text-red-600'}`}>
                       {formatAmount(row.净额)}
                     </TableCell>
                   </TableRow>
@@ -552,9 +552,9 @@ function ProfitCenterSummary({ reconResult, matchTypeColor, setSelectedGroup }: 
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Building2 className="w-5 h-5 text-blue-600" />
+          <Building2 className="w-5 h-5 text-primary" />
           按利润中心汇总
-          <Badge variant="outline" className="ml-2 bg-blue-50 text-blue-700">
+          <Badge variant="outline" className="ml-2 bg-primary/5 text-primary">
             {pcMap.size} 家单位
           </Badge>
         </CardTitle>
@@ -580,13 +580,13 @@ function ProfitCenterSummary({ reconResult, matchTypeColor, setSelectedGroup }: 
                   <TableCell className="font-medium">{item.利润中心名称}</TableCell>
                   <TableCell>{item.对方名称}</TableCell>
                   <TableCell className="text-right">{item.交易笔数}</TableCell>
-                  <TableCell className="text-right text-green-600">{formatAmount(item.借方合计)}</TableCell>
+                  <TableCell className="text-right text-primary">{formatAmount(item.借方合计)}</TableCell>
                   <TableCell className="text-right text-red-600">{formatAmount(item.贷方合计)}</TableCell>
-                  <TableCell className={`text-right font-bold ${Math.abs(item.净额合计) < 0.01 ? 'text-green-600' : 'text-red-600'}`}>
+                  <TableCell className={`text-right font-bold ${Math.abs(item.净额合计) < 0.01 ? 'text-primary' : 'text-red-600'}`}>
                     {Math.abs(item.净额合计) < 0.01 ? '0.00' : formatAmount(Math.abs(item.净额合计))}
                   </TableCell>
                   <TableCell>
-                    <Badge className={item.状态 === '对符' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                    <Badge className={item.状态 === '对符' ? 'bg-primary/10 text-primary/80' : 'bg-red-100 text-red-800'}>
                       {item.状态}
                     </Badge>
                   </TableCell>

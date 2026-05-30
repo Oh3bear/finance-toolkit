@@ -543,7 +543,7 @@ export function MappingPage() {
               {/* 已确认组 */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-semibold text-green-700 flex items-center gap-1.5">
+                  <h3 className="text-sm font-semibold text-primary flex items-center gap-1.5">
                     <Check className="w-4 h-4" />
                     已自动匹配（{inferConfirmed.length} 条）
                   </h3>
@@ -555,7 +555,7 @@ export function MappingPage() {
                         setInferCheckedConfirmed(new Set(inferConfirmed.map((_, i) => i)));
                       }
                     }}
-                    className="text-xs text-blue-600 hover:text-blue-800"
+                    className="text-xs text-primary hover:text-primary/80"
                   >
                     {inferCheckedConfirmed.size === inferConfirmed.length ? '取消全选' : '全选'}
                   </button>
@@ -566,7 +566,7 @@ export function MappingPage() {
                   <div className="border rounded-lg overflow-hidden">
                     <table className="text-xs w-full">
                       <thead>
-                        <tr className="bg-green-50">
+                        <tr className="bg-primary/5">
                           <th className="w-10 p-2 text-center">选择</th>
                           <th className="text-left p-2">客商名称</th>
                           <th className="text-left p-2">利润中心名称</th>
@@ -577,7 +577,7 @@ export function MappingPage() {
                         {inferConfirmed.map((e, i) => {
                           const isL1 = e.利润中心名称 === e.客商名称;
                           return (
-                            <tr key={i} className={`border-t ${inferCheckedConfirmed.has(i) ? 'bg-green-50' : 'hover:bg-background'}`}>
+                            <tr key={i} className={`border-t ${inferCheckedConfirmed.has(i) ? 'bg-primary/5' : 'hover:bg-background'}`}>
                               <td className="p-2 text-center">
                                 <input
                                   type="checkbox"
@@ -623,7 +623,7 @@ export function MappingPage() {
                           setInferCheckedUnmatched(new Set(inferUnmatched.map((_, i) => i)));
                         }
                       }}
-                      className="text-xs text-blue-600 hover:text-blue-800"
+                      className="text-xs text-primary hover:text-primary/80"
                     >
                       {inferCheckedUnmatched.size === inferUnmatched.length ? '取消全选' : '全选'}
                     </button>
@@ -675,7 +675,7 @@ export function MappingPage() {
 
           <DialogFooter className="flex items-center justify-between sm:justify-between">
             <p className="text-xs text-muted-foreground">
-              确认添加 <span className="font-medium text-green-600">{inferCheckedConfirmed.size}</span> 条已匹配 + <span className="font-medium text-orange-600">{inferCheckedUnmatched.size}</span> 条待手动
+              确认添加 <span className="font-medium text-primary">{inferCheckedConfirmed.size}</span> 条已匹配 + <span className="font-medium text-orange-600">{inferCheckedUnmatched.size}</span> 条待手动
             </p>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => setInferModalOpen(false)}>

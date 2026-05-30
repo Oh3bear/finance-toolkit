@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "cp index.dev.html index.html && vite",
     "build": "tsc -b && vite build",
-    "postbuild": "cp dist/index.html index.html && cp -r dist/assets/* assets/ && cp dist/pdf.worker.mjs . && node scripts/inject-build-time.js",
+    "postbuild": "cp dist/index.html index.html && cp -r dist/assets/* assets/ && cp dist/pdf.worker.mjs . && node scripts/inject-build-time.cjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },

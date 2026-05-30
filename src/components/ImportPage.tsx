@@ -86,9 +86,9 @@ export function ImportPage() {
       )}
 
       {success && (
-        <Alert className="mb-4 bg-green-50 border-green-200">
-          <CheckCircle className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-700">{success}</AlertDescription>
+        <Alert className="mb-4 bg-primary/5 border-primary/30">
+          <CheckCircle className="h-4 w-4 text-primary" />
+          <AlertDescription className="text-primary/90">{success}</AlertDescription>
         </Alert>
       )}
 
@@ -97,9 +97,9 @@ export function ImportPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <FileSpreadsheet className="w-5 h-5 text-blue-600" />
+              <FileSpreadsheet className="w-5 h-5 text-primary" />
               导入明细账
-              <span className="text-red-500 text-sm">*</span>
+              <span className="text-destructive text-sm">*</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -108,15 +108,15 @@ export function ImportPage() {
               onDragOver={(e) => e.preventDefault()}
               className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                 ledgerFile
-                  ? 'border-green-400 bg-green-50'
-                  : 'border-border hover:border-blue-400 hover:bg-blue-50'
+                  ? 'border-primary/50 bg-primary/5'
+                  : 'border-border hover:border-primary/50 hover:bg-primary/5'
               }`}
             >
               {ledgerFile ? (
                 <div className="space-y-2">
-                  <CheckCircle className="w-10 h-10 text-green-500 mx-auto" />
+                  <CheckCircle className="w-10 h-10 text-primary mx-auto" />
                   <p className="font-medium text-foreground">{ledgerFile.name}</p>
-                  <p className="text-sm text-green-600">{ledgerPreview.toLocaleString()} 行记录</p>
+                  <p className="text-sm text-primary">{ledgerPreview.toLocaleString()} 行记录</p>
                   <Button
                     variant="outline"
                     size="sm"
@@ -134,7 +134,7 @@ export function ImportPage() {
                   <Upload className="w-10 h-10 text-muted-foreground mx-auto" />
                   <div>
                     <p className="text-muted-foreground">拖拽文件到此处，或</p>
-                    <label className="text-blue-600 hover:text-blue-800 cursor-pointer font-medium">
+                    <label className="text-primary hover:text-primary/80 cursor-pointer font-medium">
                       点击选择文件
                       <input
                         type="file"
@@ -158,7 +158,7 @@ export function ImportPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <FileSpreadsheet className="w-5 h-5 text-purple-600" />
+              <FileSpreadsheet className="w-5 h-5 text-primary" />
               导入映射表
               <span className="text-muted-foreground text-sm font-normal ml-auto">（可选，可手动维护）</span>
             </CardTitle>
@@ -169,15 +169,15 @@ export function ImportPage() {
               onDragOver={(e) => e.preventDefault()}
               className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                 mappingFile
-                  ? 'border-green-400 bg-green-50'
-                  : 'border-border hover:border-purple-400 hover:bg-purple-50'
+                  ? 'border-primary/50 bg-primary/5'
+                  : 'border-border hover:border-primary/50 hover:bg-primary/5'
               }`}
             >
               {mappingFile ? (
                 <div className="space-y-2">
-                  <CheckCircle className="w-10 h-10 text-green-500 mx-auto" />
+                  <CheckCircle className="w-10 h-10 text-primary mx-auto" />
                   <p className="font-medium text-foreground">{mappingFile.name}</p>
-                  <p className="text-sm text-green-600">
+                  <p className="text-sm text-primary">
                     {mappingPreview.subjects} 个科目 / {mappingPreview.entities} 个客商
                   </p>
                   <Button
@@ -198,7 +198,7 @@ export function ImportPage() {
                   <Upload className="w-10 h-10 text-muted-foreground mx-auto" />
                   <div>
                     <p className="text-muted-foreground">拖拽文件到此处，或</p>
-                    <label className="text-purple-600 hover:text-purple-800 cursor-pointer font-medium">
+                    <label className="text-primary hover:text-primary/80 cursor-pointer font-medium">
                       点击选择文件
                       <input
                         type="file"

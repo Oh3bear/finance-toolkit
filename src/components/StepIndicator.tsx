@@ -44,22 +44,22 @@ export function StepIndicator() {
                 onClick={() => canClick && setStep(s.key)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-md'
+                    ? 'bg-gradient-to-r from-primary to-emerald-500 text-white shadow-md shadow-primary/20'
                     : isCompleted
-                    ? 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100'
+                    ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/15'
                     : canClick
                     ? 'bg-background text-muted-foreground border border-border hover:bg-muted'
-                    : 'bg-background text-muted-foreground cursor-not-allowed border border-border'
+                    : 'bg-background text-muted-foreground/50 cursor-not-allowed border border-border'
                 }`}
                 disabled={!canClick}
               >
-                <span className={`${isActive ? 'text-white' : isCompleted ? 'text-green-600' : ''}`}>
+                <span className={isActive ? 'text-white' : isCompleted ? 'text-primary' : ''}>
                   {s.icon}
                 </span>
                 {s.label}
               </button>
               {i < steps.length - 1 && (
-                <div className={`w-8 h-0.5 mx-1 ${isCompleted ? 'bg-green-400' : 'bg-muted'}`} />
+                <div className={`w-8 h-0.5 mx-1 ${isCompleted ? 'bg-primary/40' : 'bg-muted'}`} />
               )}
             </div>
           );

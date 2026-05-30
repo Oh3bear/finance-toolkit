@@ -157,8 +157,8 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
         <div
           className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors ${
             dragover
-              ? 'border-blue-400 bg-blue-50'
-              : 'border-border hover:border-blue-400 hover:bg-background'
+              ? 'border-primary/50 bg-primary/5'
+              : 'border-border hover:border-primary/50 hover:bg-background'
           }`}
           onClick={() => inputRef.current?.click()}
           onDragOver={(e) => { e.preventDefault(); setDragover(true); }}
@@ -192,15 +192,15 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
       {state === 'config' && (
         <>
           {/* 文件信息 */}
-          <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
-            <FileSpreadsheet className="w-5 h-5 text-blue-600" />
-            <span className="font-medium text-blue-800">{fileName}</span>
-            <span className="text-blue-500 text-sm">
+          <div className="flex items-center gap-3 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+            <FileSpreadsheet className="w-5 h-5 text-primary" />
+            <span className="font-medium text-primary/80">{fileName}</span>
+            <span className="text-primary/70 text-sm">
               {formatSize(JSON.stringify(rows).length)} · {rows.length - 1} 行数据 · {headers.length} 列
             </span>
             <button
               onClick={handleReset}
-              className="ml-auto text-blue-600 hover:text-blue-800 text-sm underline"
+              className="ml-auto text-primary hover:text-primary/80 text-sm underline"
             >
               重新上传
             </button>
@@ -220,7 +220,7 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
                       value="split"
                       checked={bankAmountMode === 'split'}
                       onChange={() => setBankAmountMode('split')}
-                      className="accent-blue-600"
+                      className="accent-primary"
                     />
                     <span className="text-sm text-foreground">双列（独立收入列 + 支出列）</span>
                   </label>
@@ -231,7 +231,7 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
                       value="combined"
                       checked={bankAmountMode === 'combined'}
                       onChange={() => setBankAmountMode('combined')}
-                      className="accent-blue-600"
+                      className="accent-primary"
                     />
                     <span className="text-sm text-foreground">单列（金额列 + DR/CR 方向列）</span>
                   </label>
@@ -243,7 +243,7 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">账号列</label>
                 <select
-                  className="w-full border rounded-lg px-3 py-2 text-sm bg-card focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full border rounded-lg px-3 py-2 text-sm bg-card focus:ring-2 focus:ring-primary focus:border-primary/60"
                   value={accountCol ?? ''}
                   onChange={(e) => setAccountCol(e.target.value === '' ? null : Number(e.target.value))}
                 >
@@ -258,7 +258,7 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">日期列</label>
                 <select
-                  className="w-full border rounded-lg px-3 py-2 text-sm bg-card focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full border rounded-lg px-3 py-2 text-sm bg-card focus:ring-2 focus:ring-primary focus:border-primary/60"
                   value={dateCol ?? ''}
                   onChange={(e) => setDateCol(e.target.value === '' ? null : Number(e.target.value))}
                 >
@@ -272,11 +272,11 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">
-                  <span className={`inline-block w-2 h-2 rounded-full ${isBank ? 'bg-green-500' : 'bg-blue-500'} mr-1`} />
+                  <span className={`inline-block w-2 h-2 rounded-full ${isBank ? 'bg-primary/50' : 'bg-primary/50'} mr-1`} />
                   {amount1Label}
                 </label>
                 <select
-                  className="w-full border rounded-lg px-3 py-2 text-sm bg-card focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full border rounded-lg px-3 py-2 text-sm bg-card focus:ring-2 focus:ring-primary focus:border-primary/60"
                   value={amount1Col ?? ''}
                   onChange={(e) => setAmount1Col(e.target.value === '' ? null : Number(e.target.value))}
                 >
@@ -298,7 +298,7 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
                       方向列（DR/CR）
                     </label>
                     <select
-                      className="w-full border rounded-lg px-3 py-2 text-sm bg-card focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full border rounded-lg px-3 py-2 text-sm bg-card focus:ring-2 focus:ring-primary focus:border-primary/60"
                       value={directionCol ?? ''}
                       onChange={(e) => setDirectionCol(e.target.value === '' ? null : Number(e.target.value))}
                     >
@@ -320,7 +320,7 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
                         value={drValue}
                         onChange={(e) => setDrValue(e.target.value)}
                         placeholder="DR"
-                        className="w-40 border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-40 border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary focus:border-primary/60"
                       />
                       <span className="text-xs text-muted-foreground">其余值均视为收入（CR）</span>
                     </div>
@@ -334,7 +334,7 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
                     {amount2Label}
                   </label>
                   <select
-                    className="w-full border rounded-lg px-3 py-2 text-sm bg-card focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border rounded-lg px-3 py-2 text-sm bg-card focus:ring-2 focus:ring-primary focus:border-primary/60"
                     value={amount2Col ?? ''}
                     onChange={(e) => setAmount2Col(e.target.value === '' ? null : Number(e.target.value))}
                   >
@@ -366,10 +366,10 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
                         const isAmount2 = i === amount2Col;
                         const isDirection = isCombined && i === directionCol;
                         let bg = 'bg-muted';
-                        if (isAmount1) bg = 'bg-green-100';
+                        if (isAmount1) bg = 'bg-primary/10';
                         else if (isDirection) bg = 'bg-orange-100';
                         else if (isAmount2) bg = 'bg-red-100';
-                        else if (selectedCols.has(i)) bg = 'bg-blue-100';
+                        else if (selectedCols.has(i)) bg = 'bg-primary/10';
                         return (
                           <th
                             key={i}
@@ -391,10 +391,10 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
                           const isAmount2 = ci === amount2Col;
                           const isDirection = isCombined && ci === directionCol;
                           let bg = '';
-                          if (isAmount1) bg = 'bg-green-50';
+                          if (isAmount1) bg = 'bg-primary/5';
                           else if (isDirection) bg = 'bg-orange-50';
                           else if (isAmount2) bg = 'bg-red-50';
-                          else if (selectedCols.has(ci)) bg = 'bg-blue-50';
+                          else if (selectedCols.has(ci)) bg = 'bg-primary/5';
                           return (
                             <td
                               key={ci}
@@ -424,7 +424,7 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
               disabled={!canConfirm}
               className={`px-6 py-2.5 rounded-lg font-medium text-sm transition-colors ${
                 canConfirm
-                  ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
                   : 'bg-muted text-muted-foreground cursor-not-allowed'
               }`}
             >
@@ -436,11 +436,11 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
 
       {/* 已完成状态 */}
       {state === 'done' && (
-        <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <Check className="w-5 h-5 text-green-600" />
+        <div className="flex items-center gap-3 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+          <Check className="w-5 h-5 text-primary" />
           <div>
-            <p className="font-medium text-green-800">{title}已配置完成</p>
-            <p className="text-green-600 text-sm">
+            <p className="font-medium text-primary/80">{title}已配置完成</p>
+            <p className="text-primary text-sm">
               {fileName} · 账号列={colLabel(accountCol!)} · 日期列={colLabel(dateCol!)}
               {isBank && isCombined
                 ? ` · 金额列=${colLabel(amount1Col!)} · 方向列=${directionCol != null ? colLabel(directionCol) : '?'} · DR标识="${drValue}"`
@@ -450,7 +450,7 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
           </div>
           <button
             onClick={handleReset}
-            className="ml-auto text-green-600 hover:text-green-800 text-sm underline"
+            className="ml-auto text-primary hover:text-primary/80 text-sm underline"
           >
             重新配置
           </button>
