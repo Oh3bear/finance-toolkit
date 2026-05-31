@@ -13,6 +13,7 @@ import {
   Building2,
   ChevronLeft,
   ChevronRight,
+  ArrowLeftRight,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -67,6 +68,13 @@ export const tools: ToolConfig[] = [
     icon: Building2,
     category: '财务',
   },
+  {
+    id: 'pivot-reconcile',
+    name: '逆透视核对',
+    description: '二维交叉表逆透视转一维表，支持与流水账核对差异',
+    icon: ArrowLeftRight,
+    category: '财务',
+  },
 ];
 
 // 预留的工具槽位
@@ -88,18 +96,18 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
   return (
     <aside
       className={cn(
-        'h-screen bg-card border-r border-border flex flex-col transition-all duration-200 shrink-0 hidden md:flex',
+        'h-screen bg-gradient-to-b from-[hsl(152,40%,95%)] via-[hsl(152,35%,96%)] to-[hsl(174,30%,95%)] border-r border-border flex flex-col transition-all duration-200 shrink-0 hidden md:flex',
         collapsed ? 'w-16' : 'w-64'
       )}
       role="navigation"
       aria-label="工具导航"
     >
       {/* Logo */}
-      <div className="flex items-center justify-between px-3 h-14 border-b border-border">
+      <div className="flex items-center justify-between px-3 h-14 border-b border-border/60">
         {!collapsed && (
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-emerald-500 rounded-lg flex items-center justify-center shrink-0 shadow-sm">
-              <span className="text-primary-foreground text-xs font-bold">工</span>
+            <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shrink-0 shadow-md shadow-emerald-200">
+              <span className="text-white text-xs font-bold">工</span>
             </div>
             <h1 className="text-sm font-semibold text-foreground leading-tight">财务工具集</h1>
           </div>
@@ -140,8 +148,8 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
                           className={cn(
                             'w-full flex items-center justify-center py-2.5 px-2 transition-colors',
                             isActive
-                              ? 'bg-primary/10 text-primary border-r-2 border-primary'
-                              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                              ? 'bg-gradient-to-r from-primary/15 to-accent text-primary border-r-2 border-primary'
+                              : 'text-muted-foreground hover:bg-primary/8 hover:text-foreground'
                           )}
                         >
                           <Icon className="w-5 h-5" />
@@ -157,8 +165,8 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
                       className={cn(
                         'w-full flex items-start gap-3 px-3 py-2 text-sm transition-colors text-left',
                         isActive
-                          ? 'bg-primary/10 text-primary border-r-2 border-primary'
-                          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                          ? 'bg-gradient-to-r from-primary/15 to-accent/60 text-primary border-r-2 border-primary'
+                          : 'text-muted-foreground hover:bg-primary/8 hover:text-foreground'
                       )}
                     >
                       <Icon className="w-4 h-4 shrink-0 mt-0.5" />
@@ -211,9 +219,9 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
       </ScrollArea>
 
       {/* 底部版本号 */}
-      <div className="px-3 py-3 border-t border-border">
+      <div className="px-3 py-3 border-t border-border/60">
         {!collapsed && (
-          <p className="text-xs text-muted-foreground text-center">财务工具集 v1.0</p>
+          <p className="text-xs text-muted-foreground/60 text-center">v1.0</p>
         )}
       </div>
     </aside>

@@ -160,6 +160,11 @@ export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarColl
   const [fixedLength, setFixedLength] = useState(6);
   const [fixedStart, setFixedStart] = useState(0);   // 固定长度模式的起始位置（字符索引，从0开始）
   const [selectedSegment, setSelectedSegment] = useState(0);
+  // --- 命名来源（独立于分组规则）---
+  const [nameSourceMode, setNameSourceMode] = useState<'groupKey' | 'fixedPos' | 'delimiterSeg'>('groupKey');
+  const [nameFixedStart, setNameFixedStart] = useState(0);       // 命名截取起始位置
+  const [nameFixedEnd, setNameFixedEnd] = useState(6);           // 命名截取结束位置（不含）
+  const [nameDelimiterSeg, setNameDelimiterSeg] = useState(0);   // 命名用第几段（分隔符模式）
   const [nameTemplate, setNameTemplate] = useState('{group}_合并_{count}文件');
   const [checkedGroups, setCheckedGroups] = useState<Set<string>>(new Set());
   const [showPreview, setShowPreview] = useState(false);
@@ -203,6 +208,25 @@ export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarColl
     if (segments.length === 0) return '其他';
     return segments[selectedSegment] || segments[0] || '其他';
   }, [groupMode, fixedLength, fixedStart, effectiveDelimiter, selectedSegment, patternRegex]);
+
+  // 根据命名来源规则，从文件名中提取命名值（用于输出文件名）
+  const computeNameSource = useCallback((name: string): string => {
+    const baseName = name.replace(/\.pdf$/i, '');
+    if (nameSourceMode === 'fixedPos') {
+      // 固定位置截取 [start, end)
+      const s = Math.min(nameFixedStart, nameFixedEnd);
+      const e = Math.max(nameFixedStart, nameFixedEnd);
+      const result = baseName.slice(s, e);
+      return result || '未命名';
+    }
+    if (nameSourceMode === 'delimiterSeg') {
+      if (!effectiveDelimiter) return baseName || '未命名';
+      const segments = baseName.split(effectiveDelimiter).filter(s => s.length > 0);
+      return segments[nameDelimiterSeg] || segments[0] || '未命名';
+    }
+    // groupKey 模式：返回空，由调用方使用 groupKey
+    return '';
+  }, [nameSourceMode, nameFixedStart, nameFixedEnd, nameDelimiterSeg, effectiveDelimiter]);
 
   // 计算分组键列表（排序后）
   const groupKeys = useMemo(() => {
@@ -428,8 +452,12 @@ export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarColl
         const url = URL.createObjectURL(blob);
 
         // 用命名模板生成文件名
+        // 命名来源：优先使用独立命名规则（取每组第一个文件），否则使用分组键
+        const displayName = nameSourceMode !== 'groupKey'
+          ? computeNameSource(groupFiles[0].name)
+          : groupKey;
         let fileName = nameTemplate
-          .replace(/\{group\}/g, groupKey)
+          .replace(/\{group\}/g, displayName || groupKey)
           .replace(/\{count\}/g, String(groupFiles.length));
         if (!fileName.toLowerCase().endsWith('.pdf')) {
           fileName += '.pdf';
@@ -460,7 +488,7 @@ export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarColl
       setMerging(false);
       setProgress({ pct: 0, text: '' });
     }
-  }, [files, autoGroup, groupKeys, checkedGroups, computeGroup, insertDivider, addPageNum, nameTemplate, showToast]);
+  }, [files, autoGroup, groupKeys, checkedGroups, computeGroup, computeNameSource, insertDivider, addPageNum, nameTemplate, nameSourceMode, showToast]);
 
   const totalPages = files.reduce((s, f) => s + f.pages, 0);
 
@@ -850,6 +878,123 @@ export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarColl
           </div>
         )}
 
+        {/* 命名来源（独立于分组规则）*/}
+        <div className="space-y-3">
+          <div>
+            <label className="text-sm font-medium text-foreground mb-2 block">命名来源</label>
+            <p className="text-xs text-muted-foreground mb-2">合并后的 PDF 文件名从哪里提取？可独立于分组规则。</p>
+            <div className="flex gap-4 flex-wrap">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="nameSourceMode"
+                  checked={nameSourceMode === 'groupKey'}
+                  onChange={() => setNameSourceMode('groupKey')}
+                  className="text-primary"
+                />
+                <span className="text-sm">使用分组名</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="nameSourceMode"
+                  checked={nameSourceMode === 'fixedPos'}
+                  onChange={() => setNameSourceMode('fixedPos')}
+                  className="text-primary"
+                />
+                <span className="text-sm">按固定位置截取</span>
+              </label>
+              {groupMode === 'delimiter' && (
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="nameSourceMode"
+                    checked={nameSourceMode === 'delimiterSeg'}
+                    onChange={() => setNameSourceMode('delimiterSeg')}
+                    className="text-primary"
+                  />
+                  <span className="text-sm">按分隔符段提取</span>
+                </label>
+              )}
+            </div>
+          </div>
+
+          {/* 固定位置截取配置 */}
+          {nameSourceMode === 'fixedPos' && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 flex-wrap">
+                <label className="text-sm text-muted-foreground whitespace-nowrap">起始位置:</label>
+                <input
+                  type="number"
+                  value={nameFixedStart}
+                  onChange={(e) => setNameFixedStart(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
+                  min={0}
+                  max={100}
+                  className="text-sm border rounded px-2 py-1 w-20"
+                />
+                <label className="text-sm text-muted-foreground whitespace-nowrap">结束位置:</label>
+                <input
+                  type="number"
+                  value={nameFixedEnd}
+                  onChange={(e) => setNameFixedEnd(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
+                  min={0}
+                  max={100}
+                  className="text-sm border rounded px-2 py-1 w-20"
+                />
+                <span className="text-xs text-muted-foreground">（截取 [起始, 结束) 区间，从每组第一个文件名提取）</span>
+              </div>
+              {files.length > 0 && (
+                <div className="p-2 bg-card border rounded text-xs text-muted-foreground space-y-1">
+                  <p className="font-medium text-muted-foreground mb-1">命名预览（各分组第一个文件）</p>
+                  {(() => {
+                    // 展示每个分组的第一个文件的命名提取结果
+                    const previewMap: Record<string, string> = {};
+                    const seenGroups = new Set<string>();
+                    for (const f of files) {
+                      const gk = computeGroup(f.name);
+                      if (!seenGroups.has(gk)) {
+                        seenGroups.add(gk);
+                        previewMap[gk] = computeNameSource(f.name);
+                      }
+                      if (seenGroups.size >= 5) break;
+                    }
+                    return Object.entries(previewMap).map(([gk, ns], i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="text-muted-foreground">分组「{gk}」</span>
+                        <span className="text-muted-foreground">→</span>
+                        <span className="font-medium text-primary bg-primary/5 px-1.5 py-0.5 rounded">{ns}</span>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 分隔符段配置 */}
+          {nameSourceMode === 'delimiterSeg' && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <label className="text-sm text-muted-foreground whitespace-nowrap">使用第几段:</label>
+                <select
+                  value={nameDelimiterSeg}
+                  onChange={(e) => setNameDelimiterSeg(Number(e.target.value))}
+                  className="text-sm border rounded px-2 py-1 bg-card"
+                >
+                  {Array.from({ length: maxSegments }, (_, i) => (
+                    <option key={i} value={i}>第{i + 1}段</option>
+                  ))}
+                </select>
+                {splitPreview.length > 0 && (
+                  <span className="text-xs text-muted-foreground ml-1">
+                    (例: {splitPreview[0]?.segments[nameDelimiterSeg] || '-'})
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* 命名模板 */}
         <div className="flex items-center gap-3">
           <label className="text-sm text-muted-foreground whitespace-nowrap">命名模板:</label>
@@ -860,7 +1005,7 @@ export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarColl
             className="text-sm border rounded px-2 py-1 flex-1"
           />
           <span className="text-xs text-muted-foreground whitespace-nowrap">
-            {'{group}'}=分组名 {'{count}'}=文件数
+            {'{group}'}={nameSourceMode === 'groupKey' ? '分组名' : '命名提取值'} {'{count}'}=文件数
           </span>
         </div>
       </div>

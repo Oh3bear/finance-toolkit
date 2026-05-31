@@ -4,83 +4,83 @@
 
 @layer base {
   :root {
-    /* ── 基础色板 ── */
-    --background: 0 0% 100%;
-    --foreground: 224 14% 12%;
+    /* ── 基础色板（方案G：翡翠矿石 浅色渐变风） ── */
+    --background: 138 33% 97%;       /* 薄荷白 #f0fdf4 */
+    --foreground: 160 20% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 224 14% 12%;
+    --card-foreground: 160 20% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 224 14% 12%;
+    --popover-foreground: 160 20% 10%;
 
-    /* ── 主色：浅绿 (green-600 ~= hsl 142 71% 45%) ── */
-    --primary: 142 71% 45%;
+    /* ── 主色：翡翠绿 #059669 ── */
+    --primary: 161 94% 30%;
     --primary-foreground: 0 0% 100%;
 
-    /* ── 次要 / 静音：极浅绿灰 ── */
-    --secondary: 142 12% 94%;
-    --secondary-foreground: 142 20% 25%;
-    --muted: 142 8% 95%;
-    --muted-foreground: 220 9% 46%;
-    --accent: 142 12% 92%;
-    --accent-foreground: 142 20% 25%;
+    /* ── 次要：浅薄荷 ── */
+    --secondary: 138 30% 93%;
+    --secondary-foreground: 160 20% 20%;
+    --muted: 138 20% 94%;
+    --muted-foreground: 160 10% 45%;
+    --accent: 174 60% 90%;           /* 浅青绿渐变尾色 */
+    --accent-foreground: 174 50% 20%;
 
     /* ── 语义色 ── */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
     /* ── 边框 / 输入框 / 焦点环 ── */
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 142 71% 45%;
+    --border: 140 20% 88%;
+    --input: 140 20% 88%;
+    --ring: 161 94% 30%;
 
     /* ── 圆角 ── */
     --radius: 0.5rem;
 
-    /* ── Sidebar：白底亮色风格 ── */
-    --sidebar-background: 0 0% 99%;
-    --sidebar-foreground: 224 14% 30%;
-    --sidebar-primary: 142 71% 45%;
+    /* ── Sidebar：浅翠绿渐变底色 ── */
+    --sidebar-background: 152 40% 95%;
+    --sidebar-foreground: 160 20% 20%;
+    --sidebar-primary: 161 94% 30%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 142 12% 94%;
-    --sidebar-accent-foreground: 142 20% 25%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 142 71% 45%;
+    --sidebar-accent: 138 30% 91%;
+    --sidebar-accent-foreground: 160 20% 20%;
+    --sidebar-border: 140 20% 88%;
+    --sidebar-ring: 161 94% 30%;
   }
 
   .dark {
-    --background: 224 14% 8%;
+    --background: 160 20% 7%;
     --foreground: 0 0% 97%;
-    --card: 224 14% 11%;
+    --card: 160 15% 10%;
     --card-foreground: 0 0% 97%;
-    --popover: 224 14% 11%;
+    --popover: 160 15% 10%;
     --popover-foreground: 0 0% 97%;
 
-    /* 暗色模式：亮绿略调淡，保持可读性 */
-    --primary: 142 60% 52%;
+    /* 暗色：翡翠绿调亮 */
+    --primary: 160 70% 48%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 224 10% 18%;
+    --secondary: 160 12% 18%;
     --secondary-foreground: 0 0% 90%;
-    --muted: 224 10% 16%;
-    --muted-foreground: 220 9% 60%;
-    --accent: 224 10% 18%;
-    --accent-foreground: 0 0% 90%;
+    --muted: 160 10% 16%;
+    --muted-foreground: 160 8% 58%;
+    --accent: 174 20% 18%;
+    --accent-foreground: 174 40% 80%;
 
     --destructive: 0 63% 45%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 224 10% 20%;
-    --input: 224 10% 20%;
-    --ring: 142 60% 52%;
+    --border: 160 10% 20%;
+    --input: 160 10% 20%;
+    --ring: 160 70% 48%;
 
-    --sidebar-background: 224 14% 10%;
-    --sidebar-foreground: 220 9% 70%;
-    --sidebar-primary: 142 60% 52%;
+    --sidebar-background: 160 18% 9%;
+    --sidebar-foreground: 160 8% 68%;
+    --sidebar-primary: 160 70% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 224 10% 16%;
+    --sidebar-accent: 160 10% 16%;
     --sidebar-accent-foreground: 0 0% 90%;
-    --sidebar-border: 224 10% 18%;
-    --sidebar-ring: 142 60% 52%;
+    --sidebar-border: 160 10% 18%;
+    --sidebar-ring: 160 70% 48%;
   }
 }
 

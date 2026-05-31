@@ -94,7 +94,8 @@ export function ImportPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* 明细账导入 */}
-        <Card>
+        <Card className="overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-emerald-400 to-teal-400" />
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileSpreadsheet className="w-5 h-5 text-primary" />
@@ -155,7 +156,8 @@ export function ImportPage() {
         </Card>
 
         {/* 映射表导入 */}
-        <Card>
+        <Card className="overflow-hidden">
+          <div className="h-1 bg-gradient-to-r from-teal-400 to-cyan-400" />
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileSpreadsheet className="w-5 h-5 text-primary" />
