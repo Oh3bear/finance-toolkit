@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { StepIndicator } from '@/components/StepIndicator';
 import { ImportPage } from '@/components/ImportPage';
@@ -15,6 +15,22 @@ import PivotReconcileTool from '@/components/PivotReconcileTool';
 import { Shield, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+// 渐变值（JS 常量，100% 进 JS bundle，不依赖 CSS 产物）
+const gradients = {
+  light: {
+    sidebar: 'linear-gradient(to bottom, hsl(152,40%,95%), hsl(152,35%,96%) 50%, hsl(174,30%,95%))',
+    header: 'linear-gradient(to right, hsla(161,94%,30%,0.05), white 40%, hsla(174,60%,90%,0.3))',
+    stepHeader: 'linear-gradient(to right, hsla(161,94%,30%,0.04), white 50%, hsla(174,60%,90%,0.2))',
+    footer: 'linear-gradient(to right, hsla(161,94%,30%,0.04), hsla(174,60%,90%,0.15))',
+  },
+  dark: {
+    sidebar: 'linear-gradient(to bottom, hsl(160,18%,9%), hsl(160,15%,12%) 50%, hsl(174,15%,10%))',
+    header: 'linear-gradient(to right, hsla(160,70%,48%,0.08), hsl(160,15%,10%) 40%, hsla(174,20%,18%,0.15))',
+    stepHeader: 'linear-gradient(to right, hsla(160,70%,48%,0.06), hsl(160,15%,10%) 50%, hsla(174,20%,18%,0.1))',
+    footer: 'linear-gradient(to right, hsla(160,70%,48%,0.04), hsla(174,20%,18%,0.1))',
+  },
+};
+
 // 简单的主题管理 hook（替代 next-themes）
 function useTheme() {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -30,17 +46,20 @@ function useTheme() {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
-  return { theme, toggle: () => setTheme(t => t === 'dark' ? 'light' : 'dark') };
+  const isDark = theme === 'dark';
+  const g = useMemo(() => (isDark ? gradients.dark : gradients.light), [isDark]);
+
+  return { theme, g, toggle: () => setTheme(t => t === 'dark' ? 'light' : 'dark') };
 }
 
 // 内部往来核对工具包装器
-function IntercoReconcileTool() {
+function IntercoReconcileTool({ g }: { g: typeof gradients.light }) {
   const step = useAppStore(s => s.step);
 
   return (
     <div className="min-h-full bg-background">
       {/* 步骤导航 */}
-      <div className="bg-card border-b border-border/60 sticky top-0 z-40 light-step-header-gradient dark:bg-none">
+      <div className="bg-card border-b border-border/60 sticky top-0 z-40" style={{ backgroundImage: g.stepHeader }}>
         <StepIndicator />
       </div>
       {/* 主内容区 */}
@@ -57,7 +76,7 @@ function IntercoReconcileTool() {
 export default function App() {
   const [currentTool, setCurrentTool] = useState('interco-reconcile');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const { theme, toggle: toggleTheme } = useTheme();
+  const { theme, g, toggle: toggleTheme } = useTheme();
 
   const currentToolConfig = tools.find((t) => t.id === currentTool);
 
@@ -69,12 +88,13 @@ export default function App() {
         onSelectTool={setCurrentTool}
         collapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
+        sidebarGradient={g.sidebar}
       />
 
       {/* 主内容区 */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* 顶部标题栏 */}
-        <header className="bg-card border-b border-border/60 shrink-0 light-header-gradient dark:bg-none">
+        <header className="bg-card border-b border-border/60 shrink-0" style={{ backgroundImage: g.header }}>
           <div className="px-4 md:px-6 h-14 flex items-center justify-between gap-4">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="w-1 h-5 rounded-full bg-gradient-to-b from-emerald-500 to-teal-500 shrink-0" />
@@ -106,7 +126,7 @@ export default function App() {
         {/* 工具内容 — key 驱动切换时重新触发入场动画 */}
         <div className="flex-1 overflow-y-auto" key={currentTool}>
           <div className="animate-page-enter">
-          {currentTool === 'interco-reconcile' && <IntercoReconcileTool />}
+          {currentTool === 'interco-reconcile' && <IntercoReconcileTool g={g} />}
           {currentTool === 'pdf-merge' && <PdfMergeTool sidebarCollapsed={sidebarCollapsed} />}
           {currentTool === 'pdf-2to1' && <PdfTwoToOneTool sidebarCollapsed={sidebarCollapsed} />}
           {currentTool === 'batch-excel' && <BatchExcelExtractor />}
@@ -117,7 +137,7 @@ export default function App() {
         </div>
 
         {/* 底部 */}
-        <footer className="border-t border-border/60 bg-card light-footer-gradient dark:bg-none py-2.5 shrink-0">
+        <footer className="border-t border-border/60 bg-card py-2.5 shrink-0" style={{ backgroundImage: g.footer }}>
           <div className="px-4 md:px-6 text-center text-xs text-muted-foreground/60">
             所有数据仅在浏览器本地处理，不会上传至任何服务器
           </div>

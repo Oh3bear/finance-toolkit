@@ -5,38 +5,31 @@
 @layer base {
   :root {
     /* ── 基础色板（方案G：翡翠矿石 浅色渐变风） ── */
-    --background: 138 33% 97%;       /* 薄荷白 #f0fdf4 */
+    --background: 138 33% 97%;
     --foreground: 160 20% 10%;
     --card: 0 0% 100%;
     --card-foreground: 160 20% 10%;
     --popover: 0 0% 100%;
     --popover-foreground: 160 20% 10%;
 
-    /* ── 主色：翡翠绿 #059669 ── */
     --primary: 161 94% 30%;
     --primary-foreground: 0 0% 100%;
 
-    /* ── 次要：浅薄荷 ── */
     --secondary: 138 30% 93%;
     --secondary-foreground: 160 20% 20%;
     --muted: 138 20% 94%;
     --muted-foreground: 160 10% 45%;
-    --accent: 174 60% 90%;           /* 浅青绿渐变尾色 */
+    --accent: 174 60% 90%;
     --accent-foreground: 174 50% 20%;
 
-    /* ── 语义色 ── */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    /* ── 边框 / 输入框 / 焦点环 ── */
     --border: 140 20% 88%;
     --input: 140 20% 88%;
     --ring: 161 94% 30%;
-
-    /* ── 圆角 ── */
     --radius: 0.5rem;
 
-    /* ── Sidebar：浅翠绿渐变底色 ── */
     --sidebar-background: 152 40% 95%;
     --sidebar-foreground: 160 20% 20%;
     --sidebar-primary: 161 94% 30%;
@@ -55,7 +48,6 @@
     --popover: 160 15% 10%;
     --popover-foreground: 0 0% 97%;
 
-    /* 暗色：翡翠绿调亮 */
     --primary: 160 70% 48%;
     --primary-foreground: 0 0% 100%;
 
@@ -100,47 +92,4 @@
 }
 .animate-page-enter {
   animation: page-enter 0.2s ease-out;
-}
-
-/* 侧边栏：浅色渐变背景（暗色模式回退到 bg-sidebar CSS 变量） */
-.light-sidebar-gradient {
-  background-image: linear-gradient(
-    to bottom,
-    hsl(var(--sidebar-background)) 0%,
-    hsl(152, 35%, 96%) 50%,
-    hsl(174, 30%, 95%) 100%
-  );
-}
-.dark .light-sidebar-gradient {
-  background-image: none;
-}
-
-/* 顶部标题栏 / 步骤导航栏 / 底部：浅色渐变 */
-.light-header-gradient {
-  background-image: linear-gradient(
-    to right,
-    hsl(var(--primary) / 0.05) 0%,
-    hsl(var(--card)) 40%,
-    hsl(var(--accent) / 0.3) 100%
-  );
-}
-.light-step-header-gradient {
-  background-image: linear-gradient(
-    to right,
-    hsl(var(--primary) / 0.04) 0%,
-    hsl(var(--card)) 50%,
-    hsl(var(--accent) / 0.2) 100%
-  );
-}
-.light-footer-gradient {
-  background-image: linear-gradient(
-    to right,
-    hsl(var(--primary) / 0.04) 0%,
-    hsl(var(--accent) / 0.15) 100%
-  );
-}
-.dark .light-header-gradient,
-.dark .light-step-header-gradient,
-.dark .light-footer-gradient {
-  background-image: none;
 }

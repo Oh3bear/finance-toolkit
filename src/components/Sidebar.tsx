@@ -88,18 +88,19 @@ interface SidebarProps {
   onSelectTool: (id: string) => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
+  sidebarGradient?: string;
 }
 
-export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse }: SidebarProps) {
+export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse, sidebarGradient }: SidebarProps) {
   const categories = [...new Set(tools.map((t) => t.category))];
 
   return (
     <aside
       className={cn(
-        'h-screen bg-sidebar border-r border-border flex flex-col transition-all duration-200 shrink-0 hidden md:flex',
-        'light-sidebar-gradient dark:bg-none',
+        'h-screen border-r border-border flex flex-col transition-all duration-200 shrink-0 hidden md:flex',
         collapsed ? 'w-16' : 'w-64'
       )}
+      style={sidebarGradient ? { backgroundImage: sidebarGradient } : undefined}
       role="navigation"
       aria-label="工具导航"
     >
