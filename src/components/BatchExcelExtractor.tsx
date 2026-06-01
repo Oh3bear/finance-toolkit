@@ -984,17 +984,20 @@ export default function BatchExcelExtractor() {
           <p className="text-lg font-medium text-muted-foreground mb-1">批量提取 Excel 数据</p>
           <p className="text-sm">上传一个 Excel 样本，配置提取规则，然后批量处理多个文件</p>
           <div className="mt-6 grid grid-cols-3 gap-4 max-w-lg">
-            <div className="text-center p-3 bg-card rounded-lg border border-border">
-              <div className="w-8 h-8 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-1 text-sm font-bold">1</div>
-              <p className="text-xs text-muted-foreground">上传样本 Excel</p>
+            <div className="text-center p-4 bg-card rounded-xl border border-border">
+              <div className="w-8 h-8 bg-gradient-to-br from-primary to-emerald-400 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold shadow-sm">1</div>
+              <p className="text-sm text-foreground font-medium">上传样本 Excel</p>
+              <p className="text-xs text-muted-foreground mt-0.5">选择一个样本文件</p>
             </div>
-            <div className="text-center p-3 bg-card rounded-lg border border-border">
-              <div className="w-8 h-8 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-1 text-sm font-bold">2</div>
-              <p className="text-xs text-muted-foreground">配置提取规则</p>
+            <div className="text-center p-4 bg-card rounded-xl border border-border">
+              <div className="w-8 h-8 bg-gradient-to-br from-primary to-emerald-400 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold shadow-sm">2</div>
+              <p className="text-sm text-foreground font-medium">配置提取规则</p>
+              <p className="text-xs text-muted-foreground mt-0.5">设置锚点与偏移量</p>
             </div>
-            <div className="text-center p-3 bg-card rounded-lg border border-border">
-              <div className="w-8 h-8 bg-secondary text-muted-foreground rounded-full flex items-center justify-center mx-auto mb-1 text-sm font-bold">3</div>
-              <p className="text-xs text-muted-foreground">批量处理导出</p>
+            <div className="text-center p-4 bg-card rounded-xl border border-border">
+              <div className="w-8 h-8 bg-gradient-to-br from-muted to-muted-foreground/20 text-muted-foreground rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold">3</div>
+              <p className="text-sm text-foreground font-medium">批量处理导出</p>
+              <p className="text-xs text-muted-foreground mt-0.5">自动下载处理结果</p>
             </div>
           </div>
         </div>

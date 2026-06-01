@@ -101,3 +101,46 @@
 .animate-page-enter {
   animation: page-enter 0.2s ease-out;
 }
+
+/* 侧边栏：浅色渐变背景（暗色模式回退到 bg-sidebar CSS 变量） */
+.light-sidebar-gradient {
+  background-image: linear-gradient(
+    to bottom,
+    hsl(var(--sidebar-background)) 0%,
+    hsl(152, 35%, 96%) 50%,
+    hsl(174, 30%, 95%) 100%
+  );
+}
+.dark .light-sidebar-gradient {
+  background-image: none;
+}
+
+/* 顶部标题栏 / 步骤导航栏 / 底部：浅色渐变 */
+.light-header-gradient {
+  background-image: linear-gradient(
+    to right,
+    hsl(var(--primary) / 0.05) 0%,
+    hsl(var(--card)) 40%,
+    hsl(var(--accent) / 0.3) 100%
+  );
+}
+.light-step-header-gradient {
+  background-image: linear-gradient(
+    to right,
+    hsl(var(--primary) / 0.04) 0%,
+    hsl(var(--card)) 50%,
+    hsl(var(--accent) / 0.2) 100%
+  );
+}
+.light-footer-gradient {
+  background-image: linear-gradient(
+    to right,
+    hsl(var(--primary) / 0.04) 0%,
+    hsl(var(--accent) / 0.15) 100%
+  );
+}
+.dark .light-header-gradient,
+.dark .light-step-header-gradient,
+.dark .light-footer-gradient {
+  background-image: none;
+}

@@ -96,7 +96,8 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
   return (
     <aside
       className={cn(
-        'h-screen bg-gradient-to-b from-[hsl(152,40%,95%)] via-[hsl(152,35%,96%)] to-[hsl(174,30%,95%)] border-r border-border flex flex-col transition-all duration-200 shrink-0 hidden md:flex',
+        'h-screen bg-sidebar border-r border-border flex flex-col transition-all duration-200 shrink-0 hidden md:flex',
+        'light-sidebar-gradient dark:bg-none',
         collapsed ? 'w-16' : 'w-64'
       )}
       role="navigation"
