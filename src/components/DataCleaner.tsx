@@ -881,17 +881,17 @@ export default function DataCleaner() {
           {renderSampleUpload()}
           <div className="mt-8 grid grid-cols-3 gap-4 max-w-lg">
             <div className="text-center p-4 bg-card rounded-xl border border-border">
-              <div className="w-10 h-8 bg-gradient-to-br from-primary to-emerald-400 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold shadow-sm">1</div>
+              <div className="w-8 h-8 bg-gradient-to-br from-primary to-emerald-400 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold shadow-sm">1</div>
               <p className="text-sm text-foreground font-medium">上传 Excel 样本</p>
               <p className="text-xs text-muted-foreground mt-0.5">解析工作表结构</p>
             </div>
             <div className="text-center p-4 bg-card rounded-xl border border-border">
-              <div className="w-10 h-8 bg-gradient-to-br from-primary to-emerald-400 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold shadow-sm">2</div>
+              <div className="w-8 h-8 bg-gradient-to-br from-primary to-emerald-400 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold shadow-sm">2</div>
               <p className="text-sm text-foreground font-medium">选中列 + 配置规则</p>
               <p className="text-xs text-muted-foreground mt-0.5">选择清洗操作组合</p>
             </div>
             <div className="text-center p-4 bg-card rounded-xl border border-border">
-              <div className="w-10 h-8 bg-gradient-to-br from-muted to-muted-foreground/20 text-muted-foreground rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold">3</div>
+              <div className="w-8 h-8 bg-gradient-to-br from-muted to-muted-foreground/20 text-muted-foreground rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold">3</div>
               <p className="text-sm text-foreground font-medium">批量清洗导出</p>
               <p className="text-xs text-muted-foreground mt-0.5">自动下载处理结果</p>
             </div>
