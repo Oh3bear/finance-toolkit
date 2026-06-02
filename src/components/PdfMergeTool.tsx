@@ -122,7 +122,9 @@ function applyPattern(baseName: string, pattern: string): string | null {
 // 生成单个文件缩略图，同时返回页数（复用 pdfjsLib 的解析结果，避免二次 PDFDocument.load）
 async function genThumb(item: PdfFile): Promise<{ url: string | null; pages: number }> {
   try {
-    const pdf = await pdfjsLib.getDocument({ data: item.arrayBuffer }).promise;
+    // pdfjs 会 transfer（detach）传入的 ArrayBuffer，必须先 slice 复制一份，
+    // 否则合并时 item.arrayBuffer 已是 detached 状态，导致 pdf-lib 报错
+    const pdf = await pdfjsLib.getDocument({ data: item.arrayBuffer.slice(0) }).promise;
     const pages = pdf.numPages;
     const page = await pdf.getPage(1);
     const scale = 200 / page.getViewport({ scale: 1 }).width;
