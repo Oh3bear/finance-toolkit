@@ -165,7 +165,7 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
           onDragLeave={() => setDragover(false)}
           onDrop={handleDrop}
         >
-          <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+          <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground animate-float" />
           <p className="text-muted-foreground mb-2">拖拽或点击上传 {title} Excel 文件</p>
           <p className="text-muted-foreground text-sm">支持 .xlsx / .xls 格式</p>
           <input

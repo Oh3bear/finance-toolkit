@@ -1026,7 +1026,7 @@ export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarColl
           dragOver ? 'border-primary/60 bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-background'
         }`}
       >
-        <Upload className={`w-12 h-12 mx-auto mb-3 ${dragOver ? 'text-primary/70' : 'text-muted-foreground'}`} />
+        <Upload className={`w-12 h-12 mx-auto mb-3 animate-float ${dragOver ? 'text-primary/70' : 'text-muted-foreground'}`} />
         <h3 className="text-base font-medium text-foreground mb-1">拖放 PDF 文件至此，或点击选择</h3>
         <p className="text-sm text-muted-foreground">支持多文件、多选、拖拽排序。所有处理均在浏览器本地完成。</p>
         <input ref={fileInputRef} type="file" accept=".pdf" multiple className="hidden" onChange={(e) => handleFiles(e.target.files)} />
@@ -1102,7 +1102,7 @@ export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarColl
 
       {files.length === 0 && (
         <div className="text-center py-16 text-muted-foreground">
-          <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground/60" />
+          <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground/60 animate-float" />
           <p className="text-sm">暂无文件，请拖放或选择 PDF</p>
         </div>
       )}

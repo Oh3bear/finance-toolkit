@@ -85,11 +85,140 @@
   }
 }
 
-/* 页面切换过渡动画 */
+/* 页面切换过渡动画 — fade + slide-up 组合 */
 @keyframes page-enter {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 .animate-page-enter {
-  animation: page-enter 0.2s ease-out;
+  animation: page-enter 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 交错入场动画 — 用于内容块 stagger */
+@keyframes stagger-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-stagger-enter {
+  opacity: 0;
+  animation: stagger-enter 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Shimmer 骨架屏加载 */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--accent)) 50%, hsl(var(--muted)) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+/* 数字 count-up 完成后的微妙脉冲 */
+@keyframes count-complete {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+.animate-count-complete {
+  animation: count-complete 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Logo 呼吸动画 — scale pulse，配合原有 shadow 产生脉动光晕 */
+@keyframes logo-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.1); }
+}
+.animate-logo-breathe {
+  animation: logo-breathe 3s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* 空状态浮动动画 — 针对上传区域的 Upload/FileText/FileSpreadsheet 大图标 */
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+.animate-float {
+  animation: float-gentle 3s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* 侧边栏背景光斑缓慢移动 */
+@keyframes orb-drift {
+  0%   { transform: translate(0, 0) scale(1); }
+  33%  { transform: translate(20px, -25px) scale(1.15); }
+  66%  { transform: translate(-15px, 15px) scale(0.9); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+.animate-orb {
+  animation: orb-drift 10s ease-in-out infinite;
+  will-change: transform;
+}
+.animate-orb-slow {
+  animation: orb-drift 15s ease-in-out infinite reverse;
+  will-change: transform;
+}
+
+/* 主题切换图标旋转 */
+@keyframes theme-rotate {
+  from { transform: rotate(0deg) scale(1); }
+  to   { transform: rotate(360deg) scale(0.8); }
+}
+
+/* 进度条宽度增长 */
+@keyframes progress-grow {
+  from { width: 0%; }
+}
+
+/* 弹性回弹 */
+@keyframes spring-bounce {
+  0%   { transform: scale(0.95); opacity: 0; }
+  60%  { transform: scale(1.02); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.animate-spring-bounce {
+  animation: spring-bounce 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 弹性过渡工具类 — Tailwind 的 ease-[cubic-bezier(...)] 有歧义警告，改用自定义 class */
+@media (prefers-reduced-motion: no-preference) {
+  .ease-spring {
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .transition-spring {
+    transition-property: all;
+    transition-duration: 300ms;
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .transition-spring-slow {
+    transition-property: all;
+    transition-duration: 500ms;
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+/* 按钮微交互 — 全局 */
+@media (prefers-reduced-motion: no-preference) {
+  .btn-lift {
+    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .btn-lift:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px -2px hsl(var(--primary) / 0.15);
+  }
+  .btn-lift:active {
+    transform: scale(0.98);
+    box-shadow: 0 1px 4px -1px hsl(var(--primary) / 0.1);
+  }
+
+  /* 主题切换旋转 */
+  .theme-spin-icon {
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .theme-spin-icon:hover {
+    transform: rotate(180deg);
+  }
 }

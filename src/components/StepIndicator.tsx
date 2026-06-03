@@ -17,38 +17,50 @@ export function StepIndicator() {
   const entityMappings = useAppStore(s => s.entityMappings);
   const reconResult = useAppStore(s => s.reconResult);
 
+  const currentIdx = steps.findIndex((s) => s.key === step);
+
   const canNavigateTo = (target: AppStep): boolean => {
     const idx = steps.findIndex((s) => s.key === step);
     const targetIdx = steps.findIndex((s) => s.key === target);
     if (targetIdx === idx) return true;
-    if (targetIdx < idx) return true; // 可以回退
+    if (targetIdx < idx) return true;
 
-    // 向前导航需要满足条件
     if (target === '映射') return rawData.length > 0;
     if (target === '核对') return rawData.length > 0 && (subjectMappings.length > 0 || entityMappings.length > 0);
     if (target === '结果') return reconResult !== null;
     return false;
   };
 
+  const progressPercent = Math.round((currentIdx / (steps.length - 1)) * 100);
+
   return (
     <div className="w-full py-4 px-6">
+      {/* 顶部进度条 */}
+      <div className="w-full max-w-md mx-auto mb-3">
+        <div className="h-1 bg-muted rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-primary to-emerald-400 rounded-full transition-spring-slow"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+      </div>
       <div className="flex items-center justify-center space-x-2">
         {steps.map((s, i) => {
           const isActive = step === s.key;
-          const isCompleted = steps.findIndex((x) => x.key === step) > i;
+          const isCompleted = currentIdx > i;
           const canClick = canNavigateTo(s.key);
 
           return (
             <div key={s.key} className="flex items-center">
               <button
                 onClick={() => canClick && setStep(s.key)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-spring ${
                   isActive
-                    ? 'bg-gradient-to-r from-primary to-emerald-500 text-white shadow-md shadow-primary/20'
+                    ? 'bg-gradient-to-r from-primary to-emerald-500 text-white shadow-lg shadow-primary/25 scale-[1.03]'
                     : isCompleted
-                    ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/15'
+                    ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/15 hover:scale-[1.02]'
                     : canClick
-                    ? 'bg-background text-muted-foreground border border-border hover:bg-muted'
+                    ? 'bg-background text-muted-foreground border border-border hover:bg-muted hover:scale-[1.02]'
                     : 'bg-background text-muted-foreground/50 cursor-not-allowed border border-border'
                 }`}
                 disabled={!canClick}
@@ -59,7 +71,9 @@ export function StepIndicator() {
                 {s.label}
               </button>
               {i < steps.length - 1 && (
-                <div className={`w-8 h-0.5 mx-1 ${isCompleted ? 'bg-primary/40' : 'bg-muted'}`} />
+                <div className={`w-8 h-0.5 mx-1 rounded-full transition-spring-slow ${
+                  isCompleted ? 'bg-primary/50' : 'bg-muted'
+                }`} />
               )}
             </div>
           );

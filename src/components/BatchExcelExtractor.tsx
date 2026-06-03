@@ -480,7 +480,7 @@ export default function BatchExcelExtractor() {
             onDrop={e => handleFileDrop(e, handleSampleUpload)}
             onDragOver={e => e.preventDefault()}
           >
-            <Upload className="w-8 h-8 text-muted-foreground/60 mx-auto mb-2" />
+            <Upload className="w-8 h-8 text-muted-foreground/60 mx-auto mb-2 animate-float" />
             <p className="text-sm text-muted-foreground">拖拽或点击上传<strong className="text-primary">Excel 样本</strong></p>
             <p className="text-xs text-muted-foreground mt-1">支持 .xlsx / .xls 格式</p>
           </div>

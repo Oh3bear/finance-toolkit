@@ -114,7 +114,7 @@ function DropZone({
       onClick={() => inputRef.current?.click()}
     >
       <input ref={inputRef} type="file" accept={accept} onChange={handleChange} className="hidden" />
-      <Upload className="w-8 h-8 mx-auto text-muted-foreground/50 mb-2" />
+      <Upload className="w-8 h-8 mx-auto text-muted-foreground/50 mb-2 animate-float" />
       <p className="text-sm font-medium text-muted-foreground">{label}</p>
       <p className="text-xs text-muted-foreground/60 mt-1">{hint}</p>
     </div>

@@ -2,6 +2,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useRef, useLayoutEffect } from 'react';
 import {
   FileSpreadsheet,
   FileText,
@@ -93,24 +94,86 @@ interface SidebarProps {
 
 export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse, sidebarGradient }: SidebarProps) {
   const categories = [...new Set(tools.map((t) => t.category))];
+  const listRef = useRef<HTMLDivElement>(null);
+  const indicatorRef = useRef<HTMLDivElement>(null);
+
+  // 根据活跃按钮的实际 DOM 位置来定位滑动指示器
+  useLayoutEffect(() => {
+    if (collapsed || !listRef.current || !indicatorRef.current) {
+      if (indicatorRef.current) indicatorRef.current.style.opacity = '0';
+      return;
+    }
+    const btn = listRef.current.querySelector<HTMLButtonElement>(`[data-tool-id="${currentTool}"]`);
+    if (!btn) return;
+    const top = btn.offsetTop;
+    const height = btn.offsetHeight;
+    indicatorRef.current.style.top = `${top + (height - 36) / 2}px`;
+    indicatorRef.current.style.height = `${Math.min(height, 36)}px`;
+    indicatorRef.current.style.opacity = '1';
+  }, [currentTool, collapsed]);
 
   return (
     <aside
       className={cn(
-        'h-screen border-r border-border flex flex-col transition-all duration-200 shrink-0 hidden md:flex',
+        'h-screen border-r border-border flex flex-col transition-all duration-200 shrink-0 hidden md:flex relative overflow-hidden',
         collapsed ? 'w-16' : 'w-64'
       )}
       style={sidebarGradient ? { backgroundImage: sidebarGradient } : undefined}
       role="navigation"
       aria-label="工具导航"
     >
-      {/* Logo */}
-      <div className="flex items-center justify-between px-3 h-14 border-b border-border/60">
+      {/* 背景氛围光晕 — 纯 inline style 动画，不经过 Tailwind */}
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        {/* 主光球 — 翡翠色 */}
+        <div
+          className="absolute rounded-full"
+          style={{
+            top: -40, left: -40,
+            width: 200, height: 200,
+            background: 'radial-gradient(circle, rgba(52,211,153,0.4) 0%, rgba(52,211,153,0) 70%)',
+            animation: 'ftk-orb1 10s ease-in-out infinite',
+            willChange: 'transform, opacity',
+          }}
+        />
+        {/* 副光球 — 青色调 */}
+        <div
+          className="absolute rounded-full"
+          style={{
+            bottom: -50, right: -50,
+            width: 240, height: 240,
+            background: 'radial-gradient(circle, rgba(94,234,212,0.35) 0%, rgba(94,234,212,0) 70%)',
+            animation: 'ftk-orb2 14s ease-in-out infinite',
+            willChange: 'transform, opacity',
+          }}
+        />
+      </div>
+
+      {/* Logo — 原生 SVG，不使用 dangerouslySetInnerHTML */}
+      <div className="relative flex items-center justify-between px-3 h-14 border-b border-border/60">
         {!collapsed && (
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shrink-0 shadow-md shadow-emerald-200">
-              <span className="text-white text-xs font-bold">工</span>
-            </div>
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 32 32"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="shrink-0 animate-logo-breathe"
+              aria-hidden="true"
+            >
+              <defs>
+                <linearGradient id="ftk-logo-grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="#34d399" />
+                  <stop offset="100%" stopColor="#0d9488" />
+                </linearGradient>
+              </defs>
+              <rect width="32" height="32" rx="8" fill="url(#ftk-logo-grad)" />
+              <rect x="8" y="17" width="3.5" height="7" rx="1" fill="white" fillOpacity="0.6" />
+              <rect x="14" y="13" width="3.5" height="11" rx="1" fill="white" fillOpacity="0.8" />
+              <rect x="20" y="8" width="3.5" height="16" rx="1" fill="white" />
+              <path d="M9.75 15 L22 7" stroke="white" strokeOpacity="0.35" strokeWidth="1.5" strokeLinecap="round" />
+              <circle cx="22" cy="7" r="1.5" fill="white" fillOpacity="0.5" />
+            </svg>
             <h1 className="text-sm font-semibold text-foreground leading-tight">财务工具集</h1>
           </div>
         )}
@@ -127,97 +190,115 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
 
       {/* 工具列表 */}
       <ScrollArea className="flex-1 py-2">
-        <TooltipProvider delayDuration={100}>
-          {categories.map((cat) => (
-            <div key={cat} className="mb-2">
-              {!collapsed && (
-                <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  {cat}
-                </div>
-              )}
-              {tools
-                .filter((t) => t.category === cat)
-                .map((tool) => {
-                  const isActive = currentTool === tool.id;
-                  const Icon = tool.icon;
-                  return collapsed ? (
-                    <Tooltip key={tool.id}>
-                      <TooltipTrigger asChild>
-                        <button
-                          onClick={() => onSelectTool(tool.id)}
-                          aria-label={tool.name}
-                          aria-current={isActive ? 'page' : undefined}
-                          className={cn(
-                            'w-full flex items-center justify-center py-2.5 px-2 transition-colors',
-                            isActive
-                              ? 'bg-gradient-to-r from-primary/15 to-accent text-primary border-r-2 border-primary'
-                              : 'text-muted-foreground hover:bg-primary/8 hover:text-foreground'
-                          )}
-                        >
-                          <Icon className="w-5 h-5" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="right">{tool.name}</TooltipContent>
-                    </Tooltip>
-                  ) : (
-                    <button
-                      key={tool.id}
-                      onClick={() => onSelectTool(tool.id)}
-                      aria-current={isActive ? 'page' : undefined}
-                      className={cn(
-                        'w-full flex items-start gap-3 px-3 py-2 text-sm transition-colors text-left',
-                        isActive
-                          ? 'bg-gradient-to-r from-primary/15 to-accent/60 text-primary border-r-2 border-primary'
-                          : 'text-muted-foreground hover:bg-primary/8 hover:text-foreground'
-                      )}
-                    >
-                      <Icon className="w-4 h-4 shrink-0 mt-0.5" />
-                      <div className="min-w-0 leading-snug">
-                        <div className="font-medium">{tool.name}</div>
-                        <div className="text-xs text-muted-foreground/70 mt-0.5 break-words">{tool.description}</div>
-                      </div>
-                    </button>
-                  );
-                })}
-            </div>
-          ))}
-
-          {/* 预留工具 */}
+        <div ref={listRef} className="relative">
+          {/* 滑动活跃指示器（仅展开模式） */}
           {!collapsed && (
-            <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider mt-2">
-              即将上线
-            </div>
+            <div
+              ref={indicatorRef}
+              className="absolute left-0 w-[3px] rounded-r-full bg-primary shadow-sm shadow-primary/50 pointer-events-none"
+              style={{
+                top: 0,
+                height: '36px',
+                opacity: 0,
+                transition: 'top 500ms cubic-bezier(0.22,1,0.36,1), height 500ms cubic-bezier(0.22,1,0.36,1), opacity 300ms ease',
+              }}
+              aria-hidden="true"
+            />
           )}
-          {reservedTools.map((tool) => {
-            const Icon = tool.icon;
-            return collapsed ? (
-              <Tooltip key={tool.id}>
-                <TooltipTrigger asChild>
-                  <button
-                    disabled
-                    aria-label={`${tool.name}（即将上线）`}
-                    className="w-full flex items-center justify-center py-2.5 px-2 text-muted-foreground/40 cursor-not-allowed"
-                  >
-                    <Icon className="w-5 h-5" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="right">{tool.name}（即将上线）</TooltipContent>
-              </Tooltip>
-            ) : (
-              <button
-                key={tool.id}
-                disabled
-                className="w-full flex items-start gap-3 px-3 py-2 text-sm text-muted-foreground/40 cursor-not-allowed text-left"
-              >
-                <Icon className="w-4 h-4 shrink-0 mt-0.5" />
-                <div className="min-w-0 leading-snug">
-                  <div className="font-medium">{tool.name}</div>
-                  <div className="text-xs text-muted-foreground/40 mt-0.5 break-words">即将上线</div>
-                </div>
-              </button>
-            );
-          })}
-        </TooltipProvider>
+          <TooltipProvider delayDuration={100}>
+            {categories.map((cat) => (
+              <div key={cat} className="mb-2">
+                {!collapsed && (
+                  <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    {cat}
+                  </div>
+                )}
+                {tools
+                  .filter((t) => t.category === cat)
+                  .map((tool) => {
+                    const isActive = currentTool === tool.id;
+                    const Icon = tool.icon;
+                    return collapsed ? (
+                      <Tooltip key={tool.id}>
+                        <TooltipTrigger asChild>
+                          <button
+                            data-tool-id={tool.id}
+                            onClick={() => onSelectTool(tool.id)}
+                            aria-label={tool.name}
+                            aria-current={isActive ? 'page' : undefined}
+                            className={cn(
+                              'w-full flex items-center justify-center py-2.5 px-2 transition-colors btn-lift',
+                              isActive
+                                ? 'bg-gradient-to-r from-primary/15 to-accent text-primary border-r-2 border-primary'
+                                : 'text-muted-foreground hover:bg-primary/8 hover:text-foreground'
+                            )}
+                          >
+                            <Icon className="w-5 h-5" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">{tool.name}</TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <button
+                        key={tool.id}
+                        data-tool-id={tool.id}
+                        onClick={() => onSelectTool(tool.id)}
+                        aria-current={isActive ? 'page' : undefined}
+                        className={cn(
+                          'w-full flex items-start gap-3 px-3 py-2 text-sm transition-colors text-left btn-lift',
+                          isActive
+                            ? 'bg-gradient-to-r from-primary/15 to-accent/60 text-primary'
+                            : 'text-muted-foreground hover:bg-primary/8 hover:text-foreground'
+                        )}
+                      >
+                        <Icon className="w-4 h-4 shrink-0 mt-0.5" />
+                        <div className="min-w-0 leading-snug">
+                          <div className="font-medium">{tool.name}</div>
+                          <div className="text-xs text-muted-foreground/70 mt-0.5 break-words">{tool.description}</div>
+                        </div>
+                      </button>
+                    );
+                  })}
+              </div>
+            ))}
+
+            {/* 预留工具 */}
+            {!collapsed && (
+              <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider mt-2">
+                即将上线
+              </div>
+            )}
+            {reservedTools.map((tool) => {
+              const Icon = tool.icon;
+              return collapsed ? (
+                <Tooltip key={tool.id}>
+                  <TooltipTrigger asChild>
+                    <button
+                      disabled
+                      aria-label={`${tool.name}（即将上线）`}
+                      className="w-full flex items-center justify-center py-2.5 px-2 text-muted-foreground/40 cursor-not-allowed"
+                    >
+                      <Icon className="w-5 h-5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">{tool.name}（即将上线）</TooltipContent>
+                </Tooltip>
+              ) : (
+                <button
+                  key={tool.id}
+                  disabled
+                  className="w-full flex items-start gap-3 px-3 py-2 text-sm text-muted-foreground/40 cursor-not-allowed text-left"
+                >
+                  <Icon className="w-4 h-4 shrink-0 mt-0.5" />
+                  <div className="min-w-0 leading-snug">
+                    <div className="font-medium">{tool.name}</div>
+                    <div className="text-xs text-muted-foreground/40 mt-0.5 break-words">即将上线</div>
+                  </div>
+                </button>
+              );
+            })}
+          </TooltipProvider>
+        </div>
       </ScrollArea>
 
       {/* 底部版本号 */}

@@ -132,7 +132,7 @@ export function ImportPage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <Upload className="w-10 h-10 text-muted-foreground mx-auto" />
+                  <Upload className="w-10 h-10 text-muted-foreground mx-auto animate-float" />
                   <div>
                     <p className="text-muted-foreground">拖拽文件到此处，或</p>
                     <label className="text-primary hover:text-primary/80 cursor-pointer font-medium">
@@ -197,7 +197,7 @@ export function ImportPage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <Upload className="w-10 h-10 text-muted-foreground mx-auto" />
+                  <Upload className="w-10 h-10 text-muted-foreground mx-auto animate-float" />
                   <div>
                     <p className="text-muted-foreground">拖拽文件到此处，或</p>
                     <label className="text-primary hover:text-primary/80 cursor-pointer font-medium">

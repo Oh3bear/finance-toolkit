@@ -62,12 +62,14 @@ function IntercoReconcileTool({ g }: { g: typeof gradients.light }) {
       <div className="bg-card border-b border-border/60 sticky top-0 z-40" style={{ backgroundImage: g.stepHeader }}>
         <StepIndicator />
       </div>
-      {/* 主内容区 */}
+      {/* 主内容区 — 交错入场动画 */}
       <main className="pb-12">
+        <div className="animate-stagger-enter" style={{ animationDelay: '0.05s' }}>
         {step === '导入' && <ImportPage />}
         {step === '映射' && <MappingPage />}
         {step === '核对' && <ReconcilePage />}
         {step === '结果' && <ResultPage />}
+        </div>
       </main>
     </div>
   );
@@ -97,7 +99,7 @@ export default function App() {
         <header className="bg-card border-b border-border/60 shrink-0" style={{ backgroundImage: g.header }}>
           <div className="px-4 md:px-6 h-14 flex items-center justify-between gap-4">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-1 h-5 rounded-full bg-gradient-to-b from-emerald-500 to-teal-500 shrink-0" />
+              <div className="w-1 h-5 rounded-full bg-gradient-to-b from-emerald-500 to-teal-500 shrink-0 animate-spring-bounce" />
               <h2 className="text-sm font-semibold text-foreground truncate">
                 {currentToolConfig?.name || '工具'}
               </h2>
@@ -109,13 +111,13 @@ export default function App() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 w-7 p-0 hover:bg-primary/10"
+                className="btn-lift theme-spin-icon h-7 w-7 p-0 hover:bg-primary/10"
                 onClick={toggleTheme}
                 aria-label={theme === 'dark' ? '切换到亮色模式' : '切换到暗色模式'}
               >
                 {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </Button>
-              <span className="flex items-center gap-1.5 text-xs text-muted-foreground px-2.5 py-1 rounded-full bg-primary/8 border border-primary/20">
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground px-2.5 py-1 rounded-full bg-primary/8 border border-primary/20 transition-transform hover:scale-105 cursor-default">
                 <Shield className="w-3 h-3 text-primary shrink-0" />
                 数据本地处理
               </span>
