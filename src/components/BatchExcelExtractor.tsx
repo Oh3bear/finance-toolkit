@@ -477,20 +477,24 @@ export default function BatchExcelExtractor() {
           <p className="text-sm text-muted-foreground mt-2">支持 .xlsx / .xls 格式</p>
         </div>
       ) : (
-        <div className="flex items-center gap-3 p-4 bg-card rounded-lg border border-border">
-          <FileSpreadsheet className="w-8 h-8 text-primary shrink-0" />
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-semibold text-foreground truncate">{sampleFile.name}</div>
-            <div className="text-xs text-muted-foreground">{formatSize(sampleFile.size)} · {sheetNames.length} 个工作表</div>
+        <div className="flex items-center justify-between gap-3 p-4 bg-emerald-50/60 border border-emerald-200 rounded-xl dark:bg-emerald-950/20 dark:border-emerald-800/50">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg flex items-center justify-center shrink-0">
+              <FileSpreadsheet className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-foreground truncate">{sampleFile.name}</p>
+              <p className="text-xs text-muted-foreground">{formatSize(sampleFile.size)} · {sheetNames.length} 个工作表</p>
+            </div>
           </div>
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="sm" className="h-7 text-xs"
               onClick={() => { sampleInputRef.current?.click(); }}>
               更换样本
             </Button>
-            <Button variant="ghost" size="sm" className="h-7 text-xs text-red-500"
+            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0 text-muted-foreground hover:text-destructive"
               onClick={() => { setSampleFile(null); setSampleSheets(new Map()); setSheetNames([]); setActiveSheet(''); setRules([]); setResults([]); }}>
-              清除
+              <Trash2 className="w-4 h-4" />
             </Button>
           </div>
         </div>
@@ -1003,39 +1007,62 @@ export default function BatchExcelExtractor() {
       {/* 主内容 */}
       <main className="max-w-6xl mx-auto px-4 py-6 pb-12">
         {step === 'upload' && (
-          <div className="flex flex-col items-center justify-center py-12">
-            {renderSampleUpload()}
-            <div className="mt-8 grid grid-cols-3 gap-4 max-w-lg">
-              <div className="text-center p-4 bg-card rounded-xl border border-border">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary to-emerald-400 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold shadow-sm">1</div>
-                <p className="text-sm text-foreground font-medium">上传样本 Excel</p>
-                <p className="text-xs text-muted-foreground mt-0.5">选择一个样本文件</p>
+          <div className="max-w-3xl mx-auto">
+            <div className="bg-card rounded-2xl border border-border p-6 space-y-6">
+              <div>
+                <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                  <Upload className="w-5 h-5 text-emerald-500" />
+                  上传样本
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  请上传一个Excel样本文件，用于配置提取规则。支持 .xlsx / .xls 格式。
+                </p>
               </div>
-              <div className="text-center p-4 bg-card rounded-xl border border-border">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary to-emerald-400 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold shadow-sm">2</div>
-                <p className="text-sm text-foreground font-medium">配置提取规则</p>
-                <p className="text-xs text-muted-foreground mt-0.5">设置锚点与偏移量</p>
-              </div>
-              <div className="text-center p-4 bg-card rounded-xl border border-border">
-                <div className="w-8 h-8 bg-gradient-to-br from-muted to-muted-foreground/20 text-muted-foreground rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold">3</div>
-                <p className="text-sm text-foreground font-medium">批量处理导出</p>
-                <p className="text-xs text-muted-foreground mt-0.5">自动下载处理结果</p>
-              </div>
+              {renderSampleUpload()}
+              {sampleFile && (
+                <div className="flex justify-end">
+                  <Button onClick={() => setStep('config')} className="gap-1.5">
+                    下一步：配置规则 <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}
 
         {step === 'config' && sampleFile && (
           <div className="space-y-4">
-            {/* Sheet Tabs */}
-            {renderSheetTabs()}
+            <div className="bg-card rounded-2xl border border-border p-6 space-y-6">
+              <div>
+                <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                  <Settings2 className="w-5 h-5 text-emerald-500" />
+                  配置提取规则
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  在预览表中点击单元格设定锚点，或使用关键词定位行列交叉点，然后添加提取规则。
+                </p>
+              </div>
+              {/* Sheet Tabs */}
+              {renderSheetTabs()}
 
-            {/* Main content: Preview + Config */}
-            <div className="flex flex-col lg:flex-row gap-4">
-              <div className="flex-1 min-w-0">{renderPreview()}</div>
-              <div className="w-full lg:w-72 shrink-0 space-y-4">
-                {renderConfig()}
-                {renderRulesList()}
+              {/* Main content: Preview + Config */}
+              <div className="flex flex-col lg:flex-row gap-4">
+                <div className="flex-1 min-w-0">{renderPreview()}</div>
+                <div className="w-full lg:w-72 shrink-0 space-y-4">
+                  {renderConfig()}
+                  {renderRulesList()}
+                </div>
+              </div>
+
+              <div className="flex justify-between pt-2 border-t border-border/60">
+                <Button variant="outline" onClick={() => setStep('upload')} className="gap-1.5">
+                  <ArrowRight className="w-4 h-4 rotate-180" /> 返回
+                </Button>
+                {rules.length > 0 && (
+                  <Button onClick={() => setStep('batch')} className="gap-1.5">
+                    下一步：批量提取 <ArrowRight className="w-4 h-4" />
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -1043,9 +1070,24 @@ export default function BatchExcelExtractor() {
 
         {step === 'batch' && sampleFile && (
           <div className="space-y-4">
-            {/* Batch + Results */}
-            {renderBatchSection()}
-            {renderResults()}
+            <div className="bg-card rounded-2xl border border-border p-6 space-y-6">
+              <div>
+                <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                  <Download className="w-5 h-5 text-emerald-500" />
+                  批量处理
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  上传待处理的Excel文件，系统将按已配置的规则批量提取数据。
+                </p>
+              </div>
+              {renderBatchSection()}
+              {renderResults()}
+              <div className="flex justify-start pt-2 border-t border-border/60">
+                <Button variant="outline" onClick={() => setStep('config')} className="gap-1.5">
+                  <ArrowRight className="w-4 h-4 rotate-180" /> 返回
+                </Button>
+              </div>
+            </div>
           </div>
         )}
       </main>
