@@ -155,10 +155,10 @@ export default function BankUploadStep({ type, onConfirm }: Props) {
       {/* 上传区域 */}
       {state === 'upload' && (
         <div
-          className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-colors ${
+          className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all duration-300 ${
             dragover
               ? 'border-primary/50 bg-primary/5'
-              : 'border-border hover:border-primary/50 hover:bg-background'
+              : 'border-border hover:border-primary/50 hover:bg-primary/5'
           }`}
           onClick={() => inputRef.current?.click()}
           onDragOver={(e) => { e.preventDefault(); setDragover(true); }}

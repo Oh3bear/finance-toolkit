@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>像素小恐龙 - 动画演示</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f0f4f2;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 40px 20px;
+  }
+  h1 { font-size: 22px; color: #0f3d2e; margin-bottom: 8px; }
+  .subtitle { color: #5a7a6e; font-size: 13px; margin-bottom: 40px; }
+
+  /* ===== 像素恐龙容器 ===== */
+  .dino-scene {
+    position: relative;
+    width: 400px; height: 260px;
+    background: linear-gradient(180deg, #e8f4f8 0%, #f0f8f5 60%, #f8f5e8 100%);
+    border-radius: 16px;
+    border: 2px solid #d0ddd7;
+    overflow: hidden;
+    margin-bottom: 30px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .dino-scene::before {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0; height: 50px;
+    background: #e0eae5;
+    border-top: 3px dashed #c0d5cc;
+  }
+
+  /* 云朵 */
+  .cloud {
+    position: absolute;
+    background: #fff;
+    border-radius: 2px;
+    opacity: 0.7;
+  }
+  .cloud1 { width: 40px; height: 16px; top: 30px; left: 60px; animation: cloudMove 12s linear infinite; }
+  .cloud2 { width: 28px; height: 12px; top: 50px; left: 280px; animation: cloudMove 16s linear infinite; }
+  .cloud3 { width: 20px; height: 10px; top: 25px; left: 200px; animation: cloudMove 20s linear infinite; }
+
+  @keyframes cloudMove {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(420px); }
+  }
+
+  /* ===== 像素恐龙（纯 CSS box-shadow 绘制） ===== */
+  .dino-wrapper {
+    position: absolute;
+    bottom: 42px; left: 50%;
+    transform: translateX(-50%);
+    animation: dinoBreathe 2.5s ease-in-out infinite;
+  }
+
+  /* 恐龙身体 - 用 6x6px 的像素格 */
+  .dino {
+    position: relative;
+    width: 6px; height: 6px;
+    background: transparent;
+    box-shadow:
+      /* 尾巴 */
+      -30px 18px #1a9e75,
+      -24px 18px #1a9e75,
+      -18px 12px #1a9e75,
+      /* 后腿 */
+      -6px 36px #0d6b4d,
+      0px 36px #0d6b4d,
+      /* 身体主体 - 翡翠绿 */
+      -12px 6px #1a9e75,
+      -6px 6px #1a9e75,
+      0px 6px #1a9e75,
+      6px 6px #1a9e75,
+      12px 6px #1a9e75,
+      -18px 12px #1a9e75,
+      -12px 12px #1a9e75,
+      -6px 12px #1a9e75,
+      0px 12px #1a9e75,
+      6px 12px #1a9e75,
+      12px 12px #1a9e75,
+      18px 12px #1a9e75,
+      -18px 18px #1a9e75,
+      -12px 18px #1a9e75,
+      -6px 18px #1a9e75,
+      0px 18px #1a9e75,
+      6px 18px #1a9e75,
+      12px 18px #1a9e75,
+      18px 18px #1a9e75,
+      24px 18px #1a9e75,
+      -12px 24px #1a9e75,
+      -6px 24px #1a9e75,
+      0px 24px #1a9e75,
+      6px 24px #1a9e75,
+      12px 24px #1a9e75,
+      18px 24px #1a9e75,
+      24px 24px #1a9e75,
+      30px 24px #1a9e75,
+      -6px 30px #1a9e75,
+      0px 30px #1a9e75,
+      6px 30px #1a9e75,
+      12px 30px #1a9e75,
+      18px 30px #1a9e75,
+      24px 30px #1a9e75,
+      30px 30px #1a9e75,
+      /* 肚子 - 浅色 */
+      0px 24px #5dcaa5,
+      6px 24px #5dcaa5,
+      12px 24px #5dcaa5,
+      18px 24px #5dcaa5,
+      0px 18px #5dcaa5,
+      6px 18px #5dcaa5,
+      12px 18px #5dcaa5,
+      /* 背部棘刺 - 琥珀黄 */
+      -6px 0px #ba7517,
+      0px 0px #ba7517,
+      6px 0px #ba7517,
+      12px 0px #ba7517,
+      /* 头部 */
+      24px 6px #1a9e75,
+      30px 6px #1a9e75,
+      36px 6px #1a9e75,
+      42px 6px #1a9e75,
+      24px 12px #1a9e75,
+      30px 12px #1a9e75,
+      36px 12px #1a9e75,
+      42px 12px #1a9e75,
+      48px 12px #1a9e75,
+      30px 18px #1a9e75,
+      36px 18px #1a9e75,
+      42px 18px #1a9e75,
+      48px 18px #1a9e75,
+      54px 18px #1a9e75,
+      /* 眼睛 - 白色底 */
+      36px 6px #fff,
+      /* 眼睛 - 黑色眼珠 */
+      42px 6px #1a2e25,
+      /* 嘴巴 - 微笑 */
+      48px 12px #0d6b4d,
+      54px 12px #0d6b4d,
+      /* 前腿 */
+      18px 36px #0d6b4d,
+      24px 36px #0d6b4d,
+      /* 前手 - 小 */
+      30px 30px #1a9e75,
+      36px 30px #1a9e75;
+  }
+
+  /* 眨眼动画层 */
+  .dino::after {
+    content: '';
+    position: absolute;
+    width: 6px; height: 6px;
+    left: 42px; top: 6px;
+    background: #1a9e75;
+    animation: blink 4s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 45%, 55%, 100% { opacity: 0; }
+    50% { opacity: 1; }
+  }
+
+  @keyframes dinoBreathe {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-3px); }
+  }
+
+  /* 跳跃状态 */
+  .dino-scene.jumping .dino-wrapper {
+    animation: dinoJump 0.6s ease-out;
+  }
+  @keyframes dinoJump {
+    0% { transform: translateX(-50%) translateY(0) scale(1); }
+    40% { transform: translateX(-50%) translateY(-50px) scale(1.05); }
+    100% { transform: translateX(-50%) translateY(0) scale(1); }
+  }
+
+  /* 走路状态 */
+  .dino-scene.walking .dino-wrapper {
+    animation: dinoWalk 0.8s ease-in-out infinite;
+  }
+  @keyframes dinoWalk {
+    0%, 100% { transform: translateX(-50%) translateY(0) rotate(0deg); }
+    25% { transform: translateX(calc(-50% + 4px)) translateY(-2px) rotate(1deg); }
+    50% { transform: translateX(-50%) translateY(0) rotate(0deg); }
+    75% { transform: translateX(calc(-50% - 4px)) translateY(-2px) rotate(-1deg); }
+  }
+
+  /* 尾巴摆动 */
+  .dino-scene.walking .dino {
+    animation: tailWag 0.8s ease-in-out infinite;
+  }
+  @keyframes tailWag {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(-3deg); }
+  }
+
+  /* 对话框 */
+  .speech-bubble {
+    position: absolute;
+    top: 20px; right: 30px;
+    background: #fff;
+    border: 2px solid #1a9e75;
+    border-radius: 12px;
+    padding: 8px 14px;
+    font-size: 12px;
+    color: #0f3d2e;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+    pointer-events: none;
+  }
+  .speech-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -8px; left: 20px;
+    width: 0; height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid #1a9e75;
+  }
+  .speech-bubble.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ===== 控制面板 ===== */
+  .controls {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 30px;
+  }
+  .btn {
+    padding: 10px 20px;
+    border: none; border-radius: 8px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+  }
+  .btn-green { background: #1a9e75; color: #fff; }
+  .btn-green:hover { background: #0d6b4d; }
+  .btn-blue { background: #378add; color: #fff; }
+  .btn-blue:hover { background: #185fa5; }
+  .btn-amber { background: #ba7517; color: #fff; }
+  .btn-amber:hover { background: #854f0b; }
+  .btn-outline {
+    background: #fff; color: #1a9e75;
+    border: 1.5px solid #1a9e75;
+  }
+  .btn-outline:hover { background: #eaf3de; }
+
+  /* ===== 说明卡片 ===== */
+  .info-cards {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px; max-width: 700px; width: 100%;
+  }
+  .info-card {
+    background: #fff; border-radius: 12px;
+    padding: 16px 20px;
+    border: 1px solid #e0eae5;
+  }
+  .info-card h4 {
+    font-size: 13px; font-weight: 600; color: #1a4d3a;
+    margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+  }
+  .info-card p { font-size: 12px; color: #5a7a6e; line-height: 1.6; }
+  .pixel-dot {
+    width: 8px; height: 8px;
+    background: #1a9e75; border-radius: 1px;
+  }
+
+  /* 响应式 */
+  @media (max-width: 480px) {
+    .dino-scene { width: 100%; max-width: 360px; height: 220px; }
+  }
+</style>
+</head>
+<body>
+  <h1>像素小恐龙</h1>
+  <p class="subtitle">点击恐龙或按钮与它互动</p>
+
+  <div class="dino-scene" id="dinoScene">
+    <div class="cloud cloud1"></div>
+    <div class="cloud cloud2"></div>
+    <div class="cloud cloud3"></div>
+    <div class="dino-wrapper">
+      <div class="dino"></div>
+    </div>
+    <div class="speech-bubble" id="bubble">对账完成！</div>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-green" onclick="setMode('idle')">待机</button>
+    <button class="btn btn-blue" onclick="setMode('walk')">走路</button>
+    <button class="btn btn-amber" onclick="jump()">跳跃</button>
+    <button class="btn btn-outline" onclick="sayHello()">打招呼</button>
+  </div>
+
+  <div class="info-cards">
+    <div class="info-card">
+      <h4><div class="pixel-dot" style="background:#1a9e75"></div> 纯 CSS 绘制</h4>
+      <p>使用 CSS box-shadow 像素画技术，每个像素 6x6px，不依赖任何图片资源，体积小、加载快。</p>
+    </div>
+    <div class="info-card">
+      <h4><div class="pixel-dot" style="background:#378add"></div> 多种动画状态</h4>
+      <p>待机（呼吸浮动）、走路（身体摇摆+尾巴摆动）、跳跃、眨眼，全部用 CSS keyframes 实现。</p>
+    </div>
+    <div class="info-card">
+      <h4><div class="pixel-dot" style="background:#ba7517"></div> 可交互</h4>
+      <p>点击恐龙或按钮触发不同动作，可集成到页面的任何位置（侧边栏底部、加载状态、空状态等）。</p>
+    </div>
+  </div>
+
+<script>
+  const scene = document.getElementById('dinoScene');
+  const bubble = document.getElementById('bubble');
+  const messages = [
+    '对账完成！', '让我看看...', '数据没问题！',
+    '冲销匹配成功', 'M:N 合并搞定', '休息一下~',
+    '加油对账！', '完全对符！', '发现问题！'
+  ];
+
+  function setMode(mode) {
+    scene.classList.remove('walking', 'jumping');
+    if (mode === 'walk') {
+      scene.classList.add('walking');
+    }
+  }
+
+  function jump() {
+    scene.classList.remove('walking');
+    scene.classList.add('jumping');
+    setTimeout(() => scene.classList.remove('jumping'), 600);
+  }
+
+  function sayHello() {
+    const msg = messages[Math.floor(Math.random() * messages.length)];
+    bubble.textContent = msg;
+    bubble.classList.add('show');
+    setTimeout(() => bubble.classList.remove('show'), 2000);
+  }
+
+  scene.addEventListener('click', () => {
+    if (scene.classList.contains('walking')) {
+      jump();
+    } else {
+      sayHello();
+    }
+  });
+
+  // 默认待机模式
+  setMode('idle');
+</script>
+</body>
+</html>

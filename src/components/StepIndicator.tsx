@@ -54,14 +54,14 @@ export function StepIndicator() {
             <div key={s.key} className="flex items-center">
               <button
                 onClick={() => canClick && setStep(s.key)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-spring ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                   isActive
-                    ? 'bg-gradient-to-r from-primary to-emerald-500 text-white shadow-lg shadow-primary/25 scale-[1.03]'
+                    ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/25 scale-[1.03]'
                     : isCompleted
-                    ? 'bg-primary/10 text-primary border border-primary/30 hover:bg-primary/15 hover:scale-[1.02]'
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100 hover:scale-[1.02]'
                     : canClick
-                    ? 'bg-background text-muted-foreground border border-border hover:bg-muted hover:scale-[1.02]'
-                    : 'bg-background text-muted-foreground/50 cursor-not-allowed border border-border'
+                    ? 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-200 hover:scale-[1.02]'
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
                 }`}
                 disabled={!canClick}
               >
@@ -71,8 +71,8 @@ export function StepIndicator() {
                 {s.label}
               </button>
               {i < steps.length - 1 && (
-                <div className={`w-8 h-0.5 mx-1 rounded-full transition-spring-slow ${
-                  isCompleted ? 'bg-primary/50' : 'bg-muted'
+                <div className={`w-8 h-0.5 mx-1 rounded-full transition-all ${
+                  isCompleted ? 'bg-emerald-300' : 'bg-gray-200'
                 }`} />
               )}
             </div>

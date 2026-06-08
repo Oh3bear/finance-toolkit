@@ -103,10 +103,10 @@ function DropZone({
 
   return (
     <div
-      className={`relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-200 ${
+      className={`relative border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all duration-300 ${
         dragging
-          ? 'border-emerald-400 bg-emerald-50/80 dark:bg-emerald-950/30'
-          : 'border-muted-foreground/25 hover:border-emerald-300 hover:bg-emerald-50/30 dark:hover:bg-emerald-950/10'
+          ? 'border-primary/50 bg-primary/5'
+          : 'border-border hover:border-primary/50 hover:bg-primary/5'
       }`}
       onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
       onDragLeave={() => setDragging(false)}
@@ -114,9 +114,9 @@ function DropZone({
       onClick={() => inputRef.current?.click()}
     >
       <input ref={inputRef} type="file" accept={accept} onChange={handleChange} className="hidden" />
-      <Upload className="w-8 h-8 mx-auto text-muted-foreground/50 mb-2 animate-float" />
-      <p className="text-sm font-medium text-muted-foreground">{label}</p>
-      <p className="text-xs text-muted-foreground/60 mt-1">{hint}</p>
+      <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground animate-float" />
+      <p className="text-base text-foreground font-medium">{label}</p>
+      <p className="text-sm text-muted-foreground mt-2">{hint}</p>
     </div>
   );
 }
@@ -481,26 +481,26 @@ export default function PivotReconcileTool() {
   const stepIndex = STEPS.findIndex((s) => s.id === step);
 
   const renderStepIndicator = () => (
-    <div className="flex items-center gap-1 sm:gap-2 mb-6 overflow-x-auto pb-1">
+    <div className="flex items-center justify-center gap-1 sm:gap-2 overflow-x-auto pb-1">
       {STEPS.map((s, i) => {
         const isActive = i === stepIndex;
         const isDone = i < stepIndex;
         return (
           <div key={s.id} className="flex items-center gap-1 shrink-0">
             <div
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
                 isActive
-                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300 shadow-sm'
+                  ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/25 scale-[1.03]'
                   : isDone
-                  ? 'bg-emerald-50 text-emerald-600/70 dark:bg-emerald-950/30 dark:text-emerald-400/70'
-                  : 'bg-muted text-muted-foreground/50'
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
+                  : 'bg-gray-100 text-gray-400 border border-gray-200'
               }`}
             >
               {isDone ? <CheckCircle2 className="w-3.5 h-3.5" /> : s.icon}
               <span className="hidden sm:inline">{s.label}</span>
             </div>
             {i < STEPS.length - 1 && (
-              <ArrowRight className={`w-3 h-3 shrink-0 ${i < stepIndex ? 'text-emerald-400' : 'text-muted-foreground/30'}`} />
+              <ArrowRight className={`w-3 h-3 shrink-0 ${i < stepIndex ? 'text-emerald-400' : 'text-gray-300'}`} />
             )}
           </div>
         );
@@ -1081,16 +1081,22 @@ export default function PivotReconcileTool() {
   // ============ 主渲染 ============
   return (
     <div className="min-h-full bg-background">
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        {renderStepIndicator()}
+      {/* 步骤导航 — sticky 顶部 */}
+      <div className="bg-card border-b border-border/60 sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto px-4 py-3">
+          {renderStepIndicator()}
+        </div>
+      </div>
 
+      {/* 主内容 */}
+      <main className="max-w-6xl mx-auto px-4 py-6 pb-12">
         {step === 'upload-pivot' && renderUploadPivot()}
         {step === 'config-pivot' && renderConfigPivot()}
         {step === 'upload-flat' && renderUploadFlat()}
         {step === 'config-flat' && renderConfigFlat()}
         {step === 'reconcile' && renderReconcile()}
         {step === 'result' && renderResult()}
-      </div>
+      </main>
     </div>
   );
 }

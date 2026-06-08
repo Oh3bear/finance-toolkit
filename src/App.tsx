@@ -18,16 +18,16 @@ import { Button } from '@/components/ui/button';
 // 渐变值（JS 常量，100% 进 JS bundle，不依赖 CSS 产物）
 const gradients = {
   light: {
-    sidebar: 'linear-gradient(to bottom, hsl(152,40%,95%), hsl(152,35%,96%) 50%, hsl(174,30%,95%))',
-    header: 'linear-gradient(to right, hsla(161,94%,30%,0.05), white 40%, hsla(174,60%,90%,0.3))',
-    stepHeader: 'linear-gradient(to right, hsla(161,94%,30%,0.04), white 50%, hsla(174,60%,90%,0.2))',
-    footer: 'linear-gradient(to right, hsla(161,94%,30%,0.04), hsla(174,60%,90%,0.15))',
+    sidebar: 'linear-gradient(to bottom, hsl(210,40%,96%), hsl(152,35%,96%) 50%, hsl(40,60%,96%))',
+    header: 'linear-gradient(to right, hsla(210,70%,55%,0.06), white 40%, hsla(40,60%,90%,0.2))',
+    stepHeader: 'linear-gradient(to right, hsla(210,70%,55%,0.04), white 50%, hsla(40,60%,90%,0.15))',
+    footer: 'linear-gradient(to right, hsla(210,70%,55%,0.04), hsla(40,60%,90%,0.1))',
   },
   dark: {
-    sidebar: 'linear-gradient(to bottom, hsl(160,18%,9%), hsl(160,15%,12%) 50%, hsl(174,15%,10%))',
-    header: 'linear-gradient(to right, hsla(160,70%,48%,0.08), hsl(160,15%,10%) 40%, hsla(174,20%,18%,0.15))',
-    stepHeader: 'linear-gradient(to right, hsla(160,70%,48%,0.06), hsl(160,15%,10%) 50%, hsla(174,20%,18%,0.1))',
-    footer: 'linear-gradient(to right, hsla(160,70%,48%,0.04), hsla(174,20%,18%,0.1))',
+    sidebar: 'linear-gradient(to bottom, hsl(210,20%,10%), hsl(160,15%,12%) 50%, hsl(40,15%,10%))',
+    header: 'linear-gradient(to right, hsla(210,70%,48%,0.08), hsl(160,15%,10%) 40%, hsla(40,20%,18%,0.1))',
+    stepHeader: 'linear-gradient(to right, hsla(210,70%,48%,0.06), hsl(160,15%,10%) 50%, hsla(40,20%,18%,0.08))',
+    footer: 'linear-gradient(to right, hsla(210,70%,48%,0.04), hsla(40,20%,18%,0.06))',
   },
 };
 
@@ -90,7 +90,6 @@ export default function App() {
         onSelectTool={setCurrentTool}
         collapsed={sidebarCollapsed}
         onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
-        sidebarGradient={g.sidebar}
       />
 
       {/* 主内容区 */}

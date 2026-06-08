@@ -171,7 +171,7 @@ export default function PdfTwoToOneTool({ sidebarCollapsed = false }: { sidebarC
   }, [files, layout, showToast]);
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8 space-y-6 pb-24">
+    <div className="max-w-6xl mx-auto px-6 py-8 space-y-6 pb-24">
       {/* 上传区域 */}
       <div
         onClick={() => fileInputRef.current?.click()}

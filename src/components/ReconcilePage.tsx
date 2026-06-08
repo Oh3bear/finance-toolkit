@@ -54,7 +54,7 @@ export function ReconcilePage() {
   }, [rawData, subjectMappings, entityMappings]);
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-8">
+    <div className="max-w-6xl mx-auto px-6 py-8">
       <h1 className="text-2xl font-bold text-foreground mb-2">执行核对</h1>
       <p className="text-muted-foreground mb-6">
         系统将自动完成：数据清洗 → 映射过滤 → 利润中心配对分组 → 零值核对 → M:N 明细核对

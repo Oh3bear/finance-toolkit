@@ -2,7 +2,6 @@ import { useState, useRef, useCallback, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import { fmtExportDate, formatDateCell as formatCellValue } from '../utils/dateUtils';
 import { colLabel, formatSize } from '../utils/shared';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -23,6 +22,8 @@ import {
   Play,
   Search,
   Target,
+  Settings2,
+  CheckCircle2,
 } from 'lucide-react';
 
 // ============ Helpers ============
@@ -63,9 +64,19 @@ interface ExtractionResult {
   error?: string;
 }
 
+type ExtractStep = 'upload' | 'config' | 'batch';
+
+const EXTRACT_STEPS: { id: ExtractStep; label: string; icon: React.ReactNode }[] = [
+  { id: 'upload', label: '上传样本', icon: <Upload className="w-4 h-4" /> },
+  { id: 'config', label: '配置规则', icon: <Settings2 className="w-4 h-4" /> },
+  { id: 'batch', label: '批量提取', icon: <Download className="w-4 h-4" /> },
+];
+
 // ============ Component ============
 
 export default function BatchExcelExtractor() {
+  const [step, setStep] = useState<ExtractStep>('upload');
+
   // --- Sample upload state ---
   const [sampleFile, setSampleFile] = useState<File | null>(null);
   const [sampleSheets, setSampleSheets] = useState<Map<string, string[][]>>(new Map());
@@ -453,47 +464,45 @@ export default function BatchExcelExtractor() {
   // ============ Render Helpers ============
 
   const renderSampleUpload = () => (
-    <Card className="mx-6 mt-6">
-      <CardContent className="p-3">
-        {sampleFile ? (
-          <div className="flex items-center gap-3">
-            <FileSpreadsheet className="w-8 h-8 text-primary shrink-0" />
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold text-foreground truncate">{sampleFile.name}</div>
-              <div className="text-xs text-muted-foreground">{formatSize(sampleFile.size)} · {sheetNames.length} 个工作表</div>
-            </div>
-            <div className="flex items-center gap-1">
-              <Button variant="ghost" size="sm" className="h-7 text-xs"
-                onClick={() => { sampleInputRef.current?.click(); }}>
-                更换样本
-              </Button>
-              <Button variant="ghost" size="sm" className="h-7 text-xs text-red-500"
-                onClick={() => { setSampleFile(null); setSampleSheets(new Map()); setSheetNames([]); setActiveSheet(''); setRules([]); setResults([]); }}>
-                清除
-              </Button>
-            </div>
+    <div className="max-w-xl w-full mx-auto">
+      {!sampleFile ? (
+        <div
+          className="border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all duration-300 border-border hover:border-primary/50 hover:bg-primary/5"
+          onClick={() => sampleInputRef.current?.click()}
+          onDrop={e => handleFileDrop(e, handleSampleUpload)}
+          onDragOver={e => e.preventDefault()}
+        >
+          <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground animate-float" />
+          <p className="text-base text-foreground font-medium">拖拽或点击上传 Excel 样本</p>
+          <p className="text-sm text-muted-foreground mt-2">支持 .xlsx / .xls 格式</p>
+        </div>
+      ) : (
+        <div className="flex items-center gap-3 p-4 bg-card rounded-lg border border-border">
+          <FileSpreadsheet className="w-8 h-8 text-primary shrink-0" />
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-semibold text-foreground truncate">{sampleFile.name}</div>
+            <div className="text-xs text-muted-foreground">{formatSize(sampleFile.size)} · {sheetNames.length} 个工作表</div>
           </div>
-        ) : (
-          <div
-            className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 hover:bg-primary/5/30 transition-colors"
-            onClick={() => sampleInputRef.current?.click()}
-            onDrop={e => handleFileDrop(e, handleSampleUpload)}
-            onDragOver={e => e.preventDefault()}
-          >
-            <Upload className="w-8 h-8 text-muted-foreground/60 mx-auto mb-2 animate-float" />
-            <p className="text-sm text-muted-foreground">拖拽或点击上传<strong className="text-primary">Excel 样本</strong></p>
-            <p className="text-xs text-muted-foreground mt-1">支持 .xlsx / .xls 格式</p>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="sm" className="h-7 text-xs"
+              onClick={() => { sampleInputRef.current?.click(); }}>
+              更换样本
+            </Button>
+            <Button variant="ghost" size="sm" className="h-7 text-xs text-red-500"
+              onClick={() => { setSampleFile(null); setSampleSheets(new Map()); setSheetNames([]); setActiveSheet(''); setRules([]); setResults([]); }}>
+              清除
+            </Button>
           </div>
-        )}
-        <input
-          ref={sampleInputRef}
-          type="file"
-          accept=".xlsx,.xls"
-          className="hidden"
-          onChange={e => { const f = e.target.files?.[0]; if (f) handleSampleUpload(f); e.target.value = ''; }}
-        />
-      </CardContent>
-    </Card>
+        </div>
+      )}
+      <input
+        ref={sampleInputRef}
+        type="file"
+        accept=".xlsx,.xls"
+        className="hidden"
+        onChange={e => { const f = e.target.files?.[0]; if (f) handleSampleUpload(f); e.target.value = ''; }}
+      />
+    </div>
   );
 
   const renderSheetTabs = () => {
@@ -938,6 +947,43 @@ export default function BatchExcelExtractor() {
 
   // ============ Main Render ============
 
+  // ============ Step Indicator ============
+  const stepIndex = EXTRACT_STEPS.findIndex((s) => s.id === step);
+
+  const renderStepIndicator = () => (
+    <div className="flex items-center justify-center gap-1 sm:gap-2 overflow-x-auto pb-1">
+      {EXTRACT_STEPS.map((s, i) => {
+        const isActive = i === stepIndex;
+        const isDone = i < stepIndex;
+        return (
+          <div key={s.id} className="flex items-center gap-1 shrink-0">
+            <button
+              onClick={() => {
+                if (s.id === 'upload') setStep('upload');
+                if (s.id === 'config' && sampleFile) setStep('config');
+                if (s.id === 'batch' && sampleFile) setStep('batch');
+              }}
+              disabled={s.id === 'config' && !sampleFile || s.id === 'batch' && !sampleFile}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                isActive
+                  ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/25 scale-[1.03]'
+                  : isDone
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
+                  : 'bg-gray-100 text-gray-400 border border-gray-200'
+              } ${s.id !== 'upload' && !sampleFile ? 'cursor-not-allowed opacity-60' : ''}`}
+            >
+              {isDone ? <CheckCircle2 className="w-3.5 h-3.5" /> : s.icon}
+              <span className="hidden sm:inline">{s.label}</span>
+            </button>
+            {i < EXTRACT_STEPS.length - 1 && (
+              <ArrowRight className={`w-3 h-3 shrink-0 ${i < stepIndex ? 'text-emerald-400' : 'text-gray-300'}`} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+
   return (
     <div className="min-h-full bg-background">
       {/* Toast */}
@@ -947,61 +993,62 @@ export default function BatchExcelExtractor() {
         </div>
       )}
 
-      {/* Sample Upload */}
-      {renderSampleUpload()}
-
-      {/* Sheet Tabs */}
-      {renderSheetTabs()}
-
-      {/* Main content: Preview + Config */}
-      {sampleFile && (
-        <div className="flex flex-col lg:flex-row gap-4 px-4 md:px-6 pt-3 pb-3">
-          {/* Left: Preview */}
-          <div className="flex-1 min-w-0">
-            {renderPreview()}
-          </div>
-
-          {/* Right: Config */}
-          <div className="w-full lg:w-72 shrink-0 space-y-4">
-            {renderConfig()}
-            {renderRulesList()}
-          </div>
+      {/* 步骤导航 — sticky 顶部 */}
+      <div className="bg-card border-b border-border/60 sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto px-4 py-3">
+          {renderStepIndicator()}
         </div>
-      )}
+      </div>
 
-      {/* Batch + Results (full width) */}
-      {sampleFile && (
-        <div className="px-6 pb-8 space-y-4">
-          {renderBatchSection()}
-          {renderResults()}
-        </div>
-      )}
-
-      {/* Empty state */}
-      {!sampleFile && (
-        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-          <FileSpreadsheet className="w-16 h-16 mb-4 opacity-30" />
-          <p className="text-lg font-medium text-muted-foreground mb-1">批量提取 Excel 数据</p>
-          <p className="text-sm">上传一个 Excel 样本，配置提取规则，然后批量处理多个文件</p>
-          <div className="mt-6 grid grid-cols-3 gap-4 max-w-lg">
-            <div className="text-center p-4 bg-card rounded-xl border border-border">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary to-emerald-400 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold shadow-sm">1</div>
-              <p className="text-sm text-foreground font-medium">上传样本 Excel</p>
-              <p className="text-xs text-muted-foreground mt-0.5">选择一个样本文件</p>
-            </div>
-            <div className="text-center p-4 bg-card rounded-xl border border-border">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary to-emerald-400 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold shadow-sm">2</div>
-              <p className="text-sm text-foreground font-medium">配置提取规则</p>
-              <p className="text-xs text-muted-foreground mt-0.5">设置锚点与偏移量</p>
-            </div>
-            <div className="text-center p-4 bg-card rounded-xl border border-border">
-              <div className="w-8 h-8 bg-gradient-to-br from-muted to-muted-foreground/20 text-muted-foreground rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold">3</div>
-              <p className="text-sm text-foreground font-medium">批量处理导出</p>
-              <p className="text-xs text-muted-foreground mt-0.5">自动下载处理结果</p>
+      {/* 主内容 */}
+      <main className="max-w-6xl mx-auto px-4 py-6 pb-12">
+        {step === 'upload' && (
+          <div className="flex flex-col items-center justify-center py-12">
+            {renderSampleUpload()}
+            <div className="mt-8 grid grid-cols-3 gap-4 max-w-lg">
+              <div className="text-center p-4 bg-card rounded-xl border border-border">
+                <div className="w-8 h-8 bg-gradient-to-br from-primary to-emerald-400 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold shadow-sm">1</div>
+                <p className="text-sm text-foreground font-medium">上传样本 Excel</p>
+                <p className="text-xs text-muted-foreground mt-0.5">选择一个样本文件</p>
+              </div>
+              <div className="text-center p-4 bg-card rounded-xl border border-border">
+                <div className="w-8 h-8 bg-gradient-to-br from-primary to-emerald-400 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold shadow-sm">2</div>
+                <p className="text-sm text-foreground font-medium">配置提取规则</p>
+                <p className="text-xs text-muted-foreground mt-0.5">设置锚点与偏移量</p>
+              </div>
+              <div className="text-center p-4 bg-card rounded-xl border border-border">
+                <div className="w-8 h-8 bg-gradient-to-br from-muted to-muted-foreground/20 text-muted-foreground rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold">3</div>
+                <p className="text-sm text-foreground font-medium">批量处理导出</p>
+                <p className="text-xs text-muted-foreground mt-0.5">自动下载处理结果</p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {step === 'config' && sampleFile && (
+          <div className="space-y-4">
+            {/* Sheet Tabs */}
+            {renderSheetTabs()}
+
+            {/* Main content: Preview + Config */}
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="flex-1 min-w-0">{renderPreview()}</div>
+              <div className="w-full lg:w-72 shrink-0 space-y-4">
+                {renderConfig()}
+                {renderRulesList()}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {step === 'batch' && sampleFile && (
+          <div className="space-y-4">
+            {/* Batch + Results */}
+            {renderBatchSection()}
+            {renderResults()}
+          </div>
+        )}
+      </main>
     </div>
   );
 }

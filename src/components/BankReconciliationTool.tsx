@@ -249,14 +249,14 @@ export default function BankReconciliationTool() {
                       if (!isDisabled) setStep(s.key);
                     }}
                     disabled={isDisabled}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
                       isActive
-                        ? 'bg-primary text-primary-foreground shadow'
+                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/25 scale-[1.03]'
                         : isDone
-                        ? 'bg-primary/10 text-primary border border-primary/30'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
                         : isDisabled
-                        ? 'bg-muted text-muted-foreground cursor-not-allowed'
-                        : 'bg-muted text-muted-foreground hover:bg-muted'
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
+                        : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-200'
                     }`}
                   >
                     {isDone ? (
@@ -270,7 +270,7 @@ export default function BankReconciliationTool() {
                   {i < steps.length - 1 && (
                     <div
                       className={`flex-1 h-0.5 mx-2 ${
-                        isDone ? 'bg-primary/50' : 'bg-muted'
+                        isDone ? 'bg-emerald-300' : 'bg-gray-200'
                       }`}
                     />
                   )}

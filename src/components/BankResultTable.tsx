@@ -1,11 +1,11 @@
 import { useState, memo } from 'react';
 import * as XLSX from 'xlsx';
 import { fmtExportDate } from '../utils/dateUtils';
+import { PixelDino } from './PixelDino';
 import {
   Download,
   CheckCircle,
   AlertTriangle,
-  Search,
   ArrowUpRight,
   ArrowDownRight,
   Link2,
@@ -289,11 +289,11 @@ const DiagnosticsPanel = memo(function DiagnosticsPanel({ debug }: { debug: Reco
             <h4 className="text-xs font-semibold text-muted-foreground mb-1.5">匹配统计</h4>
             <div className="grid grid-cols-4 gap-2 text-xs text-center">
               <div className="bg-card border rounded px-2 py-1.5">
-                <div className="font-bold text-teal-700">{debug.fastTrackIncomeTriggered ? debug.bankIncomeCount : 0}</div>
+                <div className="font-bold text-blue-700">{debug.fastTrackIncomeTriggered ? debug.bankIncomeCount : 0}</div>
                 <div className="text-muted-foreground">快速通道(收↔借)</div>
               </div>
               <div className="bg-card border rounded px-2 py-1.5">
-                <div className="font-bold text-teal-700">{debug.fastTrackExpenseTriggered ? debug.bankExpenseCount : 0}</div>
+                <div className="font-bold text-blue-700">{debug.fastTrackExpenseTriggered ? debug.bankExpenseCount : 0}</div>
                 <div className="text-muted-foreground">快速通道(支↔贷)</div>
               </div>
               <div className="bg-card border rounded px-2 py-1.5">
@@ -355,6 +355,46 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
       ['企业账未对符笔数', summary.totalUnmatchedEnterprise],
     ]);
     XLSX.utils.book_append_sheet(wb, summarySheet, '汇总');
+
+    // 账户列表 Sheet（导航索引）
+    const accountListHeader = [
+      '序号', '账户号码', '银行流水笔数', '企业账笔数',
+      '已匹配', '未对符(银行)', '未对符(企业)', '对符状态', '跳转明细'
+    ];
+    const accountListData: (string | number | { f: string })[][] = [accountListHeader];
+    let totalBankSum = 0;
+    let totalEntSum = 0;
+    let totalMatchedSum = 0;
+    let totalUnmatchedBankSum = 0;
+    let totalUnmatchedEntSum = 0;
+
+    for (let i = 0; i < accounts.length; i++) {
+      const acc = accounts[i];
+      const sheetName = acc.account.length > 28 ? acc.account.slice(0, 28) : acc.account;
+      const isFullyMatched = acc.unmatchedBank.length === 0 && acc.unmatchedEnterprise.length === 0;
+      totalBankSum += acc.totalBank;
+      totalEntSum += acc.totalEnterprise;
+      totalMatchedSum += acc.matched.length;
+      totalUnmatchedBankSum += acc.unmatchedBank.length;
+      totalUnmatchedEntSum += acc.unmatchedEnterprise.length;
+      accountListData.push([
+        i + 1,
+        acc.account,
+        acc.totalBank,
+        acc.totalEnterprise,
+        acc.matched.length,
+        acc.unmatchedBank.length,
+        acc.unmatchedEnterprise.length,
+        isFullyMatched ? '完全对符' : '存在未对符',
+        { f: `HYPERLINK("#\'${sheetName}\'!A1","查看明细")` }
+      ]);
+    }
+    // 合计行
+    accountListData.push([
+      '', '合计', totalBankSum, totalEntSum, totalMatchedSum,
+      totalUnmatchedBankSum, totalUnmatchedEntSum, '', ''
+    ]);
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(accountListData), '账户列表');
 
     // 每账户一个 Sheet
     for (const acc of accounts) {
@@ -506,63 +546,69 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-foreground">核对结果</h2>
         <button
           onClick={handleExport}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 shadow-sm transition-colors"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:-translate-y-0.5"
+          style={{
+            background: 'linear-gradient(135deg, #10b981, #059669)',
+            boxShadow: '0 4px 16px rgba(16,185,129,0.35)',
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 20px rgba(16,185,129,0.5)';
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 16px rgba(16,185,129,0.35)';
+          }}
         >
           <Download className="w-4 h-4" />
           导出 Excel
         </button>
       </div>
 
-      {/* 统计卡片 */}
-      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
-        <div className="bg-card border rounded-xl p-4 shadow-sm text-center">
-          <p className="text-2xl font-bold text-foreground">{summary.totalAccounts}</p>
-          <p className="text-xs text-muted-foreground mt-1">总账户数</p>
+      {/* 统计卡片 - 高饱和四色 */}
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
+        <div className="rounded-xl p-4 text-center border-2 border-emerald-400" style={{ background: 'linear-gradient(135deg, #ecfdf5, #d1fae5)' }}>
+          <p className="text-2xl font-extrabold" style={{ color: '#059669' }}>{summary.totalAccounts}</p>
+          <p className="text-xs font-semibold mt-1" style={{ color: '#047857' }}>总账户数</p>
         </div>
-        <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 shadow-sm text-center">
-          <p className="text-2xl font-bold text-primary">{summary.fullyMatched}</p>
-          <p className="text-xs text-primary mt-1">
-            <CheckCircle className="w-3 h-3 inline mr-0.5" />
-            完全对符
+        <div className="rounded-xl p-4 text-center border-2 border-cyan-400" style={{ background: 'linear-gradient(135deg, #ecfeff, #cffafe)' }}>
+          <p className="text-2xl font-extrabold" style={{ color: '#0891b2' }}>{summary.fullyMatched}</p>
+          <p className="text-xs font-semibold mt-1 flex items-center justify-center gap-1" style={{ color: '#0e7490' }}>
+            <CheckCircle className="w-3 h-3" /> 完全对符
           </p>
         </div>
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 shadow-sm text-center">
-          <p className="text-2xl font-bold text-amber-700">{summary.hasUnmatched}</p>
-          <p className="text-xs text-amber-600 mt-1">
-            <AlertTriangle className="w-3 h-3 inline mr-0.5" />
-            有未对符
+        <div className="rounded-xl p-4 text-center border-2 border-amber-300" style={{ background: 'linear-gradient(135deg, #fffbeb, #fef3c7)' }}>
+          <p className="text-2xl font-extrabold" style={{ color: '#a16207' }}>{summary.hasUnmatched}</p>
+          <p className="text-xs font-semibold mt-1 flex items-center justify-center gap-1" style={{ color: '#854d0e' }}>
+            <AlertTriangle className="w-3 h-3" /> 有未对符
           </p>
         </div>
         {summary.totalMNMatched > 0 && (
-          <div className="bg-secondary border border-border rounded-xl p-4 shadow-sm text-center">
-            <p className="text-2xl font-bold text-foreground">{summary.totalMNMatched}</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              <Link2 className="w-3 h-3 inline mr-0.5" />
-              可能合并
+          <div className="rounded-xl p-4 text-center border-2 border-rose-300" style={{ background: 'linear-gradient(135deg, #fff1f2, #ffe4e6)' }}>
+            <p className="text-2xl font-extrabold" style={{ color: '#be123c' }}>{summary.totalMNMatched}</p>
+            <p className="text-xs font-semibold mt-1 flex items-center justify-center gap-1" style={{ color: '#9f1239' }}>
+              <Link2 className="w-3 h-3" /> 可能合并
             </p>
           </div>
         )}
         {summary.quickMatchedAccounts > 0 && (
-          <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 shadow-sm text-center">
-            <p className="text-2xl font-bold text-teal-700">{summary.quickMatchedAccounts}</p>
-            <p className="text-xs text-teal-600 mt-1">
-              <Zap className="w-3 h-3 inline mr-0.5" />
-              快速对符
+          <div className="rounded-xl p-4 text-center border-2 border-blue-400" style={{ background: 'linear-gradient(135deg, #eff6ff, #dbeafe)' }}>
+            <p className="text-2xl font-extrabold" style={{ color: '#1d4ed8' }}>{summary.quickMatchedAccounts}</p>
+            <p className="text-xs font-semibold mt-1 flex items-center justify-center gap-1" style={{ color: '#1e40af' }}>
+              <Zap className="w-3 h-3" /> 快速对符
             </p>
           </div>
         )}
-        <div className="bg-card border rounded-xl p-4 shadow-sm text-center">
-          <p className="text-2xl font-bold text-primary">{summary.totalUnmatchedBank}</p>
-          <p className="text-xs text-muted-foreground mt-1">银行未对符</p>
+        <div className="rounded-xl p-4 text-center border-2 border-emerald-300" style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)' }}>
+          <p className="text-2xl font-extrabold" style={{ color: '#16a34a' }}>{summary.totalUnmatchedBank}</p>
+          <p className="text-xs font-semibold mt-1" style={{ color: '#15803d' }}>银行未对符</p>
         </div>
-        <div className="bg-card border rounded-xl p-4 shadow-sm text-center">
-          <p className="text-2xl font-bold text-primary">{summary.totalUnmatchedEnterprise}</p>
-          <p className="text-xs text-muted-foreground mt-1">企业未对符</p>
+        <div className="rounded-xl p-4 text-center border-2 border-emerald-300" style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)' }}>
+          <p className="text-2xl font-extrabold" style={{ color: '#16a34a' }}>{summary.totalUnmatchedEnterprise}</p>
+          <p className="text-xs font-semibold mt-1" style={{ color: '#15803d' }}>企业未对符</p>
         </div>
       </div>
 
@@ -637,7 +683,7 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
       {/* 账户 Tab */}
       {hasData && (
         <>
-          <div className="flex flex-wrap gap-1 bg-muted p-1 rounded-lg">
+          <div className="flex flex-wrap gap-1.5 p-1.5 rounded-xl" style={{ background: '#ecfdf5' }}>
             {accounts.map((acc) => {
               const isActive = acc.account === activeAccount;
               const hasIssue = acc.unmatchedBank.length > 0 || acc.unmatchedEnterprise.length > 0;
@@ -645,16 +691,17 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
                 <button
                   key={acc.account}
                   onClick={() => setActiveAccount(acc.account)}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${
                     isActive
-                      ? 'bg-card text-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      ? 'bg-white shadow-sm border-2 border-emerald-400'
+                      : 'text-emerald-700/70 hover:text-emerald-800 hover:bg-white/60'
                   }`}
+                  style={isActive ? { color: '#059669' } : undefined}
                 >
                   {!hasIssue ? (
-                    <CheckCircle className="w-3.5 h-3.5 text-primary/70" />
+                    <CheckCircle className="w-3.5 h-3.5" style={{ color: '#34d399' }} />
                   ) : (
-                    <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
+                    <AlertTriangle className="w-3.5 h-3.5" style={{ color: '#f59e0b' }} />
                   )}
                   {acc.account}
                 </button>
@@ -677,7 +724,7 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
                 {current.quickMatched > 0 && (
                   <>
                     <span className="text-muted-foreground">|</span>
-                    <span className="text-teal-600">
+                    <span className="text-blue-600">
                       <Zap className="w-3 h-3 inline mr-0.5" />
                       快速对符: <strong>{current.quickMatched}</strong> 对
                     </span>
@@ -730,8 +777,8 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
 
               {/* 快速对符说明 */}
               {current.quickMatched > 0 && (
-                <div className="p-3 bg-teal-50 border border-teal-200 rounded-lg text-sm text-teal-800 flex items-start gap-2">
-                  <Zap className="w-4 h-4 mt-0.5 shrink-0 text-teal-600" />
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800 flex items-start gap-2">
+                  <Zap className="w-4 h-4 mt-0.5 shrink-0 text-blue-600" />
                   <span>
                     该账户 {current.quickMatched} 对明细通过<strong>快速对符</strong>通道匹配（银行收入合计 = 企业借方合计，或银行支出合计 = 企业贷方合计），不再逐笔比对。
                   </span>
@@ -769,7 +816,7 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
       {/* 无数据 */}
       {!hasData && (
         <div className="text-center py-12 text-muted-foreground">
-          <Search className="w-12 h-12 mx-auto mb-3 opacity-50" />
+          <PixelDino size={100} className="mx-auto mb-4" bubbleText="暂无数据~" showBubble />
           <p>未找到银行账户数据</p>
         </div>
       )}

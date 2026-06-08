@@ -74,7 +74,7 @@ export function ImportPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-8">
+    <div className="max-w-6xl mx-auto px-6 py-8">
       <h1 className="text-2xl font-bold text-foreground mb-2">数据导入</h1>
       <p className="text-muted-foreground mb-6">请先导入明细账和映射表，数据仅在浏览器本地处理，不会上传到任何服务器。</p>
 

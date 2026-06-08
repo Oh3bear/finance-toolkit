@@ -19,8 +19,8 @@
     --secondary-foreground: 160 20% 20%;
     --muted: 138 20% 94%;
     --muted-foreground: 160 10% 45%;
-    --accent: 174 60% 90%;
-    --accent-foreground: 174 50% 20%;
+    --accent: 210 70% 92%;
+    --accent-foreground: 210 70% 30%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
@@ -55,8 +55,8 @@
     --secondary-foreground: 0 0% 90%;
     --muted: 160 10% 16%;
     --muted-foreground: 160 8% 58%;
-    --accent: 174 20% 18%;
-    --accent-foreground: 174 40% 80%;
+    --accent: 210 20% 18%;
+    --accent-foreground: 210 40% 80%;
 
     --destructive: 0 63% 45%;
     --destructive-foreground: 0 0% 98%;
@@ -221,4 +221,28 @@
   .theme-spin-icon:hover {
     transform: rotate(180deg);
   }
+}
+
+/* 侧边栏光球飘动 */
+@keyframes ftk-orb1 {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0.4; }
+  33%  { transform: translate(15px, -20px) scale(1.1); opacity: 0.5; }
+  66%  { transform: translate(-10px, 10px) scale(0.95); opacity: 0.35; }
+  100% { transform: translate(0, 0) scale(1); opacity: 0.4; }
+}
+@keyframes ftk-orb2 {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0.35; }
+  33%  { transform: translate(-20px, 15px) scale(1.15); opacity: 0.45; }
+  66%  { transform: translate(10px, -10px) scale(0.9); opacity: 0.3; }
+  100% { transform: translate(0, 0) scale(1); opacity: 0.35; }
+}
+
+/* 像素恐龙场景云朵 */
+@keyframes ftk-cloud1 {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(200px); }
+}
+@keyframes ftk-cloud2 {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(160px); }
 }
