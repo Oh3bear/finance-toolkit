@@ -98,7 +98,7 @@ export default function App() {
         <header className="bg-card border-b border-border/60 shrink-0" style={{ backgroundImage: g.header }}>
           <div className="px-4 md:px-6 h-14 flex items-center justify-between gap-4">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-1 h-5 rounded-full bg-gradient-to-b from-amber-500 to-orange-500 shrink-0 animate-spring-bounce" />
+              <div className="w-1 h-5 rounded-full bg-gradient-to-b from-emerald-400 to-cyan-400 shrink-0 animate-spring-bounce" />
               <h2 className="text-sm font-semibold text-foreground truncate">
                 {currentToolConfig?.name || '工具'}
               </h2>
