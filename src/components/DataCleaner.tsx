@@ -888,9 +888,9 @@ export default function DataCleaner() {
               disabled={s.id === 'config' && !sampleFile || s.id === 'batch' && !sampleFile}
               className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
                 isActive
-                  ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/25 scale-[1.03]'
+                  ? 'bg-amber-600 text-white shadow-lg shadow-amber-500/25 scale-[1.03]'
                   : isDone
-                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
+                  ? 'bg-amber-50 text-amber-800 border border-amber-300'
                   : 'bg-gray-100 text-gray-400 border border-gray-200'
               } ${s.id !== 'upload' && !sampleFile ? 'cursor-not-allowed opacity-60' : ''}`}
             >
@@ -898,7 +898,7 @@ export default function DataCleaner() {
               <span className="hidden sm:inline">{s.label}</span>
             </button>
             {i < CLEAN_STEPS.length - 1 && (
-              <ArrowRight className={`w-3 h-3 shrink-0 ${i < stepIndex ? 'text-emerald-400' : 'text-gray-300'}`} />
+              <ArrowRight className={`w-3 h-3 shrink-0 ${i < stepIndex ? 'text-amber-400' : 'text-gray-300'}`} />
             )}
           </div>
         );
@@ -934,12 +934,12 @@ export default function DataCleaner() {
             {renderSampleUpload()}
             <div className="mt-8 grid grid-cols-3 gap-4 max-w-lg">
               <div className="text-center p-4 bg-card rounded-xl border border-border">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary to-emerald-400 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold shadow-sm">1</div>
+                <div className="w-8 h-8 bg-gradient-to-br from-primary to-amber-400 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold shadow-sm">1</div>
                 <p className="text-sm text-foreground font-medium">上传 Excel 样本</p>
                 <p className="text-xs text-muted-foreground mt-0.5">解析工作表结构</p>
               </div>
               <div className="text-center p-4 bg-card rounded-xl border border-border">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary to-emerald-400 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold shadow-sm">2</div>
+                <div className="w-8 h-8 bg-gradient-to-br from-primary to-amber-400 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold shadow-sm">2</div>
                 <p className="text-sm text-foreground font-medium">选中列 + 配置规则</p>
                 <p className="text-xs text-muted-foreground mt-0.5">选择清洗操作组合</p>
               </div>

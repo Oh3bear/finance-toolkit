@@ -251,9 +251,9 @@ export default function BankReconciliationTool() {
                     disabled={isDisabled}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
                       isActive
-                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/25 scale-[1.03]'
+                        ? 'bg-amber-600 text-white shadow-lg shadow-amber-500/25 scale-[1.03]'
                         : isDone
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-300'
+                        ? 'bg-amber-50 text-amber-800 border border-amber-300'
                         : isDisabled
                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
                         : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-200'
@@ -270,7 +270,7 @@ export default function BankReconciliationTool() {
                   {i < steps.length - 1 && (
                     <div
                       className={`flex-1 h-0.5 mx-2 ${
-                        isDone ? 'bg-emerald-300' : 'bg-gray-200'
+                        isDone ? 'bg-amber-300' : 'bg-gray-200'
                       }`}
                     />
                   )}

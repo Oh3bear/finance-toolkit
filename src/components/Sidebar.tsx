@@ -2,7 +2,6 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { PixelDino } from './PixelDino';
 import { useRef, useLayoutEffect } from 'react';
 import {
   FileSpreadsheet,
@@ -115,41 +114,15 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
   return (
     <aside
       className={cn(
-        'h-screen border-r border-emerald-800/30 flex flex-col transition-all duration-200 shrink-0 hidden md:flex relative overflow-hidden',
+        'h-screen border-r border-border flex flex-col transition-all duration-200 shrink-0 hidden md:flex relative',
         collapsed ? 'w-16' : 'w-64'
       )}
-      style={{ background: 'linear-gradient(180deg, #064e3b 0%, #065f46 40%, #047857 100%)' }}
+      style={{ background: 'hsl(var(--sidebar-background))' }}
       role="navigation"
       aria-label="工具导航"
     >
-      {/* 背景氛围光晕 — 纯 inline style 动画，不经过 Tailwind */}
-      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        {/* 主光球 — 翡翠色 */}
-        <div
-          className="absolute rounded-full"
-          style={{
-            top: -40, left: -40,
-            width: 200, height: 200,
-            background: 'radial-gradient(circle, rgba(34,211,238,0.4) 0%, rgba(34,211,238,0) 70%)',
-            animation: 'ftk-orb1 10s ease-in-out infinite',
-            willChange: 'transform, opacity',
-          }}
-        />
-        {/* 副光球 — 亮黄 */}
-        <div
-          className="absolute rounded-full"
-          style={{
-            bottom: -50, right: -50,
-            width: 240, height: 240,
-            background: 'radial-gradient(circle, rgba(250,204,21,0.35) 0%, rgba(250,204,21,0) 70%)',
-            animation: 'ftk-orb2 14s ease-in-out infinite',
-            willChange: 'transform, opacity',
-          }}
-        />
-      </div>
-
-      {/* Logo — 原生 SVG，不使用 dangerouslySetInnerHTML */}
-      <div className="relative flex items-center justify-between px-3 h-14 border-b border-white/10">
+      {/* Logo */}
+      <div className="relative flex items-center justify-between px-3 h-14 border-b border-border">
         {!collapsed && (
           <div className="flex items-center gap-2.5">
             <svg
@@ -163,9 +136,9 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
             >
               <defs>
                 <linearGradient id="ftk-logo-grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-                  <stop offset="0%" stopColor="#34d399" />
-                  <stop offset="50%" stopColor="#1a9e75" />
-                  <stop offset="100%" stopColor="#378add" />
+                  <stop offset="0%" stopColor="#d97706" />
+                  <stop offset="50%" stopColor="#b45309" />
+                  <stop offset="100%" stopColor="#92400e" />
                 </linearGradient>
               </defs>
               <rect width="32" height="32" rx="8" fill="url(#ftk-logo-grad)" />
@@ -175,13 +148,13 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
               <path d="M9.75 15 L22 7" stroke="white" strokeOpacity="0.35" strokeWidth="1.5" strokeLinecap="round" />
               <circle cx="22" cy="7" r="1.5" fill="white" fillOpacity="0.5" />
             </svg>
-            <h1 className="text-sm font-semibold text-white leading-tight">财务工具集</h1>
+            <h1 className="text-sm font-semibold text-sidebar-foreground leading-tight">财务工具集</h1>
           </div>
         )}
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 w-7 p-0 ml-auto shrink-0 text-white/60 hover:text-white hover:bg-white/10"
+          className="h-7 w-7 p-0 ml-auto shrink-0 text-muted-foreground hover:text-foreground hover:bg-muted"
           onClick={onToggleCollapse}
           aria-label={collapsed ? '展开侧边栏' : '折叠侧边栏'}
         >
@@ -196,7 +169,7 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
           {!collapsed && (
             <div
               ref={indicatorRef}
-              className="absolute left-0 w-[3px] rounded-r-full bg-primary shadow-sm shadow-primary/50 pointer-events-none"
+              className="absolute left-0 w-[3px] rounded-r-full bg-primary pointer-events-none"
               style={{
                 top: 0,
                 height: '36px',
@@ -210,7 +183,7 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
             {categories.map((cat) => (
               <div key={cat} className="mb-2">
                 {!collapsed && (
-                  <div className="px-3 py-1.5 text-xs font-medium text-white/40 uppercase tracking-wider">
+                  <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground/60 uppercase tracking-wider">
                     {cat}
                   </div>
                 )}
@@ -230,8 +203,8 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
                             className={cn(
                               'w-full flex items-center justify-center py-2.5 px-2 transition-colors btn-lift',
                               isActive
-                                ? 'bg-gradient-to-r from-emerald-400/20 to-cyan-400/10 text-emerald-300 border-r-2 border-emerald-400'
-                                : 'text-white/60 hover:bg-white/10 hover:text-white'
+                                ? 'bg-primary/10 text-primary border-r-2 border-primary'
+                                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                             )}
                           >
                             <Icon className="w-5 h-5" />
@@ -246,16 +219,17 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
                         onClick={() => onSelectTool(tool.id)}
                         aria-current={isActive ? 'page' : undefined}
                         className={cn(
-                          'w-full flex items-start gap-3 px-3 py-2 text-sm transition-colors text-left btn-lift',
+                          'w-full flex items-start gap-3 px-3 py-2 text-sm transition-colors text-left btn-lift rounded-lg mx-2',
                           isActive
-                            ? 'bg-gradient-to-r from-emerald-400/20 to-cyan-400/10 text-emerald-300 border-l-[3px] border-emerald-400'
-                            : 'text-white/65 hover:bg-white/10 hover:text-white'
+                            ? 'bg-primary/10 text-primary border-l-[3px] border-primary'
+                            : 'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground'
                         )}
+                        style={{ width: collapsed ? undefined : 'calc(100% - 16px)' }}
                       >
                         <Icon className="w-4 h-4 shrink-0 mt-0.5" />
                         <div className="min-w-0 leading-snug">
                           <div className="font-medium">{tool.name}</div>
-                          <div className="text-xs text-white/50 mt-0.5 break-words">{tool.description}</div>
+                          <div className="text-xs text-muted-foreground/70 mt-0.5 break-words">{tool.description}</div>
                         </div>
                       </button>
                     );
@@ -265,7 +239,7 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
 
             {/* 预留工具 */}
             {!collapsed && (
-              <div className="px-3 py-1.5 text-xs font-medium text-white/40 uppercase tracking-wider mt-2">
+              <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground/60 uppercase tracking-wider mt-2">
                 即将上线
               </div>
             )}
@@ -277,7 +251,7 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
                     <button
                       disabled
                       aria-label={`${tool.name}（即将上线）`}
-                      className="w-full flex items-center justify-center py-2.5 px-2 text-white/30 cursor-not-allowed"
+                      className="w-full flex items-center justify-center py-2.5 px-2 text-muted-foreground/30 cursor-not-allowed"
                     >
                       <Icon className="w-5 h-5" />
                     </button>
@@ -288,12 +262,12 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
                 <button
                   key={tool.id}
                   disabled
-                  className="w-full flex items-start gap-3 px-3 py-2 text-sm text-white/30 cursor-not-allowed text-left"
+                  className="w-full flex items-start gap-3 px-3 py-2 text-sm text-muted-foreground/30 cursor-not-allowed text-left"
                 >
                   <Icon className="w-4 h-4 shrink-0 mt-0.5" />
                   <div className="min-w-0 leading-snug">
                     <div className="font-medium">{tool.name}</div>
-                    <div className="text-xs text-white/40 mt-0.5 break-words">即将上线</div>
+                    <div className="text-xs text-muted-foreground/40 mt-0.5 break-words">即将上线</div>
                   </div>
                 </button>
               );
@@ -302,68 +276,12 @@ export function Sidebar({ currentTool, onSelectTool, collapsed, onToggleCollapse
         </div>
       </ScrollArea>
 
-      {/* 底部像素恐龙场景 */}
-      <div className="border-t border-border/60 relative overflow-hidden" style={{ height: collapsed ? 56 : 140 }}>
-        {/* 天空渐变背景 — 融入深色侧边栏 */}
-        <div className="absolute inset-0" style={{
-          background: 'linear-gradient(180deg, rgba(6,78,59,0.5) 0%, rgba(6,95,70,0.3) 60%, rgba(4,120,87,0.2) 100%)',
-        }} />
-        {/* 云朵 */}
-        {!collapsed && (
-          <>
-            <div className="absolute" style={{
-              top: 16, left: 20, width: 24, height: 8,
-              background: 'rgba(255,255,255,0.2)', borderRadius: 2,
-              animation: 'ftk-cloud1 10s linear infinite',
-            }} />
-            <div className="absolute" style={{
-              top: 28, left: 140, width: 18, height: 6,
-              background: 'rgba(255,255,255,0.15)', borderRadius: 2,
-              animation: 'ftk-cloud2 14s linear infinite',
-            }} />
-          </>
-        )}
-        {/* 地面 */}
-        <div className="absolute bottom-0 left-0 right-0" style={{
-          height: collapsed ? 12 : 20,
-          background: 'linear-gradient(180deg, transparent, rgba(52,211,153,0.08))',
-          borderTop: '2px dashed rgba(52,211,153,0.2)',
-        }} />
-        {/* 像素山（远景） */}
-        {!collapsed && (
-          <div className="absolute" style={{
-            bottom: 18, left: 10,
-            width: 0, height: 0,
-            borderLeft: '16px solid transparent',
-            borderRight: '16px solid transparent',
-            borderBottom: '24px solid rgba(34,211,238,0.2)',
-          }} />
-        )}
-        {!collapsed && (
-          <div className="absolute" style={{
-            bottom: 18, right: 16,
-            width: 0, height: 0,
-            borderLeft: '12px solid transparent',
-            borderRight: '12px solid transparent',
-            borderBottom: '18px solid rgba(34,211,238,0.15)',
-          }} />
-        )}
-        {/* 恐龙 */}
-        <div className="absolute flex items-end justify-center" style={{
-          bottom: collapsed ? 4 : 14,
-          left: 0, right: 0,
-        }}>
-          {collapsed ? (
-            <PixelDino size={40} />
-          ) : (
-            <PixelDino size={72} />
-          )}
+      {/* 底部版本号 */}
+      {!collapsed && (
+        <div className="border-t border-border py-3 px-4">
+          <p className="text-[10px] text-muted-foreground/50 text-center">财务工具集 v1.0 · 本地处理</p>
         </div>
-        {/* 版本号 */}
-        {!collapsed && (
-          <p className="absolute bottom-1 left-0 right-0 text-center text-[10px] text-white/30">v1.0</p>
-        )}
-      </div>
+      )}
     </aside>
   );
 }

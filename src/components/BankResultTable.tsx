@@ -557,10 +557,10 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
             boxShadow: '0 4px 16px rgba(16,185,129,0.35)',
           }}
           onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 20px rgba(16,185,129,0.5)';
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 6px 20px rgba(217,119,6,0.5)';
           }}
           onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 16px rgba(16,185,129,0.35)';
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 16px rgba(217,119,6,0.35)';
           }}
         >
           <Download className="w-4 h-4" />
@@ -570,13 +570,13 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
 
       {/* 统计卡片 - 高饱和四色 */}
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
-        <div className="rounded-xl p-4 text-center border-2 border-emerald-400" style={{ background: 'linear-gradient(135deg, #ecfdf5, #d1fae5)' }}>
-          <p className="text-2xl font-extrabold" style={{ color: '#059669' }}>{summary.totalAccounts}</p>
-          <p className="text-xs font-semibold mt-1" style={{ color: '#047857' }}>总账户数</p>
+        <div className="rounded-xl p-4 text-center border-2 border-amber-400" style={{ background: 'linear-gradient(135deg, #fffbeb, #fef3c7)' }}>
+          <p className="text-2xl font-extrabold" style={{ color: '#b45309' }}>{summary.totalAccounts}</p>
+          <p className="text-xs font-semibold mt-1" style={{ color: '#92400e' }}>总账户数</p>
         </div>
-        <div className="rounded-xl p-4 text-center border-2 border-cyan-400" style={{ background: 'linear-gradient(135deg, #ecfeff, #cffafe)' }}>
-          <p className="text-2xl font-extrabold" style={{ color: '#0891b2' }}>{summary.fullyMatched}</p>
-          <p className="text-xs font-semibold mt-1 flex items-center justify-center gap-1" style={{ color: '#0e7490' }}>
+        <div className="rounded-xl p-4 text-center border-2 border-teal-400" style={{ background: 'linear-gradient(135deg, #f0fdfa, #ccfbf1)' }}>
+          <p className="text-2xl font-extrabold" style={{ color: '#0f766e' }}>{summary.fullyMatched}</p>
+          <p className="text-xs font-semibold mt-1 flex items-center justify-center gap-1" style={{ color: '#115e59' }}>
             <CheckCircle className="w-3 h-3" /> 完全对符
           </p>
         </div>
@@ -602,13 +602,13 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
             </p>
           </div>
         )}
-        <div className="rounded-xl p-4 text-center border-2 border-emerald-300" style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)' }}>
-          <p className="text-2xl font-extrabold" style={{ color: '#16a34a' }}>{summary.totalUnmatchedBank}</p>
-          <p className="text-xs font-semibold mt-1" style={{ color: '#15803d' }}>银行未对符</p>
+        <div className="rounded-xl p-4 text-center border-2 border-amber-300" style={{ background: 'linear-gradient(135deg, #fffbeb, #fef3c7)' }}>
+          <p className="text-2xl font-extrabold" style={{ color: '#a16207' }}>{summary.totalUnmatchedBank}</p>
+          <p className="text-xs font-semibold mt-1" style={{ color: '#854d0e' }}>银行未对符</p>
         </div>
-        <div className="rounded-xl p-4 text-center border-2 border-emerald-300" style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)' }}>
-          <p className="text-2xl font-extrabold" style={{ color: '#16a34a' }}>{summary.totalUnmatchedEnterprise}</p>
-          <p className="text-xs font-semibold mt-1" style={{ color: '#15803d' }}>企业未对符</p>
+        <div className="rounded-xl p-4 text-center border-2 border-amber-300" style={{ background: 'linear-gradient(135deg, #fffbeb, #fef3c7)' }}>
+          <p className="text-2xl font-extrabold" style={{ color: '#a16207' }}>{summary.totalUnmatchedEnterprise}</p>
+          <p className="text-xs font-semibold mt-1" style={{ color: '#854d0e' }}>企业未对符</p>
         </div>
       </div>
 
@@ -693,10 +693,10 @@ export default function BankResultTable({ result, bankFileName, enterpriseFileNa
                   onClick={() => setActiveAccount(acc.account)}
                   className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${
                     isActive
-                      ? 'bg-white shadow-sm border-2 border-emerald-400'
-                      : 'text-emerald-700/70 hover:text-emerald-800 hover:bg-white/60'
+                      ? 'bg-white shadow-sm border-2 border-amber-400'
+                      : 'text-amber-800/70 hover:text-amber-900 hover:bg-white/60'
                   }`}
-                  style={isActive ? { color: '#059669' } : undefined}
+                  style={isActive ? { color: '#b45309' } : undefined}
                 >
                   {!hasIssue ? (
                     <CheckCircle className="w-3.5 h-3.5" style={{ color: '#34d399' }} />

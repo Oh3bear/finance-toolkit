@@ -39,7 +39,7 @@ export function StepIndicator() {
       <div className="w-full max-w-md mx-auto mb-3">
         <div className="h-1 bg-muted rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-primary to-emerald-400 rounded-full transition-spring-slow"
+            className="h-full bg-gradient-to-r from-primary to-amber-400 rounded-full transition-spring-slow"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
@@ -56,9 +56,9 @@ export function StepIndicator() {
                 onClick={() => canClick && setStep(s.key)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                   isActive
-                    ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/25 scale-[1.03]'
+                    ? 'bg-amber-600 text-white shadow-lg shadow-amber-500/25 scale-[1.03]'
                     : isCompleted
-                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 hover:bg-emerald-100 hover:scale-[1.02]'
+                    ? 'bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100 hover:scale-[1.02]'
                     : canClick
                     ? 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-200 hover:scale-[1.02]'
                     : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
@@ -72,7 +72,7 @@ export function StepIndicator() {
               </button>
               {i < steps.length - 1 && (
                 <div className={`w-8 h-0.5 mx-1 rounded-full transition-all ${
-                  isCompleted ? 'bg-emerald-300' : 'bg-gray-200'
+                  isCompleted ? 'bg-amber-300' : 'bg-gray-200'
                 }`} />
               )}
             </div>

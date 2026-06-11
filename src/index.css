@@ -4,75 +4,75 @@
 
 @layer base {
   :root {
-    /* ── 基础色板（方案G：翡翠矿石 浅色渐变风） ── */
-    --background: 138 33% 97%;
-    --foreground: 160 20% 10%;
+    /* ── 基础色板（方案C：温暖商务风） ── */
+    --background: 40 20% 97%;
+    --foreground: 30 15% 15%;
     --card: 0 0% 100%;
-    --card-foreground: 160 20% 10%;
+    --card-foreground: 30 15% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 160 20% 10%;
+    --popover-foreground: 30 15% 15%;
 
-    --primary: 161 94% 30%;
+    --primary: 30 80% 45%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 138 30% 93%;
-    --secondary-foreground: 160 20% 20%;
-    --muted: 138 20% 94%;
-    --muted-foreground: 160 10% 45%;
-    --accent: 210 70% 92%;
-    --accent-foreground: 210 70% 30%;
+    --secondary: 35 25% 93%;
+    --secondary-foreground: 30 15% 20%;
+    --muted: 35 15% 94%;
+    --muted-foreground: 30 10% 45%;
+    --accent: 35 60% 92%;
+    --accent-foreground: 30 70% 30%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 140 20% 88%;
-    --input: 140 20% 88%;
-    --ring: 161 94% 30%;
-    --radius: 0.5rem;
+    --border: 35 15% 88%;
+    --input: 35 15% 88%;
+    --ring: 30 80% 45%;
+    --radius: 0.75rem;
 
-    --sidebar-background: 152 40% 95%;
-    --sidebar-foreground: 160 20% 20%;
-    --sidebar-primary: 161 94% 30%;
+    --sidebar-background: 35 20% 96%;
+    --sidebar-foreground: 30 15% 20%;
+    --sidebar-primary: 30 80% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 138 30% 91%;
-    --sidebar-accent-foreground: 160 20% 20%;
-    --sidebar-border: 140 20% 88%;
-    --sidebar-ring: 161 94% 30%;
+    --sidebar-accent: 35 20% 92%;
+    --sidebar-accent-foreground: 30 15% 20%;
+    --sidebar-border: 35 15% 88%;
+    --sidebar-ring: 30 80% 45%;
   }
 
   .dark {
-    --background: 160 20% 7%;
-    --foreground: 0 0% 97%;
-    --card: 160 15% 10%;
-    --card-foreground: 0 0% 97%;
-    --popover: 160 15% 10%;
-    --popover-foreground: 0 0% 97%;
+    --background: 30 10% 8%;
+    --foreground: 35 15% 95%;
+    --card: 30 10% 11%;
+    --card-foreground: 35 15% 95%;
+    --popover: 30 10% 11%;
+    --popover-foreground: 35 15% 95%;
 
-    --primary: 160 70% 48%;
+    --primary: 32 70% 52%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 160 12% 18%;
-    --secondary-foreground: 0 0% 90%;
-    --muted: 160 10% 16%;
-    --muted-foreground: 160 8% 58%;
-    --accent: 210 20% 18%;
-    --accent-foreground: 210 40% 80%;
+    --secondary: 30 10% 16%;
+    --secondary-foreground: 35 10% 88%;
+    --muted: 30 8% 14%;
+    --muted-foreground: 30 8% 55%;
+    --accent: 30 15% 18%;
+    --accent-foreground: 35 50% 82%;
 
     --destructive: 0 63% 45%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 160 10% 20%;
-    --input: 160 10% 20%;
-    --ring: 160 70% 48%;
+    --border: 30 8% 20%;
+    --input: 30 8% 20%;
+    --ring: 32 70% 52%;
 
-    --sidebar-background: 160 18% 9%;
-    --sidebar-foreground: 160 8% 68%;
-    --sidebar-primary: 160 70% 48%;
+    --sidebar-background: 30 10% 9%;
+    --sidebar-foreground: 30 8% 68%;
+    --sidebar-primary: 32 70% 52%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 160 10% 16%;
-    --sidebar-accent-foreground: 0 0% 90%;
-    --sidebar-border: 160 10% 18%;
-    --sidebar-ring: 160 70% 48%;
+    --sidebar-accent: 30 8% 16%;
+    --sidebar-accent-foreground: 35 10% 88%;
+    --sidebar-border: 30 8% 18%;
+    --sidebar-ring: 32 70% 52%;
   }
 }
 
@@ -85,7 +85,7 @@
   }
 }
 
-/* 页面切换过渡动画 — fade + slide-up 组合 */
+/* 页面切换过渡动画 */
 @keyframes page-enter {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -94,7 +94,7 @@
   animation: page-enter 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* 交错入场动画 — 用于内容块 stagger */
+/* 交错入场动画 */
 @keyframes stagger-enter {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -125,7 +125,7 @@
   animation: count-complete 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Logo 呼吸动画 — scale pulse，配合原有 shadow 产生脉动光晕 */
+/* Logo 呼吸动画 */
 @keyframes logo-breathe {
   0%, 100% { transform: scale(1); }
   50%      { transform: scale(1.1); }
@@ -135,7 +135,7 @@
   will-change: transform;
 }
 
-/* 空状态浮动动画 — 针对上传区域的 Upload/FileText/FileSpreadsheet 大图标 */
+/* 空状态浮动动画 */
 @keyframes float-gentle {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-6px); }
@@ -143,33 +143,6 @@
 .animate-float {
   animation: float-gentle 3s ease-in-out infinite;
   will-change: transform;
-}
-
-/* 侧边栏背景光斑缓慢移动 */
-@keyframes orb-drift {
-  0%   { transform: translate(0, 0) scale(1); }
-  33%  { transform: translate(20px, -25px) scale(1.15); }
-  66%  { transform: translate(-15px, 15px) scale(0.9); }
-  100% { transform: translate(0, 0) scale(1); }
-}
-.animate-orb {
-  animation: orb-drift 10s ease-in-out infinite;
-  will-change: transform;
-}
-.animate-orb-slow {
-  animation: orb-drift 15s ease-in-out infinite reverse;
-  will-change: transform;
-}
-
-/* 主题切换图标旋转 */
-@keyframes theme-rotate {
-  from { transform: rotate(0deg) scale(1); }
-  to   { transform: rotate(360deg) scale(0.8); }
-}
-
-/* 进度条宽度增长 */
-@keyframes progress-grow {
-  from { width: 0%; }
 }
 
 /* 弹性回弹 */
@@ -182,7 +155,7 @@
   animation: spring-bounce 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* 弹性过渡工具类 — Tailwind 的 ease-[cubic-bezier(...)] 有歧义警告，改用自定义 class */
+/* 弹性过渡工具类 */
 @media (prefers-reduced-motion: no-preference) {
   .ease-spring {
     transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
@@ -199,7 +172,7 @@
   }
 }
 
-/* 按钮微交互 — 全局 */
+/* 按钮微交互 */
 @media (prefers-reduced-motion: no-preference) {
   .btn-lift {
     transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
@@ -221,28 +194,4 @@
   .theme-spin-icon:hover {
     transform: rotate(180deg);
   }
-}
-
-/* 侧边栏光球飘动 */
-@keyframes ftk-orb1 {
-  0%   { transform: translate(0, 0) scale(1); opacity: 0.4; }
-  33%  { transform: translate(15px, -20px) scale(1.1); opacity: 0.5; }
-  66%  { transform: translate(-10px, 10px) scale(0.95); opacity: 0.35; }
-  100% { transform: translate(0, 0) scale(1); opacity: 0.4; }
-}
-@keyframes ftk-orb2 {
-  0%   { transform: translate(0, 0) scale(1); opacity: 0.35; }
-  33%  { transform: translate(-20px, 15px) scale(1.15); opacity: 0.45; }
-  66%  { transform: translate(10px, -10px) scale(0.9); opacity: 0.3; }
-  100% { transform: translate(0, 0) scale(1); opacity: 0.35; }
-}
-
-/* 像素恐龙场景云朵 */
-@keyframes ftk-cloud1 {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(200px); }
-}
-@keyframes ftk-cloud2 {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(160px); }
 }
