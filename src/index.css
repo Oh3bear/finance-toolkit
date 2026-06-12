@@ -2,79 +2,97 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ════════════════════════════════════════════════════════════
+   现代 SaaS 玻璃态 — 设计系统主题变量
+   核心理念：明亮底色 + 蓝/绿/黄点缀，大圆角，柔和阴影
+   ════════════════════════════════════════════════════════════ */
+
 @layer base {
   :root {
-    /* ── 基础色板（高饱和深色侧边栏 + 琥珀主色） ── */
-    --background: 40 20% 97%;
-    --foreground: 30 15% 15%;
+    /* ── 基础色板（极淡蓝灰底 + 深蓝黑文字） ── */
+    --background: 210 20% 98%;
+    --foreground: 215 25% 15%;
     --card: 0 0% 100%;
-    --card-foreground: 30 15% 15%;
+    --card-foreground: 215 25% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 30 15% 15%;
+    --popover-foreground: 215 25% 15%;
 
-    /* primary 用琥珀色 — 步骤导航、按钮高亮 */
-    --primary: 30 80% 45%;
+    /* primary 明亮蓝 — CTA / 品牌强调 */
+    --primary: 210 90% 56%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 35 25% 93%;
-    --secondary-foreground: 30 15% 20%;
-    --muted: 35 15% 94%;
-    --muted-foreground: 30 10% 45%;
-    --accent: 35 60% 92%;
-    --accent-foreground: 30 70% 30%;
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 215 20% 25%;
+    --muted: 210 16% 96%;
+    --muted-foreground: 215 12% 50%;
+    --accent: 210 60% 96%;
+    --accent-foreground: 210 70% 30%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 75% 55%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 35 15% 88%;
-    --input: 35 15% 88%;
-    --ring: 30 80% 45%;
-    --radius: 0.75rem;
+    --border: 215 20% 90%;
+    --input: 215 20% 90%;
+    --ring: 210 90% 56%;
+    --radius: 1rem;
 
-    /* sidebar 深色翡翠绿（高饱和方案） */
-    --sidebar-background: 160 60% 15%;
-    --sidebar-foreground: 0 0% 97%;
-    --sidebar-primary: 158 75% 52%;
+    /* sidebar 纯白（SaaS 明亮风格） */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 215 20% 30%;
+    --sidebar-primary: 210 90% 56%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 160 50% 18%;
-    --sidebar-accent-foreground: 0 0% 97%;
-    --sidebar-border: 160 50% 20%;
-    --sidebar-ring: 158 75% 52%;
+    --sidebar-accent: 210 20% 96%;
+    --sidebar-accent-foreground: 215 20% 30%;
+    --sidebar-border: 215 20% 90%;
+    --sidebar-ring: 210 90% 56%;
+
+    /* chart 颜色 — 蓝 / 绿 / 黄 / 红 / 紫 */
+    --chart-1: 210 90% 56%;
+    --chart-2: 145 70% 45%;
+    --chart-3: 45 90% 55%;
+    --chart-4: 0 75% 55%;
+    --chart-5: 260 70% 60%;
   }
 
   .dark {
-    --background: 30 10% 8%;
-    --foreground: 35 15% 95%;
-    --card: 30 10% 11%;
-    --card-foreground: 35 15% 95%;
-    --popover: 30 10% 11%;
-    --popover-foreground: 35 15% 95%;
+    --background: 224 20% 8%;
+    --foreground: 215 15% 88%;
+    --card: 224 18% 11%;
+    --card-foreground: 215 15% 88%;
+    --popover: 224 18% 11%;
+    --popover-foreground: 215 15% 88%;
 
-    --primary: 32 70% 52%;
+    --primary: 210 85% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 30 10% 16%;
-    --secondary-foreground: 35 10% 88%;
-    --muted: 30 8% 14%;
-    --muted-foreground: 30 8% 55%;
-    --accent: 30 15% 18%;
-    --accent-foreground: 35 50% 82%;
+    --secondary: 215 18% 16%;
+    --secondary-foreground: 215 12% 85%;
+    --muted: 215 18% 14%;
+    --muted-foreground: 215 10% 55%;
+    --accent: 215 20% 16%;
+    --accent-foreground: 215 12% 85%;
 
-    --destructive: 0 63% 45%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 30 8% 20%;
-    --input: 30 8% 20%;
-    --ring: 32 70% 52%;
+    --border: 215 18% 18%;
+    --input: 215 18% 18%;
+    --ring: 210 85% 60%;
 
-    --sidebar-background: 160 40% 8%;
-    --sidebar-foreground: 160 8% 68%;
-    --sidebar-primary: 158 70% 48%;
+    --sidebar-background: 224 22% 8%;
+    --sidebar-foreground: 215 10% 65%;
+    --sidebar-primary: 210 85% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 160 30% 14%;
-    --sidebar-accent-foreground: 0 0% 90%;
-    --sidebar-border: 160 20% 15%;
-    --sidebar-ring: 158 70% 48%;
+    --sidebar-accent: 215 20% 14%;
+    --sidebar-accent-foreground: 215 10% 80%;
+    --sidebar-border: 215 18% 16%;
+    --sidebar-ring: 210 85% 60%;
+
+    --chart-1: 210 85% 60%;
+    --chart-2: 145 65% 50%;
+    --chart-3: 45 85% 60%;
+    --chart-4: 0 65% 50%;
+    --chart-5: 260 65% 65%;
   }
 }
 
@@ -84,29 +102,35 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }
 
-/* 页面切换过渡动画 */
+/* ════════════════════════════════════════════════════════════
+   动画系统 — 现代 SaaS 风格
+   核心：淡入上移 + 柔和脉动，轻量无干扰
+   ════════════════════════════════════════════════════════════ */
+
+/* 页面切换过渡动画 — 淡入+轻微上移 */
 @keyframes page-enter {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 .animate-page-enter {
-  animation: page-enter 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: page-enter 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* 交错入场动画 */
 @keyframes stagger-enter {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(6px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 .animate-stagger-enter {
   opacity: 0;
-  animation: stagger-enter 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: stagger-enter 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-/* Shimmer 骨架屏加载 */
+/* Shimmer 骨架屏加载 — 蓝色微光 */
 @keyframes shimmer {
   0%   { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -120,44 +144,63 @@
 /* 数字 count-up 完成后的微妙脉冲 */
 @keyframes count-complete {
   0%   { transform: scale(1); }
-  50%  { transform: scale(1.05); }
+  50%  { transform: scale(1.04); }
   100% { transform: scale(1); }
 }
 .animate-count-complete {
   animation: count-complete 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Logo 呼吸动画 */
+/* Logo 呼吸 — 极轻微的透明度脉动 */
 @keyframes logo-breathe {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.1); }
+  0%, 100% { opacity: 0.9; }
+  50%      { opacity: 1; }
 }
 .animate-logo-breathe {
-  animation: logo-breathe 3s ease-in-out infinite;
-  will-change: transform;
+  animation: logo-breathe 4s ease-in-out infinite;
+  will-change: opacity;
 }
 
 /* 空状态浮动动画 */
 @keyframes float-gentle {
   0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-6px); }
+  50%      { transform: translateY(-4px); }
 }
 .animate-float {
-  animation: float-gentle 3s ease-in-out infinite;
+  animation: float-gentle 3.5s ease-in-out infinite;
   will-change: transform;
 }
 
-/* 弹性回弹 */
+/* 弹性回弹 — SaaS 按钮质感 */
 @keyframes spring-bounce {
-  0%   { transform: scale(0.95); opacity: 0; }
-  60%  { transform: scale(1.02); opacity: 1; }
+  0%   { transform: scale(0.97); opacity: 0; }
+  60%  { transform: scale(1.01); opacity: 1; }
   100% { transform: scale(1); }
 }
 .animate-spring-bounce {
   animation: spring-bounce 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* 弹性过渡工具类 */
+/* ═══ 光点脉动 — 步骤指示器活跃光点 ═══ */
+@keyframes dot-pulse {
+  0%, 100% { box-shadow: 0 0 4px 1px hsl(var(--primary) / 0.3); }
+  50%      { box-shadow: 0 0 10px 3px hsl(var(--primary) / 0.5); }
+}
+.animate-dot-pulse {
+  animation: dot-pulse 2s ease-in-out infinite;
+}
+
+/* 像素恐龙场景云朵（保留） */
+@keyframes ftk-cloud1 {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(200px); }
+}
+@keyframes ftk-cloud2 {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(160px); }
+}
+
+/* ═══ 弹性过渡工具类 ═══ */
 @media (prefers-reduced-motion: no-preference) {
   .ease-spring {
     transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
@@ -174,22 +217,22 @@
   }
 }
 
-/* 按钮微交互 */
+/* ═══ 按钮微交互 — SaaS 上浮感 ═══ */
 @media (prefers-reduced-motion: no-preference) {
   .btn-lift {
     transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
                 box-shadow 0.2s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .btn-lift:hover {
-    transform: scale(1.02);
-    box-shadow: 0 4px 12px -2px hsl(var(--primary) / 0.15);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px -4px hsl(var(--primary) / 0.2);
   }
   .btn-lift:active {
-    transform: scale(0.98);
+    transform: translateY(0) scale(0.98);
     box-shadow: 0 1px 4px -1px hsl(var(--primary) / 0.1);
   }
 
-  /* 主题切换旋转 */
+  /* 主题切换旋转（保留） */
   .theme-spin-icon {
     transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   }
@@ -198,26 +241,96 @@
   }
 }
 
-/* 侧边栏光球飘动 */
-@keyframes ftk-orb1 {
-  0%   { transform: translate(0, 0) scale(1); opacity: 0.4; }
-  33%  { transform: translate(15px, -20px) scale(1.1); opacity: 0.5; }
-  66%  { transform: translate(-10px, 10px) scale(0.95); opacity: 0.35; }
-  100% { transform: translate(0, 0) scale(1); opacity: 0.4; }
-}
-@keyframes ftk-orb2 {
-  0%   { transform: translate(0, 0) scale(1); opacity: 0.35; }
-  33%  { transform: translate(-20px, 15px) scale(1.15); opacity: 0.45; }
-  66%  { transform: translate(10px, -10px) scale(0.9); opacity: 0.3; }
-  100% { transform: translate(0, 0) scale(1); opacity: 0.35; }
+/* ═══ SaaS 风格全局装饰工具类 ═══ */
+
+/* 蓝色渐变高光线 — 卡片/区块顶部装饰 */
+.saas-accent-line {
+  height: 2px;
+  background: linear-gradient(90deg,
+    hsl(var(--primary) / 0.1) 0%,
+    hsl(var(--primary) / 0.6) 30%,
+    hsl(210 90% 70% / 0.8) 50%,
+    hsl(var(--primary) / 0.6) 70%,
+    hsl(var(--primary) / 0.1) 100%
+  );
+  border-radius: 1px;
 }
 
-/* 像素恐龙场景云朵 */
-@keyframes ftk-cloud1 {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(200px); }
+/* SaaS 卡片 — 大圆角 + 柔和弥散阴影 */
+.saas-card {
+  background: hsl(var(--card));
+  border-radius: 1rem;
+  border: 1px solid hsl(var(--border) / 0.6);
+  box-shadow: 0 1px 3px 0 hsl(215 25% 15% / 0.04),
+              0 4px 20px -4px hsl(215 25% 15% / 0.03);
+  transition: box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
-@keyframes ftk-cloud2 {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(160px); }
+.saas-card:hover {
+  box-shadow: 0 4px 24px -4px hsl(215 25% 15% / 0.06),
+              0 1px 3px 0 hsl(215 25% 15% / 0.04);
+  transform: translateY(-1px);
 }
+
+/* SaaS 上传区域 — 虚线边框 + hover 蓝色发光 */
+.saas-upload-zone {
+  border: 2px dashed hsl(var(--border));
+  background: hsl(var(--muted) / 0.3);
+  border-radius: 1rem;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.saas-upload-zone:hover {
+  border-color: hsl(var(--primary) / 0.5);
+  background: hsl(var(--primary) / 0.03);
+  box-shadow: 0 0 24px -8px hsl(var(--primary) / 0.1);
+}
+.saas-upload-zone.active {
+  border-color: hsl(var(--primary) / 0.6);
+  background: hsl(var(--primary) / 0.04);
+  box-shadow: 0 0 32px -8px hsl(var(--primary) / 0.15);
+}
+
+/* 步骤指示器 — 蓝色渐变轨道 + 光点 */
+.step-track {
+  height: 3px;
+  background: hsl(var(--border));
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+.step-track-fill {
+  height: 100%;
+  background: linear-gradient(90deg, hsl(var(--primary)), hsl(210 90% 70%));
+  border-radius: 2px;
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.step-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid hsl(var(--border));
+  background: hsl(var(--background));
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  z-index: 2;
+}
+.step-dot.active {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--primary));
+  box-shadow: 0 0 0 4px hsl(var(--primary) / 0.15);
+}
+.step-dot.completed {
+  border-color: hsl(var(--primary));
+  background: hsl(var(--primary));
+}
+
+/* 语义色工具类 — 供各工具页面直接使用 */
+.text-success { color: hsl(145, 70%, 45%); }
+.text-warning { color: hsl(45, 90%, 55%); }
+.text-info    { color: hsl(210, 90%, 56%); }
+.bg-success-light { background-color: hsl(145, 70%, 45%, 0.08); }
+.bg-warning-light { background-color: hsl(45, 90%, 55%, 0.08); }
+.bg-info-light    { background-color: hsl(210, 90%, 56%, 0.08); }
+.border-success { border-color: hsl(145, 70%, 45%, 0.3); }
+.border-warning { border-color: hsl(45, 90%, 55%, 0.3); }
+.border-info    { border-color: hsl(210, 90%, 56%, 0.3); }

@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { Upload, FileSearch, BarChart3, CheckCircle, ArrowRight } from 'lucide-react';
+import { ForgeStepIndicator } from '@/components/ForgeStepIndicator';
 import BankUploadStep from './BankUploadStep';
 import BankResultTable from './BankResultTable';
 import {
@@ -17,16 +18,10 @@ interface ParsedData {
   fileName: string;
 }
 
-interface StepDef {
-  key: Step;
-  label: string;
-  icon: React.ReactNode;
-}
-
-const steps: StepDef[] = [
-  { key: 1, label: '上传银行流水', icon: <Upload className="w-4 h-4" /> },
-  { key: 2, label: '上传企业账', icon: <FileSearch className="w-4 h-4" /> },
-  { key: 3, label: '核对结果', icon: <BarChart3 className="w-4 h-4" /> },
+const FORGE_STEPS = [
+  { id: 1 as Step, label: '上传银行流水', icon: <Upload className="w-3.5 h-3.5" /> },
+  { id: 2 as Step, label: '上传企业账', icon: <FileSearch className="w-3.5 h-3.5" /> },
+  { id: 3 as Step, label: '核对结果', icon: <BarChart3 className="w-3.5 h-3.5" /> },
 ];
 
 export default function BankReconciliationTool() {
@@ -234,50 +229,19 @@ export default function BankReconciliationTool() {
               重新开始
             </button>
           </div>
-          <div className="flex items-center">
-            {steps.map((s, i) => {
-              const isActive = step === s.key;
-              const isDone = step > s.key;
-              const isDisabled =
-                (s.key === 2 && !canGoStep2) ||
-                (s.key === 3 && !canGoStep3);
-
-              return (
-                <div key={s.key} className="flex items-center flex-1">
-                  <button
-                    onClick={() => {
-                      if (!isDisabled) setStep(s.key);
-                    }}
-                    disabled={isDisabled}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                      isActive
-                        ? 'bg-amber-600 text-white shadow-lg shadow-amber-500/25 scale-[1.03]'
-                        : isDone
-                        ? 'bg-amber-50 text-amber-800 border border-amber-300'
-                        : isDisabled
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
-                        : 'bg-gray-100 text-gray-500 border border-gray-200 hover:bg-gray-200'
-                    }`}
-                  >
-                    {isDone ? (
-                      <CheckCircle className="w-4 h-4" />
-                    ) : (
-                      s.icon
-                    )}
-                    <span className="hidden sm:inline">{s.label}</span>
-                  </button>
-
-                  {i < steps.length - 1 && (
-                    <div
-                      className={`flex-1 h-0.5 mx-2 ${
-                        isDone ? 'bg-amber-300' : 'bg-gray-200'
-                      }`}
-                    />
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          <ForgeStepIndicator
+            steps={FORGE_STEPS}
+            currentStep={step}
+            onStepClick={(id) => setStep(id as Step)}
+            canNavigateTo={(id) => {
+              const s = id as Step;
+              if (s === 1) return true;
+              if (s === 2) return canGoStep2;
+              if (s === 3) return canGoStep3;
+              return false;
+            }}
+            compact
+          />
         </div>
       </div>
 
@@ -334,8 +298,11 @@ export default function BankReconciliationTool() {
               <div className="space-y-3 p-6 bg-card border rounded-xl shadow-sm">
                 <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
                   <div
-                    className="bg-primary h-2 rounded-full transition-all duration-75 ease-linear"
-                    style={{ width: `${progress}%` }}
+                    className="h-2 rounded-full transition-all duration-75 ease-linear"
+                    style={{
+                      width: `${progress}%`,
+                      background: 'linear-gradient(90deg, hsl(210,90%,56%), hsl(210,90%,70%))',
+                    }}
                   />
                 </div>
                 <p className="text-sm text-center text-muted-foreground">{progressText}</p>

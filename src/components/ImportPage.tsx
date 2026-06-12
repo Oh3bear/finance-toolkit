@@ -95,7 +95,7 @@ export function ImportPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* 明细账导入 */}
         <Card className="overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-amber-400 to-orange-400" />
+          <div className="saas-accent-line" />
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileSpreadsheet className="w-5 h-5 text-primary" />
@@ -107,10 +107,10 @@ export function ImportPage() {
             <div
               onDrop={handleLedgerDrop}
               onDragOver={(e) => e.preventDefault()}
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+              className={`saas-upload-zone rounded-lg p-8 text-center transition-colors ${
                 ledgerFile
-                  ? 'border-primary/50 bg-primary/5'
-                  : 'border-border hover:border-primary/50 hover:bg-primary/5'
+                  ? 'active'
+                  : ''
               }`}
             >
               {ledgerFile ? (
@@ -157,7 +157,7 @@ export function ImportPage() {
 
         {/* 映射表导入 */}
         <Card className="overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-teal-400 to-cyan-400" />
+          <div className="saas-accent-line" />
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileSpreadsheet className="w-5 h-5 text-primary" />
@@ -169,10 +169,10 @@ export function ImportPage() {
             <div
               onDrop={handleMappingDrop}
               onDragOver={(e) => e.preventDefault()}
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+              className={`saas-upload-zone rounded-lg p-8 text-center transition-colors ${
                 mappingFile
-                  ? 'border-primary/50 bg-primary/5'
-                  : 'border-border hover:border-primary/50 hover:bg-primary/5'
+                  ? 'active'
+                  : ''
               }`}
             >
               {mappingFile ? (

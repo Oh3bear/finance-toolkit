@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ForgeStepIndicator } from '@/components/ForgeStepIndicator';
 import {
   Upload,
   FileSpreadsheet,
@@ -124,9 +125,9 @@ interface CleanResult {
 type CleanStep = 'upload' | 'config' | 'batch';
 
 const CLEAN_STEPS: { id: CleanStep; label: string; icon: React.ReactNode }[] = [
-  { id: 'upload', label: '上传样本', icon: <Upload className="w-4 h-4" /> },
-  { id: 'config', label: '配置规则', icon: <Settings2 className="w-4 h-4" /> },
-  { id: 'batch', label: '批量清洗', icon: <Download className="w-4 h-4" /> },
+  { id: 'upload', label: '上传样本', icon: <Upload className="w-3.5 h-3.5" /> },
+  { id: 'config', label: '配置规则', icon: <Settings2 className="w-3.5 h-3.5" /> },
+  { id: 'batch', label: '批量清洗', icon: <Download className="w-3.5 h-3.5" /> },
 ];
 
 export default function DataCleaner() {
@@ -550,7 +551,7 @@ export default function DataCleaner() {
 
         {/* Find/Replace extra fields */}
         {currentOp === 'findReplace' && (
-          <div className="space-y-2 p-2 bg-amber-50 rounded-lg border border-amber-200">
+          <div className="space-y-2 p-2 rounded-lg border border-border" style={{ background: 'hsl(210,90%,56%,0.04)' }}>
             <div>
               <Label className="text-xs text-muted-foreground">查找内容</Label>
               <Input
@@ -707,7 +708,7 @@ export default function DataCleaner() {
               </thead>
               <tbody>
                 {display.map((r, i) => (
-                  <tr key={i} className={r.changed ? 'bg-amber-50/50' : ''}>
+                  <tr key={i} className={r.changed ? '' : ''} style={r.changed ? { background: 'hsl(210,90%,56%,0.03)' } : undefined}>
                     <td className="px-3 py-1 text-muted-foreground font-mono">{r.rowIdx}</td>
                     <td className="px-3 py-1 text-muted-foreground max-w-[200px] truncate">{r.original || '(空)'}</td>
                     <td className="px-1 py-1 text-center text-muted-foreground/60"><ArrowRight className="w-3 h-3" /></td>
@@ -870,41 +871,7 @@ export default function DataCleaner() {
   };
 
   // ============ Step Indicator ============
-  const stepIndex = CLEAN_STEPS.findIndex((s) => s.id === step);
-
-  const renderStepIndicator = () => (
-    <div className="flex items-center justify-center gap-1 sm:gap-2 overflow-x-auto pb-1">
-      {CLEAN_STEPS.map((s, i) => {
-        const isActive = i === stepIndex;
-        const isDone = i < stepIndex;
-        return (
-          <div key={s.id} className="flex items-center gap-1 shrink-0">
-            <button
-              onClick={() => {
-                if (s.id === 'upload') setStep('upload');
-                if (s.id === 'config' && sampleFile) setStep('config');
-                if (s.id === 'batch' && sampleFile) setStep('batch');
-              }}
-              disabled={s.id === 'config' && !sampleFile || s.id === 'batch' && !sampleFile}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-                isActive
-                  ? 'bg-amber-600 text-white shadow-lg shadow-amber-500/25 scale-[1.03]'
-                  : isDone
-                  ? 'bg-amber-50 text-amber-800 border border-amber-300'
-                  : 'bg-gray-100 text-gray-400 border border-gray-200'
-              } ${s.id !== 'upload' && !sampleFile ? 'cursor-not-allowed opacity-60' : ''}`}
-            >
-              {isDone ? <CheckCircle2 className="w-3.5 h-3.5" /> : s.icon}
-              <span className="hidden sm:inline">{s.label}</span>
-            </button>
-            {i < CLEAN_STEPS.length - 1 && (
-              <ArrowRight className={`w-3 h-3 shrink-0 ${i < stepIndex ? 'text-amber-400' : 'text-gray-300'}`} />
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
+  // stepIndex tracked by ForgeStepIndicator internally
 
   // ============ Main Render ============
 
@@ -912,7 +879,7 @@ export default function DataCleaner() {
     <div className="min-h-full bg-background">
       {/* Toast */}
       {toast && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-foreground text-background text-sm px-4 py-2 rounded-lg shadow-lg">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 text-white text-sm px-4 py-2 rounded-lg shadow-lg" style={{ background: 'hsl(220,20%,12%)' }}>
           {toast}
         </div>
       )}
@@ -923,7 +890,16 @@ export default function DataCleaner() {
       {/* 步骤导航 — sticky 顶部 */}
       <div className="bg-card border-b border-border/60 sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 py-3">
-          {renderStepIndicator()}
+          <ForgeStepIndicator
+            steps={CLEAN_STEPS}
+            currentStep={step}
+            onStepClick={(id) => setStep(id as CleanStep)}
+            canNavigateTo={(id) => {
+              if (id === 'upload') return true;
+              return !!sampleFile;
+            }}
+            compact
+          />
         </div>
       </div>
 
@@ -934,12 +910,12 @@ export default function DataCleaner() {
             {renderSampleUpload()}
             <div className="mt-8 grid grid-cols-3 gap-4 max-w-lg">
               <div className="text-center p-4 bg-card rounded-xl border border-border">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary to-amber-400 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold shadow-sm">1</div>
+                <div className="w-8 h-8 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold shadow-sm" style={{ background: 'linear-gradient(135deg, hsl(210,90%,56%), hsl(210,90%,70%))' }}>1</div>
                 <p className="text-sm text-foreground font-medium">上传 Excel 样本</p>
                 <p className="text-xs text-muted-foreground mt-0.5">解析工作表结构</p>
               </div>
               <div className="text-center p-4 bg-card rounded-xl border border-border">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary to-amber-400 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold shadow-sm">2</div>
+                <div className="w-8 h-8 text-white rounded-full flex items-center justify-center mx-auto mb-2 text-sm font-bold shadow-sm" style={{ background: 'linear-gradient(135deg, hsl(210,90%,56%), hsl(210,90%,70%))' }}>2</div>
                 <p className="text-sm text-foreground font-medium">选中列 + 配置规则</p>
                 <p className="text-xs text-muted-foreground mt-0.5">选择清洗操作组合</p>
               </div>

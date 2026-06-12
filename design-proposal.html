@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UI 设计方案对比</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', -apple-system, sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    /* ========== 方案A：精工锻造 (当前已实施) ========== */
+    .scheme-a-sidebar {
+      background: linear-gradient(180deg, hsl(220,25%,11%) 0%, hsl(222,22%,9%) 40%, hsl(218,20%,8%) 100%);
+    }
+    .scheme-a-card {
+      background: #ffffff;
+      border: 1px solid hsl(220,18%,88%);
+      border-radius: 12px;
+    }
+    .scheme-a-accent-line {
+      height: 2px;
+      background: linear-gradient(90deg, hsl(28,72%,48%), hsl(35,80%,55%));
+      border-radius: 1px;
+    }
+    .scheme-a-upload {
+      border: 2px dashed hsl(220,18%,82%);
+      background: hsl(220,18%,97.5%);
+      border-radius: 12px;
+    }
+    .scheme-a-upload.active {
+      border-color: hsl(28,72%,48%,0.5);
+      background: hsl(28,72%,48%,0.03);
+    }
+    .scheme-a-step-dot {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600;
+    }
+    .scheme-a-step-dot.active {
+      background: hsl(28,72%,48%);
+      color: white;
+      box-shadow: 0 0 8px 2px hsl(28,72%,48%,0.3);
+    }
+    .scheme-a-step-dot.done {
+      background: hsl(28,72%,48%);
+      color: white;
+    }
+    .scheme-a-step-dot.todo {
+      background: hsl(220,18%,88%);
+      color: hsl(220,10%,55%);
+    }
+    .scheme-a-progress {
+      height: 4px;
+      background: linear-gradient(90deg, hsl(28,72%,48%), hsl(35,80%,55%));
+      border-radius: 2px;
+    }
+    .scheme-a-btn {
+      background: hsl(28,72%,48%);
+      color: white;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 13px;
+    }
+
+    /* ========== 方案B：现代 SaaS 玻璃态 (提议) ========== */
+    .scheme-b-bg {
+      background: #f8fafc;
+    }
+    .scheme-b-sidebar {
+      background: #ffffff;
+      border-right: 1px solid #e2e8f0;
+    }
+    .scheme-b-card {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 20px rgba(0,0,0,0.03);
+      border: 1px solid rgba(226,232,240,0.6);
+    }
+    .scheme-b-card:hover {
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+      transform: translateY(-1px);
+    }
+    .scheme-b-upload {
+      border-radius: 16px;
+      background: rgba(248,250,252,0.8);
+      border: 1.5px dashed #cbd5e1;
+      backdrop-filter: blur(8px);
+    }
+    .scheme-b-upload.active {
+      border-color: hsl(217,91%,60%);
+      background: hsl(217,91%,97%);
+      box-shadow: 0 0 0 3px hsl(217,91%,60%,0.08);
+    }
+    .scheme-b-step-track {
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .scheme-b-step-fill {
+      height: 100%;
+      background: linear-gradient(90deg, hsl(217,91%,55%), hsl(217,91%,70%));
+      border-radius: 3px;
+    }
+    .scheme-b-step-dot {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600;
+      border: 2.5px solid #e2e8f0;
+      background: white;
+      color: #94a3b8;
+    }
+    .scheme-b-step-dot.active {
+      border-color: hsl(217,91%,60%);
+      color: hsl(217,91%,60%);
+      box-shadow: 0 0 0 4px hsl(217,91%,60%,0.1);
+    }
+    .scheme-b-step-dot.done {
+      background: hsl(217,91%,60%);
+      border-color: hsl(217,91%,60%);
+      color: white;
+    }
+    .scheme-b-btn {
+      background: linear-gradient(135deg, hsl(217,91%,55%), hsl(217,91%,65%));
+      color: white;
+      border-radius: 10px;
+      font-weight: 500;
+      font-size: 13px;
+      box-shadow: 0 1px 3px rgba(37,99,235,0.2);
+    }
+    .scheme-b-nav-item {
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: #64748b;
+    }
+    .scheme-b-nav-item:hover {
+      background: #f1f5f9;
+      color: #334155;
+    }
+    .scheme-b-nav-item.active {
+      background: hsl(217,91%,97%);
+      color: hsl(217,91%,55%);
+      font-weight: 500;
+    }
+    .scheme-b-tag {
+      background: hsl(217,91%,97%);
+      color: hsl(217,91%,50%);
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 8px;
+    }
+
+    .transition-all { transition: all 0.2s ease; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+
+  <div class="max-w-7xl mx-auto">
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">UI 设计方案对比</h1>
+    <p class="text-sm text-gray-500 mb-8">左侧 = 当前已实施的「精工锻造」方案 &nbsp;&nbsp;|&nbsp;&nbsp; 右侧 = 提议的「现代 SaaS 玻璃态」方案</p>
+
+    <div class="grid grid-cols-2 gap-6">
+
+      <!-- ============ 方案 A ============ -->
+      <div>
+        <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">方案 A：精工锻造 (当前)</div>
+        <div class="scheme-a-sidebar rounded-xl p-4 h-[640px] flex flex-col relative overflow-hidden">
+          <!-- 装饰 -->
+          <div class="absolute top-0 left-0 right-0 h-px" style="background: linear-gradient(90deg, transparent 0%, hsl(28,72%,48%,0.3) 30%, hsl(35,80%,55%,0.5) 50%, hsl(28,72%,48%,0.3) 70%, transparent 100%);"></div>
+          <div class="absolute top-1/4 left-1/4 w-48 h-48 rounded-full" style="background: radial-gradient(circle, hsl(28,72%,48%,0.05) 0%, transparent 65%);"></div>
+
+          <!-- Logo -->
+          <div class="flex items-center gap-2 mb-6">
+            <div class="w-7 h-7 rounded-md flex items-center justify-center text-white text-xs font-bold" style="background: linear-gradient(135deg, #c87533, #d4944a);">FT</div>
+            <span class="text-white/90 text-sm font-semibold">财务工具集</span>
+          </div>
+
+          <!-- Nav -->
+          <div class="space-y-1">
+            <div class="text-white/30 text-[10px] uppercase tracking-wider mb-2 px-3">核对工具</div>
+            <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/6 text-white/90 text-xs">
+              <span class="w-1 h-4 rounded-full" style="background: linear-gradient(to bottom, hsl(28,72%,52%), hsl(35,80%,55%));"></span>
+              内部往来核对
+            </div>
+            <div class="flex items-center gap-2 px-3 py-2 rounded-lg text-white/45 text-xs hover:bg-white/5">
+              <span class="w-4"></span>
+              银企对账
+            </div>
+            <div class="flex items-center gap-2 px-3 py-2 rounded-lg text-white/45 text-xs hover:bg-white/5">
+              <span class="w-4"></span>
+              逆透视核对
+            </div>
+          </div>
+
+          <!-- 底部恐龙场景 -->
+          <div class="mt-auto pt-6">
+            <div class="h-16 rounded-lg relative overflow-hidden" style="background: linear-gradient(180deg, hsl(220,22%,14%) 0%, hsl(220,20%,10%) 100%);">
+              <div class="absolute bottom-0 left-0 right-0 h-1" style="background: hsl(28,72%,48%,0.04);"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 方案 B ============ -->
+      <div>
+        <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">方案 B：现代 SaaS 玻璃态 (提议)</div>
+        <div class="scheme-b-sidebar rounded-xl p-4 h-[640px] flex flex-col">
+          <!-- Logo -->
+          <div class="flex items-center gap-2 mb-6">
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold scheme-b-btn">FT</div>
+            <span class="text-gray-800 text-sm font-semibold">财务工具集</span>
+          </div>
+
+          <!-- Nav -->
+          <div class="space-y-0.5">
+            <div class="text-gray-400 text-[10px] uppercase tracking-wider mb-2 px-3 font-medium">核对工具</div>
+            <div class="scheme-b-nav-item active flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+              内部往来核对
+            </div>
+            <div class="scheme-b-nav-item flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+              银企对账
+            </div>
+            <div class="scheme-b-nav-item flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+              逆透视核对
+            </div>
+          </div>
+
+          <!-- 底部装饰 -->
+          <div class="mt-auto pt-6">
+            <div class="h-16 rounded-xl relative overflow-hidden bg-slate-50 border border-slate-100 flex items-center justify-center">
+              <span class="text-xs text-slate-300">像素恐龙场景保留</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 主内容区对比 ============ -->
+    <div class="grid grid-cols-2 gap-6 mt-6">
+
+      <!-- 方案A 主区 -->
+      <div class="bg-white rounded-xl p-5 border border-gray-200">
+        <div class="mb-5">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-1 h-5 rounded-full" style="background: linear-gradient(to bottom, hsl(28,72%,52%), hsl(28,72%,38%));"></div>
+            <h2 class="text-base font-bold text-gray-900">内部往来核对</h2>
+          </div>
+
+          <!-- 步骤条 -->
+          <div class="mb-4">
+            <div class="flex items-center gap-2 mb-2">
+              <div class="scheme-a-step-dot done"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></div>
+              <div class="flex-1 h-0.5 rounded" style="background: linear-gradient(90deg, hsl(28,72%,48%), hsl(35,80%,55%));"></div>
+              <div class="scheme-a-step-dot active">2</div>
+              <div class="flex-1 h-0.5 rounded bg-gray-200"></div>
+              <div class="scheme-a-step-dot todo">3</div>
+              <div class="flex-1 h-0.5 rounded bg-gray-200"></div>
+              <div class="scheme-a-step-dot todo">4</div>
+            </div>
+            <div class="flex justify-between text-[10px] text-gray-400 px-1">
+              <span class="text-gray-500">导入</span>
+              <span class="font-medium" style="color: hsl(28,72%,48%);">映射</span>
+              <span>核对</span>
+              <span>结果</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 卡片 -->
+        <div class="scheme-a-card overflow-hidden">
+          <div class="scheme-a-accent-line"></div>
+          <div class="p-4">
+            <div class="flex items-center gap-2 mb-2">
+              <svg class="w-4 h-4" style="color: hsl(28,72%,48%);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+              <span class="text-sm font-medium text-gray-900">导入台账文件</span>
+            </div>
+            <div class="scheme-a-upload p-6 text-center mt-2">
+              <svg class="w-8 h-8 mx-auto mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+              <p class="text-xs text-gray-400">拖拽或点击上传 Excel 文件</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 按钮 -->
+        <div class="flex justify-end mt-4">
+          <button class="scheme-a-btn px-4 py-2">下一步 →</button>
+        </div>
+      </div>
+
+      <!-- 方案B 主区 -->
+      <div class="scheme-b-bg rounded-xl p-5">
+        <div class="mb-5">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-1.5 h-5 rounded-full" style="background: linear-gradient(to bottom, hsl(217,91%,55%), hsl(217,91%,70%));"></div>
+            <h2 class="text-base font-bold text-gray-900">内部往来核对</h2>
+          </div>
+
+          <!-- 步骤条 -->
+          <div class="mb-4">
+            <div class="scheme-b-step-track mb-3">
+              <div class="scheme-b-step-fill" style="width: 35%;"></div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex flex-col items-center gap-1.5">
+                <div class="scheme-b-step-dot done"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg></div>
+                <span class="text-[10px] font-medium text-gray-500">导入</span>
+              </div>
+              <div class="flex flex-col items-center gap-1.5">
+                <div class="scheme-b-step-dot active">2</div>
+                <span class="text-[10px] font-medium" style="color: hsl(217,91%,55%);">映射</span>
+              </div>
+              <div class="flex flex-col items-center gap-1.5">
+                <div class="scheme-b-step-dot">3</div>
+                <span class="text-[10px] text-gray-400">核对</span>
+              </div>
+              <div class="flex flex-col items-center gap-1.5">
+                <div class="scheme-b-step-dot">4</div>
+                <span class="text-[10px] text-gray-400">结果</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 卡片 -->
+        <div class="scheme-b-card overflow-hidden transition-all">
+          <div class="p-4">
+            <div class="flex items-center gap-2 mb-2">
+              <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: hsl(217,91%,97%);">
+                <svg class="w-4 h-4" style="color: hsl(217,91%,55%);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+              </div>
+              <span class="text-sm font-medium text-gray-900">导入台账文件</span>
+            </div>
+            <div class="scheme-b-upload p-6 text-center mt-3 transition-all">
+              <div class="w-10 h-10 rounded-xl mx-auto mb-2 flex items-center justify-center" style="background: hsl(217,91%,97%);">
+                <svg class="w-5 h-5" style="color: hsl(217,91%,55%);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+              </div>
+              <p class="text-xs text-gray-400">拖拽或点击上传 Excel 文件</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 按钮 -->
+        <div class="flex justify-end mt-4">
+          <button class="scheme-b-btn px-5 py-2.5">下一步 →</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 色彩系统对比 ============ -->
+    <div class="mt-8">
+      <h3 class="text-sm font-bold text-gray-700 mb-4">色彩系统</h3>
+      <div class="grid grid-cols-2 gap-6">
+        <!-- 方案A 色板 -->
+        <div class="bg-white rounded-xl p-5 border border-gray-200">
+          <div class="text-xs font-semibold text-gray-400 mb-3">方案 A 色板</div>
+          <div class="space-y-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg" style="background: hsl(220,25%,11%);"></div>
+              <div>
+                <div class="text-xs font-medium text-gray-700">侧边栏背景</div>
+                <div class="text-[10px] text-gray-400 mono">hsl(220,25%,11%)</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg" style="background: hsl(28,72%,48%);"></div>
+              <div>
+                <div class="text-xs font-medium text-gray-700">主色（铜金）</div>
+                <div class="text-[10px] text-gray-400 mono">hsl(28,72%,48%)</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg border" style="background: hsl(220,18%,97%);"></div>
+              <div>
+                <div class="text-xs font-medium text-gray-700">主背景</div>
+                <div class="text-[10px] text-gray-400 mono">hsl(220,18%,97%)</div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3 text-[10px] text-gray-400">暗黑工业感，对比强烈，识别度高</div>
+        </div>
+
+        <!-- 方案B 色板 -->
+        <div class="bg-white rounded-xl p-5 border border-gray-200">
+          <div class="text-xs font-semibold text-gray-400 mb-3">方案 B 色板</div>
+          <div class="space-y-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg border" style="background: #ffffff;"></div>
+              <div>
+                <div class="text-xs font-medium text-gray-700">侧边栏背景</div>
+                <div class="text-[10px] text-gray-400 mono">#ffffff</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg" style="background: hsl(217,91%,60%);"></div>
+              <div>
+                <div class="text-xs font-medium text-gray-700">主色（靛蓝）</div>
+                <div class="text-[10px] text-gray-400 mono">hsl(217,91%,60%)</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg border" style="background: #f8fafc;"></div>
+              <div>
+                <div class="text-xs font-medium text-gray-700">主背景</div>
+                <div class="text-[10px] text-gray-400 mono">#f8fafc</div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3 text-[10px] text-gray-400">明亮清爽，现代 SaaS 感，视觉负担轻</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 总结 ============ -->
+    <div class="mt-8 bg-white rounded-xl p-5 border border-gray-200">
+      <h3 class="text-sm font-bold text-gray-700 mb-3">设计差异总结</h3>
+      <div class="grid grid-cols-2 gap-6 text-xs">
+        <div>
+          <div class="font-semibold text-gray-600 mb-1">方案 A 特点</div>
+          <ul class="text-gray-500 space-y-1">
+            <li>• 深色侧边栏 + 铜金强调，有品牌辨识度</li>
+            <li>• 微光流动、墨石纹理等细节氛围</li>
+            <li>• 工业/专业工具感，但可能显得沉重</li>
+            <li>• 像专业财务软件或游戏工具</li>
+          </ul>
+        </div>
+        <div>
+          <div class="font-semibold text-gray-600 mb-1">方案 B 特点</div>
+          <ul class="text-gray-500 space-y-1">
+            <li>• 全局明亮 + 大圆角卡片，轻盈通透</li>
+            <li>• 柔和弥散阴影 + hover 微上浮交互</li>
+            <li>• 像 Notion / Linear / Figma 的现代 SaaS</li>
+            <li>• 视觉负担轻，长时间使用更舒适</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

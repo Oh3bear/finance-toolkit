@@ -15,19 +15,19 @@ import PivotReconcileTool from '@/components/PivotReconcileTool';
 import { Shield, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-// 渐变值（JS 常量，100% 进 JS bundle，不依赖 CSS 产物）
+// 渐变值 — 现代 SaaS 风格：明亮蓝底色 + 点缀色微光
 const gradients = {
   light: {
-    sidebar: 'linear-gradient(to bottom, hsl(210,40%,96%), hsl(152,35%,96%) 50%, hsl(40,60%,96%))',
-    header: 'linear-gradient(to right, hsla(210,70%,55%,0.06), white 40%, hsla(40,60%,90%,0.2))',
-    stepHeader: 'linear-gradient(to right, hsla(210,70%,55%,0.04), white 50%, hsla(40,60%,90%,0.15))',
-    footer: 'linear-gradient(to right, hsla(210,70%,55%,0.04), hsla(40,60%,90%,0.1))',
+    sidebar: 'linear-gradient(to bottom, hsl(0,0%,100%), hsl(210,20%,99%) 50%, hsl(210,16%,97%))',
+    header: 'linear-gradient(to right, hsla(210,90%,56%,0.04), hsl(0,0%,100%) 40%, hsla(210,90%,70%,0.05))',
+    stepHeader: 'linear-gradient(to right, hsla(210,90%,56%,0.03), hsl(0,0%,100%) 50%, hsla(210,90%,70%,0.04))',
+    footer: 'linear-gradient(to right, hsla(210,90%,56%,0.02), hsla(210,90%,70%,0.03))',
   },
   dark: {
-    sidebar: 'linear-gradient(to bottom, hsl(210,20%,10%), hsl(160,15%,12%) 50%, hsl(40,15%,10%))',
-    header: 'linear-gradient(to right, hsla(210,70%,48%,0.08), hsl(160,15%,10%) 40%, hsla(40,20%,18%,0.1))',
-    stepHeader: 'linear-gradient(to right, hsla(210,70%,48%,0.06), hsl(160,15%,10%) 50%, hsla(40,20%,18%,0.08))',
-    footer: 'linear-gradient(to right, hsla(210,70%,48%,0.04), hsla(40,20%,18%,0.06))',
+    sidebar: 'linear-gradient(to bottom, hsl(224,22%,8%), hsl(224,18%,9%) 50%, hsl(224,20%,7%))',
+    header: 'linear-gradient(to right, hsla(210,85%,60%,0.06), hsl(224,18%,10%) 40%, hsla(210,85%,70%,0.08))',
+    stepHeader: 'linear-gradient(to right, hsla(210,85%,60%,0.04), hsl(224,18%,10%) 50%, hsla(210,85%,70%,0.06))',
+    footer: 'linear-gradient(to right, hsla(210,85%,60%,0.03), hsla(210,85%,70%,0.04))',
   },
 };
 
@@ -98,28 +98,32 @@ export default function App() {
         <header className="bg-card border-b border-border/60 shrink-0" style={{ backgroundImage: g.header }}>
           <div className="px-4 md:px-6 h-14 flex items-center justify-between gap-4">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-1 h-5 rounded-full bg-gradient-to-b from-emerald-400 to-cyan-400 shrink-0 animate-spring-bounce" />
+                <div className="w-1 h-5 rounded-full shrink-0 animate-spring-bounce"
+                  style={{ background: 'linear-gradient(to bottom, hsl(var(--primary)), hsl(var(--primary) / 0.75))' }}
+                />
               <h2 className="text-sm font-semibold text-foreground truncate">
                 {currentToolConfig?.name || '工具'}
               </h2>
-              <span className="hidden sm:block text-xs text-muted-foreground truncate">
-                {currentToolConfig?.description}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="btn-lift theme-spin-icon h-7 w-7 p-0 hover:bg-primary/10"
-                onClick={toggleTheme}
-                aria-label={theme === 'dark' ? '切换到亮色模式' : '切换到暗色模式'}
-              >
-                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </Button>
-              <span className="flex items-center gap-1.5 text-xs text-muted-foreground px-2.5 py-1 rounded-full bg-primary/8 border border-primary/20 transition-transform hover:scale-105 cursor-default">
-                <Shield className="w-3 h-3 text-primary shrink-0" />
-                数据本地处理
-              </span>
+                <span className="hidden sm:block text-xs text-muted-foreground truncate">
+                  {currentToolConfig?.description}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="btn-lift theme-spin-icon h-7 w-7 p-0 hover:bg-primary/10"
+                  onClick={toggleTheme}
+                  aria-label={theme === 'dark' ? '切换到亮色模式' : '切换到暗色模式'}
+                >
+                  {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                </Button>
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground px-2.5 py-1 rounded-full border border-border/60 transition-transform hover:scale-105 cursor-default"
+                  style={{ background: 'hsl(var(--primary) / 0.06)' }}
+                >
+                  <Shield className="w-3 h-3 shrink-0" style={{ color: 'hsl(var(--primary))' }} />
+                  数据本地处理
+                </span>
             </div>
           </div>
         </header>
