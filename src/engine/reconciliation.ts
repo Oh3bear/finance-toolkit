@@ -274,12 +274,22 @@ function iterativeMatch(rows: CleanedRow[]): {
   return { matchChains, matchedIndices };
 }
 
-// ========== 5. 执行核对 ==========
-export function reconcile(
+// ========== 工具：让渡主线程（避免长任务阻塞 UI） ==========
+// 优先用 scheduler.yield（Chrome 129+），降级到 setTimeout(0)
+function yieldToMain(): Promise<void> {
+  if (typeof (globalThis as any).scheduler?.yield === 'function') {
+    return (globalThis as any).scheduler.yield();
+  }
+  return new Promise<void>((r) => setTimeout(r, 0));
+}
+
+// ========== 5. 执行核对（异步，逐组让渡主线程） ==========
+export async function reconcile(
   rawData: RawLedgerRow[],
   subjectMappings: SubjectMapping[],
-  entityMappings: EntityMapping[]
-): ReconResult {
+  entityMappings: EntityMapping[],
+  onProgress?: (done: number, total: number) => void
+): Promise<ReconResult> {
   // Step 1: 清洗
   const cleaned = cleanData(rawData);
 
@@ -288,8 +298,9 @@ export function reconcile(
 
   // Step 3: 分组
   const groups = groupByProfitCenterPair(filtered, entityMappings);
+  const total = groups.size;
 
-  // Step 4: 逐组核对
+  // Step 4: 逐组核对（每组后 yield 一次主线程）
   const reconGroups: ReconGroup[] = [];
   const 对符明细: ReconGroup[] = [];
   const 未对符明细: ReconGroup[] = [];
@@ -299,7 +310,6 @@ export function reconcile(
   for (const [key, rows] of groups) {
     const [pcA, pcB] = key.split('|');
     const pcAName = rows[0]?.利润中心名称 || pcA;
-    // 找对方利润中心名称
     const extRow = rows[0] as CleanedRow & { _对方利润中心名称?: string };
     const pcBName = extRow._对方利润中心名称 || pcB;
 
@@ -331,44 +341,45 @@ export function reconcile(
       };
       reconGroups.push(group);
       对符明细.push(group);
-      continue;
-    }
-
-    // 复杂路径：逐笔 M:N 匹配
-    const { matchChains, matchedIndices } = iterativeMatch(rows);
-    const matchedCount = matchedIndices.size;
-
-    if (matchedCount === rows.length) {
-      // 全部逐笔匹配成功
-      const group: ReconGroup = {
-        id: key,
-        利润中心A: pcA,
-        利润中心A名称: pcAName,
-        利润中心B: pcB,
-        利润中心B名称: pcBName,
-        行: rows,
-        合计净额: sum,
-        状态: '对符',
-        匹配链: matchChains,
-      };
-      reconGroups.push(group);
-      对符明细.push(group);
     } else {
-      // 存在未匹配的行
-      const group: ReconGroup = {
-        id: key,
-        利润中心A: pcA,
-        利润中心A名称: pcAName,
-        利润中心B: pcB,
-        利润中心B名称: pcBName,
-        行: rows,
-        合计净额: sum,
-        状态: '未对符',
-        匹配链: matchChains,
-      };
-      reconGroups.push(group);
-      未对符明细.push(group);
+      // 复杂路径：逐笔 M:N 匹配
+      const { matchChains, matchedIndices } = iterativeMatch(rows);
+      const matchedCount = matchedIndices.size;
+
+      if (matchedCount === rows.length) {
+        const group: ReconGroup = {
+          id: key,
+          利润中心A: pcA,
+          利润中心A名称: pcAName,
+          利润中心B: pcB,
+          利润中心B名称: pcBName,
+          行: rows,
+          合计净额: sum,
+          状态: '对符',
+          匹配链: matchChains,
+        };
+        reconGroups.push(group);
+        对符明细.push(group);
+      } else {
+        const group: ReconGroup = {
+          id: key,
+          利润中心A: pcA,
+          利润中心A名称: pcAName,
+          利润中心B: pcB,
+          利润中心B名称: pcBName,
+          行: rows,
+          合计净额: sum,
+          状态: '未对符',
+          匹配链: matchChains,
+        };
+        reconGroups.push(group);
+        未对符明细.push(group);
+      }
     }
+
+    // 每组处理完后让渡主线程，保持 UI 响应
+    onProgress?.(totalProcessed, total);
+    await yieldToMain();
   }
 
   // 统计

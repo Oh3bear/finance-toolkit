@@ -23,28 +23,27 @@ export function ReconcilePage() {
 
   const handleReconcile = useCallback(async () => {
     setIsProcessing(true);
-    setProgress(0);
+    setProgress(5);
     setStatusText('正在清洗数据...');
     setDone(false);
 
-    // 使用setTimeout让UI有机会更新
-    await new Promise((r) => setTimeout(r, 100));
-
     try {
-      setStatusText('正在执行分组和M:N核对算法（可能需要一些时间）...');
-      setProgress(30);
+      // reconcile 已改为异步，每处理一个利润中心对就让渡主线程
+      // onProgress 回调实时更新进度条（10% ~ 90%）
+      const result = await reconcile(
+        rawData,
+        subjectMappings,
+        entityMappings,
+        (done, total) => {
+          const pct = total > 0 ? Math.round(10 + (done / total) * 80) : 10;
+          setProgress(pct);
+          setStatusText(`核对中… ${done} / ${total} 组`);
+        }
+      );
 
-      await new Promise((r) => setTimeout(r, 50));
-
-      const result = reconcile(rawData, subjectMappings, entityMappings);
-
-      setProgress(80);
-      setStatusText('核对完成，正在整理结果...');
-      await new Promise((r) => setTimeout(r, 50));
-
-      setReconResult(result);
       setProgress(100);
       setStatusText(`核对完成！共 ${result.统计.总组数} 组，${result.统计.对符组数} 组对符，${result.统计.未对符组数} 组未对符`);
+      setReconResult(result);
       setDone(true);
     } catch (err: any) {
       setStatusText(`核对失败：${err.message}`);

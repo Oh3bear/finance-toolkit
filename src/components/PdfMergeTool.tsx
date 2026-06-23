@@ -465,7 +465,7 @@ export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarColl
           fileName += '.pdf';
         }
 
-        // 延迟下载，防止浏览器拦截
+        // 延迟下载，防止浏览器拦截（固定 300ms 间隔，避免累计递增）
         await new Promise<void>((resolve) => {
           setTimeout(() => {
             const a = document.createElement('a');
@@ -476,7 +476,7 @@ export default function PdfMergeTool({ sidebarCollapsed = false }: { sidebarColl
             a.remove();
             setTimeout(() => URL.revokeObjectURL(url), 60000);
             resolve();
-          }, gi * 500);
+          }, gi === 0 ? 0 : 300);
         });
 
         const pct = Math.round((totalFilesProcessed / totalFiles) * 100);
